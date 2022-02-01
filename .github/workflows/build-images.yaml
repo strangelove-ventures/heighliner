@@ -1,0 +1,26 @@
+name: Build Docker Images
+on:
+  schedule:
+    # TODO: only run daily
+    - cron: '*/30 * * * *'
+
+jobs:
+  build-images:
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+
+      - name: Checkout heighliner
+        uses: actions/checkout@v2
+
+      - name: Build heighliner
+        run: go build
+
+      - name: Build and push images
+        run: ./heighliner build -r ghcr.io/strangelove-ventures/heighliner
+        env:
+          DOCKER_USER: ${{ github.actor }}
+          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

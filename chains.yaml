@@ -1,0 +1,15 @@
+- name: gaia
+  github-organization: cosmos
+  github-repo: gaia
+  make-target: build-linux
+  binary-path: build/gaiad
+- name: osmosis
+  github-organization: osmosis-labs
+  github-repo: osmosis
+  make-target: build-linux
+  binary-path: build/osmosisd
+- name: akash
+  github-organization: ovrclk
+  github-repo: akash
+  make-target: install
+  binary-path: /go/bin/akash
