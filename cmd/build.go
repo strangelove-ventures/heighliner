@@ -49,21 +49,27 @@ type GithubRelease struct {
 	TagName string `json:"tag_name"`
 }
 
-func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string) error {
+func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string, latest bool, containerAuthentication string) error {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}
-	var imageTag string
+
+	var imageName string
 	if containerRegistry == "" {
-		imageTag = fmt.Sprintf("%s:%s", chainNodeConfig.Name, version)
+		imageName = chainNodeConfig.Name
 	} else {
-		imageTag = fmt.Sprintf("%s/%s:%s", containerRegistry, chainNodeConfig.Name, version)
+		imageName = fmt.Sprintf("%s/%s", containerRegistry, chainNodeConfig.Name)
+	}
+
+	imageTags := []string{fmt.Sprintf("%s:%s", imageName, version)}
+	if latest {
+		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
 	opts := types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
-		Tags:       []string{imageTag},
+		Tags:       imageTags,
 		Remove:     true,
 		BuildArgs: map[string]*string{
 			"VERSION":             &version,
@@ -111,39 +117,31 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 		return err
 	}
 
-	authConfig := types.AuthConfig{
-		Username: os.Getenv("DOCKER_USER"),
-		Password: os.Getenv("DOCKER_PASSWORD"),
+	for _, imageTag := range imageTags {
+		rd, err := dockerClient.ImagePush(ctx, imageTag, types.ImagePushOptions{
+			All:          true,
+			RegistryAuth: containerAuthentication,
+		})
+		if err != nil {
+			return err
+		}
+
+		defer rd.Close()
+
+		buf := new(strings.Builder)
+		_, err = io.Copy(buf, rd)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(buf.String())
 	}
-	encodedJSON, err := json.Marshal(authConfig)
-	if err != nil {
-		panic(err)
-	}
-	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
-
-	rd, err := dockerClient.ImagePush(ctx, imageTag, types.ImagePushOptions{
-		All:          true,
-		RegistryAuth: authStr,
-	})
-	if err != nil {
-		return err
-	}
-
-	defer rd.Close()
-
-	buf := new(strings.Builder)
-	_, err = io.Copy(buf, rd)
-
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(buf.String())
 
 	return nil
 }
 
-func buildLastFiveReleasesForChain(chainNodeConfig ChainNodeConfig, containerRegistry string) error {
+func buildLastFiveReleasesForChain(chainNodeConfig ChainNodeConfig, containerRegistry string, containerAuthentication string) error {
 	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=5&page=1",
 		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo))
 	if err != nil {
@@ -159,9 +157,9 @@ func buildLastFiveReleasesForChain(chainNodeConfig ChainNodeConfig, containerReg
 	if err != nil {
 		return err
 	}
-	for _, release := range releases {
+	for i, release := range releases {
 		fmt.Printf("Building tag: %s\n", release.TagName)
-		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName)
+		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, containerAuthentication)
 		if err != nil {
 			return err
 		}
@@ -193,6 +191,16 @@ it will be built and pushed`,
 			log.Fatalf("Error parsing chains.yaml: %v", err)
 		}
 
+		authConfig := types.AuthConfig{
+			Username: os.Getenv("DOCKER_USER"),
+			Password: os.Getenv("DOCKER_PASSWORD"),
+		}
+		encodedJSON, err := json.Marshal(authConfig)
+		if err != nil {
+			panic(err)
+		}
+		authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+
 		for _, chainNodeConfig := range chains {
 			// If chain is provided, only build images for that chain
 			// Chain must be declared in chains.yaml
@@ -202,14 +210,14 @@ it will be built and pushed`,
 			fmt.Printf("Chain: %s\n", chainNodeConfig.Name)
 			if version != "" {
 				fmt.Printf("Building tag: %s\n", version)
-				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version)
+				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, authStr)
 				if err != nil {
 					log.Fatalf("Error building docker image: %v", err)
 				}
 				return
 			}
 			// If specific version not provided, build images for the last 5 releases from the chain
-			err := buildLastFiveReleasesForChain(chainNodeConfig, containerRegistry)
+			err := buildLastFiveReleasesForChain(chainNodeConfig, containerRegistry, authStr)
 			if err != nil {
 				log.Fatalf("Error building docker images: %v", err)
 			}
