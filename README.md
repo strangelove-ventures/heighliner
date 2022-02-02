@@ -19,11 +19,46 @@ Download the latest [release](https://github.com/strangelove-ventures/heighliner
 go build
 ```
 
-Example: build the docker image for gaia v6.0.0:
+#### Example: build the docker image for gaia v6.0.0:
 
 ```bash
-heighliner build -r test -c gaia -v v6.0.0
+heighliner build -c gaia -v v6.0.0
 ```
+
+Docker image `heighliner/gaia:v6.0.0` will now be available in your local docker images
+
+#### Example: build and push the gaia v6.0.0 docker image to ghcr:
+
+```bash
+export DOCKER_USER=github_user
+export DOCKER_PASSWORD=github_personal_access_token
+heighliner build -r ghcr.io/strangelove-ventures/heighliner -c gaia -v v6.0.0
+```
+
+Docker image `ghcr.io/strangelove-ventures/heighliner/gaia:v6.0.0` will be built and pushed to ghcr.io
+
+#### Example: build and push last n releases of osmosis chain
+
+```bash
+export DOCKER_USER=github_user
+export DOCKER_PASSWORD=github_personal_access_token
+heighliner build -r ghcr.io/strangelove-ventures/heighliner -c osmosis -n 3
+```
+
+heighliner will fetch the last 3 osmosis release tags from github, build docker images, and push them, e.g.:
+- `ghcr.io/strangelove-ventures/heighliner/osmosis:v6.1.0`
+- `ghcr.io/strangelove-ventures/heighliner/osmosis:v6.0.0`
+- `ghcr.io/strangelove-ventures/heighliner/osmosis:v5.0.0`
+
+#### Example: build and push last n releases of all chains
+
+```bash
+export DOCKER_USER=github_user
+export DOCKER_PASSWORD=github_personal_access_token
+heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 3
+```
+
+heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](./chains.yaml), build docker images, and push them.
 
 ## Add a new chain
 

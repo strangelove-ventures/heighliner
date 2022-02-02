@@ -117,6 +117,12 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 		return err
 	}
 
+	// Only continue to push images if registry is provided
+	if containerRegistry == "" {
+		return nil
+	}
+
+	// push all image tags to container registry using provided auth
 	for _, imageTag := range imageTags {
 		rd, err := dockerClient.ImagePush(ctx, imageTag, types.ImagePushOptions{
 			All:          true,
@@ -141,9 +147,9 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	return nil
 }
 
-func buildLastFiveReleasesForChain(chainNodeConfig ChainNodeConfig, containerRegistry string, containerAuthentication string) error {
-	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=5&page=1",
-		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo))
+func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int16, containerRegistry string, containerAuthentication string) error {
+	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
+		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, number))
 	if err != nil {
 		return err
 	}
@@ -177,8 +183,11 @@ it will be built and pushed`,
 		containerRegistry, _ := cmd.Flags().GetString("registry")
 		fmt.Printf("Container registry: %s\n", containerRegistry)
 
-		chain, _ := cmd.Flags().GetString("chain")
-		version, _ := cmd.Flags().GetString("version")
+		cmdFlags := cmd.Flags()
+
+		chain, _ := cmdFlags.GetString("chain")
+		version, _ := cmdFlags.GetString("version")
+		number, _ := cmdFlags.GetInt16("number")
 
 		// Parse chains.yaml
 		dat, err := os.ReadFile("./chains.yaml")
@@ -216,8 +225,8 @@ it will be built and pushed`,
 				}
 				return
 			}
-			// If specific version not provided, build images for the last 5 releases from the chain
-			err := buildLastFiveReleasesForChain(chainNodeConfig, containerRegistry, authStr)
+			// If specific version not provided, build images for the last n releases from the chain
+			err := buildMostRecentReleasesForChain(chainNodeConfig, number, containerRegistry, authStr)
 			if err != nil {
 				log.Fatalf("Error building docker images: %v", err)
 			}
@@ -231,4 +240,5 @@ func init() {
 	buildCmd.PersistentFlags().StringP("registry", "r", "", "Docker Container Registry for pushing images")
 	buildCmd.PersistentFlags().StringP("chain", "c", "", "Cosmos chain to build from chains.yaml")
 	buildCmd.PersistentFlags().StringP("version", "v", "", "Github tag to build")
+	buildCmd.PersistentFlags().Int16P("number", "n", 5, "Number of releases to build per chain")
 }
