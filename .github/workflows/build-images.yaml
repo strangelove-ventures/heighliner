@@ -7,6 +7,9 @@ on:
 jobs:
   build-images:
     runs-on: [self-hosted, linux]
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Set up Go 1.17
         uses: actions/setup-go@v2
