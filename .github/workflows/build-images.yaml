@@ -25,5 +25,5 @@ jobs:
       - name: Build and push images
         run: ./heighliner build -r ghcr.io/strangelove-ventures/heighliner
         env:
-          DOCKER_USER: ${{ github.actor }}
-          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_USER: strangelove-ci
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
