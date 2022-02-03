@@ -13,3 +13,14 @@
   github-repo: akash
   make-target: install
   binary-path: /go/bin/akash
+- name: sim
+  github-organization: cosmos
+  github-repo: cosmos-sdk
+  make-target: build-linux
+  binary-path: build/simd
+- name: juno
+  github-organization: CosmosContracts
+  github-repo: juno
+  make-target: install
+  binary-path: /go/bin/junod
+
