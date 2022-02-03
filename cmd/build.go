@@ -38,11 +38,12 @@ type DockerImageBuildLog struct {
 }
 
 type ChainNodeConfig struct {
-	Name               string `yaml:"name"`
-	GithubOrganization string `yaml:"github-organization"`
-	GithubRepo         string `yaml:"github-repo"`
-	MakeTarget         string `yaml:"make-target"`
-	BinaryPath         string `yaml:"binary-path"`
+	Name               string   `yaml:"name"`
+	GithubOrganization string   `yaml:"github-organization"`
+	GithubRepo         string   `yaml:"github-repo"`
+	MakeTarget         string   `yaml:"make-target"`
+	BinaryPath         string   `yaml:"binary-path"`
+	BuildEnv           []string `yaml:"build-env"`
 }
 
 type GithubRelease struct {
@@ -67,6 +68,11 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
+	buildEnv := ""
+	for _, envVar := range chainNodeConfig.BuildEnv {
+		buildEnv += envVar + " "
+	}
+
 	opts := types.ImageBuildOptions{
 		Dockerfile: "Dockerfile",
 		Tags:       imageTags,
@@ -78,6 +84,7 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 			"GITHUB_REPO":         &chainNodeConfig.GithubRepo,
 			"MAKE_TARGET":         &chainNodeConfig.MakeTarget,
 			"BINARY":              &chainNodeConfig.BinaryPath,
+			"BUILD_ENV":           &buildEnv,
 		},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*300)

@@ -5,6 +5,7 @@ ARG GITHUB_ORGANIZATION
 ARG GITHUB_REPO
 ARG BINARY
 ARG MAKE_TARGET
+ARG BUILD_ENV
 
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -20,12 +21,9 @@ ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta5/libwasmvm_
 RUN sha256sum /lib/libwasmvm_muslc.a | grep d16a2cab22c75dbe8af32265b9346c6266070bdcf9ed5aa9b7b39a7e32e25fe0
 
 RUN git checkout ${VERSION}
-ENV NAME ${NAME}
-RUN if [[ "$NAME" == "juno" ]]; then \
-  LEDGER_ENABLED=false BUILD_TAGS=muslc make ${MAKE_TARGET}; \
- else \
-  make ${MAKE_TARGET};\
- fi
+
+RUN export ${BUILD_ENV} && make ${MAKE_TARGET}
+
 RUN cp ${BINARY} /root/cosmos
 
 FROM alpine:edge

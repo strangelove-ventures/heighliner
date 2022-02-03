@@ -1,26 +1,37 @@
+# Cosmos Hub
 - name: gaia
   github-organization: cosmos
   github-repo: gaia
   make-target: build-linux
   binary-path: build/gaiad
+
+# Osmosis
 - name: osmosis
   github-organization: osmosis-labs
   github-repo: osmosis
   make-target: build-linux
   binary-path: build/osmosisd
+
+# Akash
 - name: akash
   github-organization: ovrclk
   github-repo: akash
   make-target: install
   binary-path: /go/bin/akash
-- name: sim
-  github-organization: cosmos
-  github-repo: cosmos-sdk
-  make-target: build-linux
-  binary-path: build/simd
+
+# Juno
 - name: juno
   github-organization: CosmosContracts
   github-repo: juno
   make-target: install
   binary-path: /go/bin/junod
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
 
+# Sim (for testing)
+- name: sim
+  github-organization: cosmos
+  github-repo: cosmos-sdk
+  make-target: build-linux
+  binary-path: build/simd
