@@ -50,10 +50,23 @@ type GithubRelease struct {
 	TagName string `json:"tag_name"`
 }
 
-func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string, latest bool, skip bool, containerAuthentication string) error {
+func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string, latest bool, skip bool, containerAuthentication string, rocksDb bool) error {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
+	}
+
+	var dockerfile string
+	var makeTarget string
+	var imageTag string
+	if rocksDb {
+		dockerfile = "rocksdb.Dockerfile"
+		makeTarget = fmt.Sprintf("%s BUILD_TAGS=rocksdb", chainNodeConfig.MakeTarget)
+		imageTag = fmt.Sprintf("%s-rocks", version)
+	} else {
+		dockerfile = "Dockerfile"
+		makeTarget = chainNodeConfig.MakeTarget
+		imageTag = version
 	}
 
 	var imageName string
@@ -63,8 +76,8 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 		imageName = fmt.Sprintf("%s/%s", containerRegistry, chainNodeConfig.Name)
 	}
 
-	imageTags := []string{fmt.Sprintf("%s:%s", imageName, version)}
-	if latest {
+	imageTags := []string{fmt.Sprintf("%s:%s", imageName, imageTag)}
+	if rocksDb && latest {
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
@@ -74,20 +87,21 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	}
 
 	opts := types.ImageBuildOptions{
-		Dockerfile: "Dockerfile",
-		Tags:       imageTags,
-		Remove:     true,
+		Dockerfile:  dockerfile,
+		Tags:        imageTags,
+		NetworkMode: "host",
+		Remove:      true,
 		BuildArgs: map[string]*string{
 			"VERSION":             &version,
 			"NAME":                &chainNodeConfig.Name,
 			"GITHUB_ORGANIZATION": &chainNodeConfig.GithubOrganization,
 			"GITHUB_REPO":         &chainNodeConfig.GithubRepo,
-			"MAKE_TARGET":         &chainNodeConfig.MakeTarget,
+			"MAKE_TARGET":         &makeTarget,
 			"BINARY":              &chainNodeConfig.BinaryPath,
 			"BUILD_ENV":           &buildEnv,
 		},
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*300)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3000)
 	defer cancel()
 
 	tar, err := archive.TarWithOptions("./", &archive.TarOptions{})
@@ -172,9 +186,14 @@ func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int
 	}
 	for i, release := range releases {
 		fmt.Printf("Building tag: %s\n", release.TagName)
-		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication)
+		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, false)
 		if err != nil {
 			fmt.Printf("Error building docker image: %v\n", err)
+			continue
+		}
+		err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, true)
+		if err != nil {
+			fmt.Printf("Error building rocksdb docker image: %v\n", err)
 			continue
 		}
 	}
@@ -228,9 +247,13 @@ it will be built and pushed`,
 			fmt.Printf("Chain: %s\n", chainNodeConfig.Name)
 			if version != "" {
 				fmt.Printf("Building tag: %s\n", version)
-				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr)
+				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, false)
 				if err != nil {
 					log.Fatalf("Error building docker image: %v", err)
+				}
+				err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, true)
+				if err != nil {
+					log.Fatalf("Error building rocksdb docker image: %v", err)
 				}
 				return
 			}
