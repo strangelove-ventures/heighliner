@@ -67,6 +67,10 @@ COPY --from=rocksdb-build /usr/local/lib/libgflags* /usr/local/lib/
 COPY --from=rocksdb-build /tmp/rocksdb/librocksdb.so* /usr/lib/
 COPY --from=rocksdb-build /tmp/rocksdb/include/rocksdb /usr/include/rocksdb
 
+# Install go (needed by osmosis)
+COPY --from=build-env /usr/local/go/ /usr/local/go/
+ENV PATH="/usr/local/go/bin:${PATH}"
+
 COPY --from=build-env /root/cosmos .
 
 RUN mv /root/cosmos /usr/bin/$(basename $BINARY)

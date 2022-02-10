@@ -34,6 +34,10 @@ ENV BINARY ${BINARY}
 RUN apk add --no-cache ca-certificates jq curl
 WORKDIR /root
 
+# Install go (needed by osmosis)
+COPY --from=build-env /usr/local/go/ /usr/local/go/
+ENV PATH="/usr/local/go/bin:${PATH}"
+
 COPY --from=build-env /root/cosmos .
 
 RUN mv /root/cosmos /usr/bin/$(basename $BINARY)
