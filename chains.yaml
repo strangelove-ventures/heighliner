@@ -4,6 +4,9 @@
   github-repo: gaia
   make-target: build-linux
   binary-path: build/gaiad
+  # Map from gaia version to rocks db version. Will build -rocks tag for these versions
+  rocksdb-version:
+    v6.0.0: v6.10.2
 
 # Osmosis
 - name: osmosis
@@ -11,6 +14,11 @@
   github-repo: osmosis
   make-target: build-linux
   binary-path: build/osmosisd
+  # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
+  rocksdb-version:
+    v6.0.0: v6.10.2
+    v6.1.0: v6.24.2
+    v6.2.0: v6.24.2
 
 # Akash
 - name: akash

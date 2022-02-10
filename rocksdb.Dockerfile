@@ -1,5 +1,7 @@
 FROM golang:alpine AS rocksdb-build
 
+ARG ROCKSDB_VERSION
+
 RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
 RUN apk add --update --no-cache build-base linux-headers git cmake bash perl #wget mercurial g++ autoconf libgflags-dev cmake \
   bash zlib zlib-dev bzip2 bzip2-dev snappy snappy-dev lz4 lz4-dev zstd@testing zstd-dev@testing libtbb-dev@testing libtbb@testing
@@ -17,8 +19,8 @@ RUN cd /tmp && \
 RUN cd /tmp && \
     git clone https://github.com/facebook/rocksdb.git && \
     cd rocksdb && \
-    git checkout v6.10.2 && \
-    make shared_lib 
+    git checkout ${ROCKSDB_VERSION} && \
+    make shared_lib
 
 FROM golang:alpine AS build-env
 ARG VERSION
@@ -56,7 +58,7 @@ FROM alpine:edge
 ARG BINARY
 ENV BINARY ${BINARY}
 
-RUN apk add --no-cache ca-certificates libstdc++ libgcc curl
+RUN apk add --no-cache ca-certificates libstdc++ libgcc curl jq
 
 WORKDIR /root
 

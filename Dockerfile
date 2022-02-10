@@ -31,7 +31,7 @@ FROM alpine:edge
 ARG BINARY
 ENV BINARY ${BINARY}
 
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates jq curl
 WORKDIR /root
 
 COPY --from=build-env /root/cosmos .

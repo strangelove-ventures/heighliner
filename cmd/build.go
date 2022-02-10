@@ -38,19 +38,20 @@ type DockerImageBuildLog struct {
 }
 
 type ChainNodeConfig struct {
-	Name               string   `yaml:"name"`
-	GithubOrganization string   `yaml:"github-organization"`
-	GithubRepo         string   `yaml:"github-repo"`
-	MakeTarget         string   `yaml:"make-target"`
-	BinaryPath         string   `yaml:"binary-path"`
-	BuildEnv           []string `yaml:"build-env"`
+	Name               string            `yaml:"name"`
+	GithubOrganization string            `yaml:"github-organization"`
+	GithubRepo         string            `yaml:"github-repo"`
+	MakeTarget         string            `yaml:"make-target"`
+	BinaryPath         string            `yaml:"binary-path"`
+	BuildEnv           []string          `yaml:"build-env"`
+	RocksDBVersion     map[string]string `yaml:"rocksdb-version"`
 }
 
 type GithubRelease struct {
 	TagName string `json:"tag_name"`
 }
 
-func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string, latest bool, skip bool, containerAuthentication string, rocksDb bool) error {
+func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string, latest bool, skip bool, containerAuthentication string, rocksDbVersion *string) error {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
@@ -59,7 +60,7 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	var dockerfile string
 	var makeTarget string
 	var imageTag string
-	if rocksDb {
+	if rocksDbVersion != nil {
 		dockerfile = "rocksdb.Dockerfile"
 		makeTarget = fmt.Sprintf("%s BUILD_TAGS=rocksdb", chainNodeConfig.MakeTarget)
 		imageTag = fmt.Sprintf("%s-rocks", version)
@@ -77,7 +78,7 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	}
 
 	imageTags := []string{fmt.Sprintf("%s:%s", imageName, imageTag)}
-	if rocksDb && latest {
+	if latest {
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
@@ -99,6 +100,7 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 			"MAKE_TARGET":         &makeTarget,
 			"BINARY":              &chainNodeConfig.BinaryPath,
 			"BUILD_ENV":           &buildEnv,
+			"ROCKSDB_VERSION":     rocksDbVersion,
 		},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3000)
@@ -186,15 +188,16 @@ func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int
 	}
 	for i, release := range releases {
 		fmt.Printf("Building tag: %s\n", release.TagName)
-		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, false)
+		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, nil)
 		if err != nil {
 			fmt.Printf("Error building docker image: %v\n", err)
 			continue
 		}
-		err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, true)
-		if err != nil {
-			fmt.Printf("Error building rocksdb docker image: %v\n", err)
-			continue
+		if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[release.TagName]; ok {
+			err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, &rocksDbVersion)
+			if err != nil {
+				fmt.Printf("Error building rocksdb docker image: %v\n", err)
+			}
 		}
 	}
 	return nil
@@ -247,13 +250,15 @@ it will be built and pushed`,
 			fmt.Printf("Chain: %s\n", chainNodeConfig.Name)
 			if version != "" {
 				fmt.Printf("Building tag: %s\n", version)
-				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, false)
+				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, nil)
 				if err != nil {
 					log.Fatalf("Error building docker image: %v", err)
 				}
-				err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, true)
-				if err != nil {
-					log.Fatalf("Error building rocksdb docker image: %v", err)
+				if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[version]; ok {
+					err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, &rocksDbVersion)
+					if err != nil {
+						log.Fatalf("Error building rocksdb docker image: %v", err)
+					}
 				}
 				return
 			}
