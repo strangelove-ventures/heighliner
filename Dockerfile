@@ -31,11 +31,11 @@ FROM alpine:edge
 ARG BINARY
 ENV BINARY ${BINARY}
 
-RUN apk add --no-cache ca-certificates jq curl
+RUN apk add --no-cache ca-certificates jq curl git
 WORKDIR /root
 
 # Install go (needed by osmosis)
-COPY --from=build-env /usr/local/go/ /usr/local/go/
+COPY --from=golang:alpine /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 COPY --from=build-env /root/cosmos .

@@ -58,7 +58,7 @@ FROM alpine:edge
 ARG BINARY
 ENV BINARY ${BINARY}
 
-RUN apk add --no-cache ca-certificates libstdc++ libgcc curl jq
+RUN apk add --no-cache ca-certificates libstdc++ libgcc curl jq git
 
 WORKDIR /root
 
@@ -68,7 +68,7 @@ COPY --from=rocksdb-build /tmp/rocksdb/librocksdb.so* /usr/lib/
 COPY --from=rocksdb-build /tmp/rocksdb/include/rocksdb /usr/include/rocksdb
 
 # Install go (needed by osmosis)
-COPY --from=build-env /usr/local/go/ /usr/local/go/
+COPY --from=golang:alpine /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 COPY --from=build-env /root/cosmos .
