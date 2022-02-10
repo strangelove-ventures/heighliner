@@ -53,6 +53,11 @@ RUN export ${BUILD_ENV} && make ${MAKE_TARGET}
 
 RUN cp ${BINARY} /root/cosmos
 
+RUN git clone https://github.com/notional-labs/tendermint && \
+  cd tendermint && \
+  git checkout remotes/origin/callum/app-version && \
+  go install -tags rocksdb ./... 
+
 FROM alpine:edge
 
 ARG BINARY
@@ -67,12 +72,11 @@ COPY --from=rocksdb-build /usr/local/lib/libgflags* /usr/local/lib/
 COPY --from=rocksdb-build /tmp/rocksdb/librocksdb.so* /usr/lib/
 COPY --from=rocksdb-build /tmp/rocksdb/include/rocksdb /usr/include/rocksdb
 
-# Install go (needed by osmosis)
-COPY --from=golang:alpine /usr/local/go/ /usr/local/go/
-ENV PATH="/usr/local/go/bin:${PATH}"
+# Install tendermint
+COPY --from=build-env /go/bin/tendermint /usr/bin/
 
+# Install chain binary
 COPY --from=build-env /root/cosmos .
-
 RUN mv /root/cosmos /usr/bin/$(basename $BINARY)
 
 EXPOSE 26657

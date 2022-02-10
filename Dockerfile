@@ -26,6 +26,11 @@ RUN export ${BUILD_ENV} && make ${MAKE_TARGET}
 
 RUN cp ${BINARY} /root/cosmos
 
+RUN git clone https://github.com/tendermint/tendermint && \
+  cd tendermint && \
+  git checkout remotes/origin/callum/app-version && \
+  go install ./...
+
 FROM alpine:edge
 
 ARG BINARY
@@ -34,12 +39,11 @@ ENV BINARY ${BINARY}
 RUN apk add --no-cache ca-certificates jq curl git
 WORKDIR /root
 
-# Install go (needed by osmosis)
-COPY --from=golang:alpine /usr/local/go/ /usr/local/go/
-ENV PATH="/usr/local/go/bin:${PATH}"
+# Install tendermint
+COPY --from=build-env /go/bin/tendermint /usr/bin/
 
+# Install chain binary
 COPY --from=build-env /root/cosmos .
-
 RUN mv /root/cosmos /usr/bin/$(basename $BINARY)
 
 EXPOSE 26657
