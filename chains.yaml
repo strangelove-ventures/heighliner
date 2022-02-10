@@ -19,6 +19,7 @@
     v6.0.0: v6.10.2
     v6.1.0: v6.24.2
     v6.2.0: v6.24.2
+    faddat/pure-rocks: v6.26.1
 
 # Akash
 - name: akash

@@ -63,11 +63,11 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	if rocksDbVersion != nil {
 		dockerfile = "rocksdb.Dockerfile"
 		makeTarget = fmt.Sprintf("%s BUILD_TAGS=rocksdb", chainNodeConfig.MakeTarget)
-		imageTag = fmt.Sprintf("%s-rocks", version)
+		imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(version, "/", "-"))
 	} else {
 		dockerfile = "Dockerfile"
 		makeTarget = chainNodeConfig.MakeTarget
-		imageTag = version
+		imageTag = strings.ReplaceAll(version, "/", "-")
 	}
 
 	var imageName string
@@ -86,6 +86,8 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	for _, envVar := range chainNodeConfig.BuildEnv {
 		buildEnv += envVar + " "
 	}
+
+	fmt.Printf("Building ")
 
 	opts := types.ImageBuildOptions{
 		Dockerfile:  dockerfile,
