@@ -40,6 +40,13 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
+# Sentinel
+- name: sentinel
+  github-organization: sentinel-official
+  github-repo: hub
+  make-target: install
+  binary-path: /go/bin/sentinelhub
+
 # Sim (for testing)
 - name: sim
   github-organization: cosmos
