@@ -47,6 +47,13 @@
   make-target: install
   binary-path: /go/bin/sentinelhub
 
+#Omniflix
+- name: omniflix
+  github-organization: OmniFlix
+  github-repo: omniflixhub
+  make-target: install
+  binary-path: /go/bin/omniflixhubd
+
 # Sim (for testing)
 - name: sim
   github-organization: cosmos
