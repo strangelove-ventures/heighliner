@@ -30,6 +30,7 @@ ARG GITHUB_REPO
 ARG BINARY
 ARG MAKE_TARGET
 ARG BUILD_ENV
+ARG BUILD_TAGS
 
 # Install rocksdb
 COPY --from=rocksdb-build /usr/local/lib/libgflags* /usr/local/lib/
@@ -48,7 +49,7 @@ ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta6/libwasmvm_
 
 RUN git checkout ${VERSION}
 
-RUN export ${BUILD_ENV} && make ${MAKE_TARGET}
+RUN export ${BUILD_ENV} && export "${BUILD_TAGS}" && make ${MAKE_TARGET}
 
 RUN cp ${BINARY} /root/cosmos
 

@@ -51,6 +51,15 @@ type GithubRelease struct {
 	TagName string `json:"tag_name"`
 }
 
+func trimQuotes(s string) string {
+	if len(s) >= 2 {
+		if c := s[len(s)-1]; s[0] == c && (c == '"' || c == '\'') {
+			return s[1 : len(s)-1]
+		}
+	}
+	return s
+}
+
 func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string, latest bool, skip bool, containerAuthentication string, rocksDbVersion *string) error {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -58,15 +67,12 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	}
 
 	var dockerfile string
-	var makeTarget string
 	var imageTag string
 	if rocksDbVersion != nil {
 		dockerfile = "rocksdb.Dockerfile"
-		makeTarget = fmt.Sprintf("%s BUILD_TAGS=rocksdb", chainNodeConfig.MakeTarget)
 		imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(version, "/", "-"))
 	} else {
 		dockerfile = "Dockerfile"
-		makeTarget = chainNodeConfig.MakeTarget
 		imageTag = strings.ReplaceAll(version, "/", "-")
 	}
 
@@ -83,11 +89,19 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	}
 
 	buildEnv := ""
-	for _, envVar := range chainNodeConfig.BuildEnv {
-		buildEnv += envVar + " "
-	}
 
-	fmt.Printf("Building ")
+	buildTagsEnvVar := ""
+	for _, envVar := range chainNodeConfig.BuildEnv {
+		envVarSplit := strings.Split(envVar, "=")
+		if envVarSplit[0] == "BUILD_TAGS" && rocksDbVersion != nil {
+			buildTagsEnvVar = fmt.Sprintf("BUILD_TAGS=%s rocksdb", trimQuotes(envVarSplit[1]))
+		} else {
+			buildEnv += envVar + " "
+		}
+	}
+	if buildTagsEnvVar == "" && rocksDbVersion != nil {
+		buildTagsEnvVar = "BUILD_TAGS=rocksdb"
+	}
 
 	opts := types.ImageBuildOptions{
 		Dockerfile:  dockerfile,
@@ -99,9 +113,10 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 			"NAME":                &chainNodeConfig.Name,
 			"GITHUB_ORGANIZATION": &chainNodeConfig.GithubOrganization,
 			"GITHUB_REPO":         &chainNodeConfig.GithubRepo,
-			"MAKE_TARGET":         &makeTarget,
+			"MAKE_TARGET":         &chainNodeConfig.MakeTarget,
 			"BINARY":              &chainNodeConfig.BinaryPath,
 			"BUILD_ENV":           &buildEnv,
+			"BUILD_TAGS":          &buildTagsEnvVar,
 			"ROCKSDB_VERSION":     rocksDbVersion,
 		},
 	}

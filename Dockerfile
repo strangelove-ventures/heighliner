@@ -6,6 +6,7 @@ ARG GITHUB_REPO
 ARG BINARY
 ARG MAKE_TARGET
 ARG BUILD_ENV
+ARG BUILD_TAGS
 
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -21,7 +22,7 @@ ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta6/libwasmvm_
 
 RUN git checkout ${VERSION}
 
-RUN export ${BUILD_ENV} && make ${MAKE_TARGET}
+RUN export ${BUILD_ENV} && export "${BUILD_TAGS}" && make ${MAKE_TARGET}
 
 RUN cp ${BINARY} /root/cosmos
 
