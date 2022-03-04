@@ -1,3 +1,10 @@
+# Akash
+- name: akash
+  github-organization: ovrclk
+  github-repo: akash
+  make-target: install
+  binary-path: /go/bin/akash
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
@@ -7,6 +14,30 @@
   # Map from gaia version to rocks db version. Will build -rocks tag for these versions
   rocksdb-version:
     v6.0.0: v6.10.2
+
+# Evmos
+- name: evmos
+  github-organization: tharsis
+  github-repo: evmos
+  make-target: install
+  binary-path: /go/bin/evmosd
+
+# Juno
+- name: juno
+  github-organization: CosmosContracts
+  github-repo: juno
+  make-target: install
+  binary-path: /go/bin/junod
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
+
+#Omniflix
+- name: omniflix
+  github-organization: OmniFlix
+  github-repo: omniflixhub
+  make-target: install
+  binary-path: /go/bin/omniflixhubd
 
 # Osmosis
 - name: osmosis
@@ -24,23 +55,6 @@
   build-env:
     - BUILD_TAGS=muslc
 
-# Akash
-- name: akash
-  github-organization: ovrclk
-  github-repo: akash
-  make-target: install
-  binary-path: /go/bin/akash
-
-# Juno
-- name: juno
-  github-organization: CosmosContracts
-  github-repo: juno
-  make-target: install
-  binary-path: /go/bin/junod
-  build-env:
-    - LEDGER_ENABLED=false
-    - BUILD_TAGS=muslc
-
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
@@ -48,16 +62,16 @@
   make-target: install
   binary-path: /go/bin/sentinelhub
 
-#Omniflix
-- name: omniflix
-  github-organization: OmniFlix
-  github-repo: omniflixhub
-  make-target: install
-  binary-path: /go/bin/omniflixhubd
-
 # Sim (for testing)
 - name: sim
   github-organization: cosmos
   github-repo: cosmos-sdk
   make-target: build-linux
   binary-path: build/simd
+
+# Sommelier
+- name: sommelier
+  github-organization: peggyjv
+  github-repo: sommelier
+  make-target: install
+  binary-path: /go/bin/sommelier
