@@ -5,6 +5,23 @@
   make-target: install
   binary-path: /go/bin/akash
 
+# Axelar
+- name: axelar
+  github-organization: axelarnetwork
+  github-repo: axelar-core
+  make-target: build
+  binary-path: bin/axelard
+  pre-build: |
+    git clone https://github.com/axelarnetwork/solidity-cgp-gateway.git
+    cd solidity-cgp-gateway
+    git checkout v2.1.0
+    apk add --update npm jq
+    npm ci
+    npm run build:prod
+    mv build/* ../contract-artifacts/gateway/
+    cd ..
+    bash scripts/populate-bytecode.sh
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos

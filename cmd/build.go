@@ -43,6 +43,7 @@ type ChainNodeConfig struct {
 	GithubRepo         string            `yaml:"github-repo"`
 	MakeTarget         string            `yaml:"make-target"`
 	BinaryPath         string            `yaml:"binary-path"`
+	PreBuild           string            `yaml:"pre-build"`
 	BuildEnv           []string          `yaml:"build-env"`
 	RocksDBVersion     map[string]string `yaml:"rocksdb-version"`
 }
@@ -115,6 +116,7 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 			"GITHUB_REPO":         &chainNodeConfig.GithubRepo,
 			"MAKE_TARGET":         &chainNodeConfig.MakeTarget,
 			"BINARY":              &chainNodeConfig.BinaryPath,
+			"PRE_BUILD":           &chainNodeConfig.PreBuild,
 			"BUILD_ENV":           &buildEnv,
 			"BUILD_TAGS":          &buildTagsEnvVar,
 			"ROCKSDB_VERSION":     rocksDbVersion,

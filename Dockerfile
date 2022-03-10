@@ -7,6 +7,7 @@ ARG BINARY
 ARG MAKE_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
+ARG PRE_BUILD
 
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -22,7 +23,10 @@ ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta6/libwasmvm_
 
 RUN git checkout ${VERSION}
 
-RUN if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi; if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; make ${MAKE_TARGET}
+RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
+    if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi; \
+    if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
+    make ${MAKE_TARGET}
 
 RUN cp ${BINARY} /root/cosmos
 
