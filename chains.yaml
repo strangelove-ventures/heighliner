@@ -32,6 +32,13 @@
   rocksdb-version:
     v6.0.0: v6.10.2
 
+# Crescent
+- name: crescent
+  github-organization: crescent-network
+  github-repo: crescent
+  make-target: install
+  binary-path: /go/bin/crescentd
+
 # Evmos
 - name: evmos
   github-organization: tharsis

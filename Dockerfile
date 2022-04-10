@@ -19,7 +19,7 @@ RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta6/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
+ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
 
 RUN git checkout ${VERSION}
 
@@ -40,7 +40,7 @@ FROM alpine:edge
 ARG BINARY
 ENV BINARY ${BINARY}
 
-RUN apk add --no-cache ca-certificates jq curl git
+RUN apk add --no-cache ca-certificates jq curl git gcc
 WORKDIR /root
 
 # Install tendermint
