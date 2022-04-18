@@ -37,6 +37,8 @@ RUN git clone https://github.com/tendermint/tendermint && \
 
 FROM alpine:edge
 
+LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
+
 ARG BINARY
 ENV BINARY ${BINARY}
 

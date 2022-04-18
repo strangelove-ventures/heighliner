@@ -45,7 +45,7 @@ RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta6/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
+ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
 
 RUN git checkout ${VERSION}
 
@@ -62,6 +62,8 @@ RUN git clone https://github.com/notional-labs/tendermint && \
   go install -tags rocksdb ./... 
 
 FROM alpine:edge
+
+LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
 ARG BINARY
 ENV BINARY ${BINARY}
