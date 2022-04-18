@@ -46,6 +46,13 @@
   make-target: install
   binary-path: /go/bin/evmosd
 
+# Interchain accounts demo
+- name: icad
+  github-organization: cosmos
+  github-repo: interchain-accounts-demo
+  make-target: install
+  binary-path: /go/bin/icad
+
 # Juno
 - name: juno
   github-organization: CosmosContracts
