@@ -6,7 +6,7 @@ Heighliner is a repository of docker images for the node software of Cosmos chai
 
 ## Docker Images
 
-The images are available as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/strangelove-ventures/packages?tab=packages&q=heighliner)
+The images are available as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner)
 
 This repository checks for new tags in the chains in [chains.yaml](./chains.yaml) daily and builds new images if necessary.
 
