@@ -41,7 +41,8 @@ type ChainNodeConfig struct {
 	Name               string            `yaml:"name"`
 	GithubOrganization string            `yaml:"github-organization"`
 	GithubRepo         string            `yaml:"github-repo"`
-	MakeTarget         string            `yaml:"make-target"`
+	Language           string            `yaml:"language"`
+	BuildTarget        string            `yaml:"build-target"`
 	BinaryPath         string            `yaml:"binary-path"`
 	PreBuild           string            `yaml:"pre-build"`
 	BuildEnv           []string          `yaml:"build-env"`
@@ -69,12 +70,20 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 
 	var dockerfile string
 	var imageTag string
-	if rocksDbVersion != nil {
-		dockerfile = "rocksdb.Dockerfile"
-		imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(version, "/", "-"))
-	} else {
-		dockerfile = "Dockerfile"
+	switch chainNodeConfig.Language {
+	case "rust":
+		dockerfile = "rust.Dockerfile"
 		imageTag = strings.ReplaceAll(version, "/", "-")
+	case "go":
+		fallthrough
+	default:
+		if rocksDbVersion != nil {
+			dockerfile = "rocksdb.Dockerfile"
+			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(version, "/", "-"))
+		} else {
+			dockerfile = "Dockerfile"
+			imageTag = strings.ReplaceAll(version, "/", "-")
+		}
 	}
 
 	var imageName string
@@ -114,7 +123,7 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 			"NAME":                &chainNodeConfig.Name,
 			"GITHUB_ORGANIZATION": &chainNodeConfig.GithubOrganization,
 			"GITHUB_REPO":         &chainNodeConfig.GithubRepo,
-			"MAKE_TARGET":         &chainNodeConfig.MakeTarget,
+			"BUILD_TARGET":        &chainNodeConfig.BuildTarget,
 			"BINARY":              &chainNodeConfig.BinaryPath,
 			"PRE_BUILD":           &chainNodeConfig.PreBuild,
 			"BUILD_ENV":           &buildEnv,

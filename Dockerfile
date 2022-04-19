@@ -4,7 +4,7 @@ ARG NAME
 ARG GITHUB_ORGANIZATION
 ARG GITHUB_REPO
 ARG BINARY
-ARG MAKE_TARGET
+ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
@@ -26,7 +26,7 @@ RUN git checkout ${VERSION}
 RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
     if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi; \
     if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
-    make ${MAKE_TARGET}
+    make ${BUILD_TARGET}
 
 RUN cp ${BINARY} /root/cosmos
 

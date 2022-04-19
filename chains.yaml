@@ -2,14 +2,16 @@
 - name: akash
   github-organization: ovrclk
   github-repo: akash
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/akash
 
 # Axelar
 - name: axelar
   github-organization: axelarnetwork
   github-repo: axelar-core
-  make-target: build
+  language: go
+  build-target: build
   binary-path: bin/axelard
   pre-build: |
     git clone https://github.com/axelarnetwork/solidity-cgp-gateway.git
@@ -26,7 +28,8 @@
 - name: gaia
   github-organization: cosmos
   github-repo: gaia
-  make-target: build-linux
+  language: go
+  build-target: build-linux
   binary-path: build/gaiad
   # Map from gaia version to rocks db version. Will build -rocks tag for these versions
   rocksdb-version:
@@ -36,28 +39,32 @@
 - name: crescent
   github-organization: crescent-network
   github-repo: crescent
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/crescentd
 
 # Evmos
 - name: evmos
   github-organization: tharsis
   github-repo: evmos
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/evmosd
 
 # Interchain accounts demo
 - name: icad
   github-organization: cosmos
   github-repo: interchain-accounts-demo
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/icad
 
 # Juno
 - name: juno
   github-organization: CosmosContracts
   github-repo: juno
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/junod
   build-env:
     - LEDGER_ENABLED=false
@@ -67,14 +74,16 @@
 - name: omniflix
   github-organization: OmniFlix
   github-repo: omniflixhub
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/omniflixhubd
 
 # Osmosis
 - name: osmosis
   github-organization: osmosis-labs
   github-repo: osmosis
-  make-target: build-linux
+  language: go
+  build-target: build-linux
   binary-path: build/osmosisd
   # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
   rocksdb-version:
@@ -86,23 +95,42 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Penumbra
+- name: penumbra
+  github-organization: penumbra-zone
+  github-repo: penumbra
+  language: rust
+  build-target: build --release
+  binary-path: /build/penumbra/target/release/pd
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
   github-repo: hub
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/sentinelhub
 
 # Sim (for testing)
 - name: sim
   github-organization: cosmos
   github-repo: cosmos-sdk
-  make-target: build-linux
+  language: go
+  build-target: build-linux
   binary-path: build/simd
 
 # Sommelier
 - name: sommelier
   github-organization: peggyjv
   github-repo: sommelier
-  make-target: install
+  language: go
+  build-target: install
   binary-path: /go/bin/sommelier
+
+# Tendermint
+- name: tendermint
+  github-organization: tendermint
+  github-repo: tendermint
+  language: go
+  build-target: build-linux
+  binary-path: /go/src/github.com/tendermint/tendermint/build/tendermint
