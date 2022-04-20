@@ -2,7 +2,7 @@ FROM rust:latest AS build-env
 ARG VERSION
 ARG GITHUB_ORGANIZATION
 ARG GITHUB_REPO
-ARG BINARY
+ARG BINARIES
 ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
@@ -28,22 +28,18 @@ RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
     if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
     cargo ${BUILD_TARGET}
 
-RUN cp ${BINARY} /root/binary
+RUN mkdir /root/bin
+ENV BINARIES_ENV ${BINARIES}
+RUN bash -c 'BINARIES_ARR=($BINARIES_ENV); for BINARY in "${BINARIES_ARR[@]}"; do cp $BINARY /root/bin/ ; done'
 
 FROM debian:bullseye
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
-ARG BINARY
-ENV BINARY ${BINARY}
-
 RUN apt update && apt install -y ca-certificates jq curl git gcc
 WORKDIR /root
 
-# Install chain binary
-COPY --from=build-env /root/binary .
-RUN mv /root/binary /usr/bin/$(basename $BINARY)
+# Install chain binaries
+COPY --from=build-env /root/bin /usr/local/bin
 
 EXPOSE 26657
-
-CMD env $(basename $BINARY) start

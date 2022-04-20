@@ -4,7 +4,8 @@
   github-repo: akash
   language: go
   build-target: install
-  binary-path: /go/bin/akash
+  binaries:
+    - /go/bin/akash
 
 # Axelar
 - name: axelar
@@ -12,7 +13,8 @@
   github-repo: axelar-core
   language: go
   build-target: build
-  binary-path: bin/axelard
+  binaries:
+    - bin/axelard
   pre-build: |
     git clone https://github.com/axelarnetwork/solidity-cgp-gateway.git
     cd solidity-cgp-gateway
@@ -30,7 +32,8 @@
   github-repo: gaia
   language: go
   build-target: build-linux
-  binary-path: build/gaiad
+  binaries:
+    - build/gaiad
   # Map from gaia version to rocks db version. Will build -rocks tag for these versions
   rocksdb-version:
     v6.0.0: v6.10.2
@@ -41,7 +44,8 @@
   github-repo: crescent
   language: go
   build-target: install
-  binary-path: /go/bin/crescentd
+  binaries:
+    - /go/bin/crescentd
 
 # Evmos
 - name: evmos
@@ -49,7 +53,8 @@
   github-repo: evmos
   language: go
   build-target: install
-  binary-path: /go/bin/evmosd
+  binaries:
+    - /go/bin/evmosd
 
 # Interchain accounts demo
 - name: icad
@@ -57,7 +62,8 @@
   github-repo: interchain-accounts-demo
   language: go
   build-target: install
-  binary-path: /go/bin/icad
+  binaries:
+    - /go/bin/icad
 
 # Juno
 - name: juno
@@ -65,7 +71,8 @@
   github-repo: juno
   language: go
   build-target: install
-  binary-path: /go/bin/junod
+  binaries:
+    - /go/bin/junod
   build-env:
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
@@ -76,7 +83,8 @@
   github-repo: omniflixhub
   language: go
   build-target: install
-  binary-path: /go/bin/omniflixhubd
+  binaries:
+    - /go/bin/omniflixhubd
 
 # Osmosis
 - name: osmosis
@@ -84,7 +92,8 @@
   github-repo: osmosis
   language: go
   build-target: build-linux
-  binary-path: build/osmosisd
+  binaries:
+    - build/osmosisd
   # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
   rocksdb-version:
     v6.0.0: v6.10.2
@@ -101,7 +110,9 @@
   github-repo: penumbra
   language: rust
   build-target: build --release
-  binary-path: /build/penumbra/target/release/pd
+  binaries:
+    - /build/penumbra/target/release/pd
+    - /build/penumbra/target/release/pcli
 
 # Sentinel
 - name: sentinel
@@ -109,7 +120,9 @@
   github-repo: hub
   language: go
   build-target: install
-  binary-path: /go/bin/sentinelhub
+  binaries:
+    - /go/bin/sentinelhub
+
 
 # Sim (for testing)
 - name: sim
@@ -117,7 +130,8 @@
   github-repo: cosmos-sdk
   language: go
   build-target: build-linux
-  binary-path: build/simd
+  binaries:
+    - build/simd
 
 # Sommelier
 - name: sommelier
@@ -125,7 +139,8 @@
   github-repo: sommelier
   language: go
   build-target: install
-  binary-path: /go/bin/sommelier
+  binaries:
+    - /go/bin/sommelier
 
 # Tendermint
 - name: tendermint
@@ -133,4 +148,5 @@
   github-repo: tendermint
   language: go
   build-target: build-linux
-  binary-path: /go/src/github.com/tendermint/tendermint/build/tendermint
+  binaries:
+    - /go/src/github.com/tendermint/tendermint/build/tendermint

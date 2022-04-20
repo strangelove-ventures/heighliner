@@ -43,7 +43,7 @@ type ChainNodeConfig struct {
 	GithubRepo         string            `yaml:"github-repo"`
 	Language           string            `yaml:"language"`
 	BuildTarget        string            `yaml:"build-target"`
-	BinaryPath         string            `yaml:"binary-path"`
+	Binaries           []string          `yaml:"binaries"`
 	PreBuild           string            `yaml:"pre-build"`
 	BuildEnv           []string          `yaml:"build-env"`
 	RocksDBVersion     map[string]string `yaml:"rocksdb-version"`
@@ -113,6 +113,8 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 		buildTagsEnvVar = "BUILD_TAGS=rocksdb"
 	}
 
+	binaries := strings.Join(chainNodeConfig.Binaries, " ")
+
 	opts := types.ImageBuildOptions{
 		Dockerfile:  dockerfile,
 		Tags:        imageTags,
@@ -124,7 +126,7 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 			"GITHUB_ORGANIZATION": &chainNodeConfig.GithubOrganization,
 			"GITHUB_REPO":         &chainNodeConfig.GithubRepo,
 			"BUILD_TARGET":        &chainNodeConfig.BuildTarget,
-			"BINARY":              &chainNodeConfig.BinaryPath,
+			"BINARIES":            &binaries,
 			"PRE_BUILD":           &chainNodeConfig.PreBuild,
 			"BUILD_ENV":           &buildEnv,
 			"BUILD_TAGS":          &buildTagsEnvVar,

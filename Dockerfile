@@ -3,7 +3,7 @@ ARG VERSION
 ARG NAME
 ARG GITHUB_ORGANIZATION
 ARG GITHUB_REPO
-ARG BINARY
+ARG BINARIES
 ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
@@ -28,7 +28,9 @@ RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
     if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
     make ${BUILD_TARGET}
 
-RUN cp ${BINARY} /root/cosmos
+RUN mkdir /root/bin
+ENV BINARIES_ENV ${BINARIES}
+RUN bash -c 'BINARIES_ARR=($BINARIES_ENV); for BINARY in "${BINARIES_ARR[@]}"; do cp $BINARY /root/bin/ ; done'
 
 RUN git clone https://github.com/tendermint/tendermint && \
   cd tendermint && \
@@ -39,19 +41,13 @@ FROM alpine:edge
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
-ARG BINARY
-ENV BINARY ${BINARY}
-
 RUN apk add --no-cache ca-certificates jq curl git gcc
 WORKDIR /root
 
 # Install tendermint
 COPY --from=build-env /go/bin/tendermint /usr/bin/
 
-# Install chain binary
-COPY --from=build-env /root/cosmos .
-RUN mv /root/cosmos /usr/bin/$(basename $BINARY)
+# Install chain binaries
+COPY --from=build-env /root/bin /usr/local/bin
 
 EXPOSE 26657
-
-CMD env $(basename $BINARY) start
