@@ -95,6 +95,15 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
+# likecoin 
+- name: likecoin
+  github-organization: likecoin
+  github-repo: likecoin-chain
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/liked
+
 #Omniflix
 - name: omniflix
   github-organization: OmniFlix
