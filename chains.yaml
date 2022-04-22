@@ -74,6 +74,15 @@
   binaries:
     - /go/bin/icad
 
+# FirmaChain 
+- name: firmachain
+  github-organization: FirmaChain
+  github-repo: firmachain
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/firmachaind
+
 # Juno
 - name: juno
   github-organization: CosmosContracts
