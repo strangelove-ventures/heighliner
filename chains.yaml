@@ -131,15 +131,6 @@
   build-env:
     - BUILD_TAGS=muslc
 
-# Persistence
-- name: persistence
-  github-organization: persistenceOne
-  github-repo: persistenceCore
-  language: go
-  build-target: install
-  binaries:
-    - /go/bin/persistenceCore
-
 # Penumbra
 - name: penumbra
   github-organization: penumbra-zone
@@ -149,6 +140,15 @@
   binaries:
     - /build/penumbra/target/release/pd
     - /build/penumbra/target/release/pcli
+
+# Persistence
+- name: persistence
+  github-organization: persistenceOne
+  github-repo: persistenceCore
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/persistenceCore
 
 # Sentinel
 - name: sentinel
