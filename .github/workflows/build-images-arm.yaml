@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-images:
-    runs-on: [self-hosted, linux, X64]
+    runs-on: [self-hosted, linux, ARM64]
     permissions:
       contents: read
       packages: write
