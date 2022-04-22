@@ -113,15 +113,6 @@
   binaries:
     - /go/bin/omniflixhubd
 
-# Persistence
-- name: persistence
-  github-organization: persistenceOne
-  github-repo: persistenceCore
-  language: go
-  build-target: install
-  binaries:
-    - /go/bin/persistenceCore
-
 # Osmosis
 - name: osmosis
   github-organization: osmosis-labs
@@ -139,6 +130,15 @@
     v7.0.2: v6.29.3
   build-env:
     - BUILD_TAGS=muslc
+
+# Persistence
+- name: persistence
+  github-organization: persistenceOne
+  github-repo: persistenceCore
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/persistenceCore
 
 # Penumbra
 - name: penumbra
