@@ -1,4 +1,4 @@
-name: Build Docker Images
+name: Build ARM64 Docker Images
 on:
   schedule:
     # TODO: only run daily
