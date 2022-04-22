@@ -26,6 +26,15 @@
     cd ..
     bash scripts/populate-bytecode.sh
 
+# Bitcanna
+- name: bitcanna
+  github-organization: BitCannaGlobal
+  github-repo: bcna
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/bcnad
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
