@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -201,20 +200,40 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 }
 
 func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int16, containerRegistry string, skip bool, containerAuthentication string) error {
-	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
-		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, number))
+	client := http.Client{Timeout: 5 * time.Second}
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
+		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, number), http.NoBody)
 	if err != nil {
-		return err
+		return fmt.Errorf("error building github releases request: %v", err)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+
+	basicAuthUser := os.Getenv("GITHUB_USER")
+	basicAuthPassword := os.Getenv("GITHUB_PASSWORD")
+
+	if basicAuthUser == "" || basicAuthPassword == "" {
+		basicAuthUser = os.Getenv("DOCKER_USER")
+		basicAuthPassword = os.Getenv("DOCKER_PASSWORD")
+	}
+
+	req.SetBasicAuth(basicAuthUser, basicAuthPassword)
+
+	res, err := client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("error performing github releases request: %v", err)
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("error reading body from github releases request: %v", err)
 	}
 
 	releases := []GithubRelease{}
 	err = json.Unmarshal(body, &releases)
 	if err != nil {
-		return err
+		return fmt.Errorf("error parsing github releases response: %v", err)
 	}
 	for i, release := range releases {
 		fmt.Printf("Building tag: %s\n", release.TagName)
