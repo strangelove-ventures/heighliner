@@ -23,7 +23,7 @@ jobs:
         run: go build
 
       - name: Build and push images
-        run: ./heighliner build -r ghcr.io/strangelove-ventures/heighliner
+        run: ./heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 1
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
