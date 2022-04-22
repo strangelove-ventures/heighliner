@@ -95,7 +95,7 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
-# likecoin 
+# Likecoin 
 - name: likecoin
   github-organization: likecoin
   github-repo: likecoin-chain
@@ -112,6 +112,15 @@
   build-target: install
   binaries:
     - /go/bin/omniflixhubd
+
+# Persistence
+- name: persistence
+  github-organization: persistenceOne
+  github-repo: persistenceCore
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/persistenceCore
 
 # Osmosis
 - name: osmosis
