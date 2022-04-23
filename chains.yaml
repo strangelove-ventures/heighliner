@@ -178,6 +178,17 @@
   binaries:
     - /go/bin/sommelier
 
+# Stargaze
+- name: stargaze
+  github-organization: public-awesome
+  github-repo: stargaze
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/starsd
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Tendermint
 - name: tendermint
   github-organization: tendermint
