@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"bufio"
 	"context"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -14,27 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/archive"
 	"github.com/spf13/cobra"
+	"github.com/strangelove-ventures/heighliner/docker"
 	"gopkg.in/yaml.v2"
 )
-
-type DockerImageBuildErrorDetail struct {
-	Message string `json:"message"`
-}
-
-type DockerImageBuildLogAux struct {
-	ID string `json:"ID"`
-}
-
-type DockerImageBuildLog struct {
-	Stream      string                       `json:"stream"`
-	Aux         *DockerImageBuildLogAux      `json:"aux"`
-	Error       string                       `json:"error"`
-	ErrorDetail *DockerImageBuildErrorDetail `json:"errorDetail"`
-}
 
 type ChainNodeConfig struct {
 	Name               string            `yaml:"name"`
@@ -61,26 +41,31 @@ func trimQuotes(s string) string {
 	return s
 }
 
-func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNodeConfig, version string, latest bool, skip bool, containerAuthentication string, rocksDbVersion *string) error {
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return err
-	}
-
+func buildChainNodeDockerImage(
+	containerRegistry string,
+	chainNodeConfig ChainNodeConfig,
+	version string,
+	latest bool,
+	skip bool,
+	rocksDbVersion string,
+	useBuildKit bool,
+	buildKitAddr string,
+	platform string,
+) error {
 	var dockerfile string
 	var imageTag string
 	switch chainNodeConfig.Language {
 	case "rust":
-		dockerfile = "rust.Dockerfile"
+		dockerfile = "./dockerfile/rust"
 		imageTag = strings.ReplaceAll(version, "/", "-")
 	case "go":
 		fallthrough
 	default:
-		if rocksDbVersion != nil {
-			dockerfile = "rocksdb.Dockerfile"
+		if rocksDbVersion != "" {
+			dockerfile = "./dockerfile/sdk-rocksdb"
 			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(version, "/", "-"))
 		} else {
-			dockerfile = "Dockerfile"
+			dockerfile = "./dockerfile/sdk"
 			imageTag = strings.ReplaceAll(version, "/", "-")
 		}
 	}
@@ -102,104 +87,47 @@ func buildChainNodeDockerImage(containerRegistry string, chainNodeConfig ChainNo
 	buildTagsEnvVar := ""
 	for _, envVar := range chainNodeConfig.BuildEnv {
 		envVarSplit := strings.Split(envVar, "=")
-		if envVarSplit[0] == "BUILD_TAGS" && rocksDbVersion != nil {
+		if envVarSplit[0] == "BUILD_TAGS" && rocksDbVersion != "" {
 			buildTagsEnvVar = fmt.Sprintf("BUILD_TAGS=%s rocksdb", trimQuotes(envVarSplit[1]))
 		} else {
 			buildEnv += envVar + " "
 		}
 	}
-	if buildTagsEnvVar == "" && rocksDbVersion != nil {
+	if buildTagsEnvVar == "" && rocksDbVersion != "" {
 		buildTagsEnvVar = "BUILD_TAGS=rocksdb"
 	}
 
 	binaries := strings.Join(chainNodeConfig.Binaries, " ")
 
-	opts := types.ImageBuildOptions{
-		Dockerfile:  dockerfile,
-		Tags:        imageTags,
-		NetworkMode: "host",
-		Remove:      true,
-		BuildArgs: map[string]*string{
-			"VERSION":             &version,
-			"NAME":                &chainNodeConfig.Name,
-			"GITHUB_ORGANIZATION": &chainNodeConfig.GithubOrganization,
-			"GITHUB_REPO":         &chainNodeConfig.GithubRepo,
-			"BUILD_TARGET":        &chainNodeConfig.BuildTarget,
-			"BINARIES":            &binaries,
-			"PRE_BUILD":           &chainNodeConfig.PreBuild,
-			"BUILD_ENV":           &buildEnv,
-			"BUILD_TAGS":          &buildTagsEnvVar,
-			"ROCKSDB_VERSION":     rocksDbVersion,
-		},
+	fmt.Printf("Building with dockerfile: %s\n", dockerfile)
+
+	buildArgs := map[string]string{
+		"VERSION":             version,
+		"NAME":                chainNodeConfig.Name,
+		"GITHUB_ORGANIZATION": chainNodeConfig.GithubOrganization,
+		"GITHUB_REPO":         chainNodeConfig.GithubRepo,
+		"BUILD_TARGET":        chainNodeConfig.BuildTarget,
+		"BINARIES":            binaries,
+		"PRE_BUILD":           chainNodeConfig.PreBuild,
+		"BUILD_ENV":           buildEnv,
+		"BUILD_TAGS":          buildTagsEnvVar,
+		"ROCKSDB_VERSION":     rocksDbVersion,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3000)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*15))
 	defer cancel()
 
-	tar, err := archive.TarWithOptions("./", &archive.TarOptions{})
-	if err != nil {
-		log.Fatalf("Error archiving project for docker: %v", err)
+	if useBuildKit {
+		buildKitOptions := docker.GetDefaultBuildKitOptions()
+		buildKitOptions.Address = buildKitAddr
+		buildKitOptions.Platform = platform
+		return docker.BuildDockerImageWithBuildKit(ctx, dockerfile, imageTags, containerRegistry != "" && !skip, buildArgs, buildKitOptions)
+	} else {
+		return docker.BuildDockerImage(ctx, dockerfile, imageTags, containerRegistry != "" && !skip, buildArgs)
 	}
-
-	res, err := dockerClient.ImageBuild(ctx, tar, opts)
-	if err != nil {
-		return err
-	}
-
-	scanner := bufio.NewScanner(res.Body)
-
-	for scanner.Scan() {
-		dockerLogLine := &DockerImageBuildLog{}
-		logLineText := scanner.Text()
-		err = json.Unmarshal([]byte(logLineText), dockerLogLine)
-		if err != nil {
-			return err
-		}
-		if dockerLogLine.Stream != "" {
-			fmt.Printf(dockerLogLine.Stream)
-		}
-		if dockerLogLine.Aux != nil {
-			fmt.Printf("Image ID: %s\n", dockerLogLine.Aux.ID)
-		}
-		if dockerLogLine.Error != "" {
-			return errors.New(dockerLogLine.Error)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	// Only continue to push images if registry is provided
-	if containerRegistry == "" || skip {
-		return nil
-	}
-
-	// push all image tags to container registry using provided auth
-	for _, imageTag := range imageTags {
-		rd, err := dockerClient.ImagePush(ctx, imageTag, types.ImagePushOptions{
-			All:          true,
-			RegistryAuth: containerAuthentication,
-		})
-		if err != nil {
-			return err
-		}
-
-		defer rd.Close()
-
-		buf := new(strings.Builder)
-		_, err = io.Copy(buf, rd)
-
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(buf.String())
-	}
-
-	return nil
 }
 
-func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int16, containerRegistry string, skip bool, containerAuthentication string) error {
+func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int16, containerRegistry string, skip bool, useBuildKit bool, buildKitAddr string, platform string) error {
 	client := http.Client{Timeout: 5 * time.Second}
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
@@ -210,11 +138,6 @@ func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int
 
 	basicAuthUser := os.Getenv("GITHUB_USER")
 	basicAuthPassword := os.Getenv("GITHUB_PASSWORD")
-
-	if basicAuthUser == "" || basicAuthPassword == "" {
-		basicAuthUser = os.Getenv("DOCKER_USER")
-		basicAuthPassword = os.Getenv("DOCKER_PASSWORD")
-	}
 
 	req.SetBasicAuth(basicAuthUser, basicAuthPassword)
 
@@ -237,13 +160,13 @@ func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int
 	}
 	for i, release := range releases {
 		fmt.Printf("Building tag: %s\n", release.TagName)
-		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, nil)
+		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, "", useBuildKit, buildKitAddr, platform)
 		if err != nil {
 			fmt.Printf("Error building docker image: %v\n", err)
 			continue
 		}
 		if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[release.TagName]; ok {
-			err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, containerAuthentication, &rocksDbVersion)
+			err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, rocksDbVersion, useBuildKit, buildKitAddr, platform)
 			if err != nil {
 				fmt.Printf("Error building rocksdb docker image: %v\n", err)
 			}
@@ -269,6 +192,10 @@ it will be built and pushed`,
 		number, _ := cmdFlags.GetInt16("number")
 		skip, _ := cmdFlags.GetBool("skip")
 
+		useBuildKit, _ := cmdFlags.GetBool("use-buildkit")
+		buildKitAddr, _ := cmdFlags.GetString("buildkit-addr")
+		platform, _ := cmdFlags.GetString("platform")
+
 		// Parse chains.yaml
 		dat, err := os.ReadFile("./chains.yaml")
 		if err != nil {
@@ -280,16 +207,6 @@ it will be built and pushed`,
 			log.Fatalf("Error parsing chains.yaml: %v", err)
 		}
 
-		authConfig := types.AuthConfig{
-			Username: os.Getenv("DOCKER_USER"),
-			Password: os.Getenv("DOCKER_PASSWORD"),
-		}
-		encodedJSON, err := json.Marshal(authConfig)
-		if err != nil {
-			log.Fatalf("Error assembling docker registry authentication string: %v", err)
-		}
-		authStr := base64.URLEncoding.EncodeToString(encodedJSON)
-
 		for _, chainNodeConfig := range chains {
 			// If chain is provided, only build images for that chain
 			// Chain must be declared in chains.yaml
@@ -299,12 +216,12 @@ it will be built and pushed`,
 			fmt.Printf("Chain: %s\n", chainNodeConfig.Name)
 			if version != "" {
 				fmt.Printf("Building tag: %s\n", version)
-				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, nil)
+				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, "", useBuildKit, buildKitAddr, platform)
 				if err != nil {
 					log.Fatalf("Error building docker image: %v", err)
 				}
 				if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[version]; ok {
-					err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, authStr, &rocksDbVersion)
+					err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, rocksDbVersion, useBuildKit, buildKitAddr, platform)
 					if err != nil {
 						log.Fatalf("Error building rocksdb docker image: %v", err)
 					}
@@ -312,7 +229,7 @@ it will be built and pushed`,
 				return
 			}
 			// If specific version not provided, build images for the last n releases from the chain
-			err := buildMostRecentReleasesForChain(chainNodeConfig, number, containerRegistry, skip, authStr)
+			err := buildMostRecentReleasesForChain(chainNodeConfig, number, containerRegistry, skip, useBuildKit, buildKitAddr, platform)
 			if err != nil {
 				log.Fatalf("Error building docker images: %v", err)
 			}
@@ -328,4 +245,8 @@ func init() {
 	buildCmd.PersistentFlags().StringP("version", "v", "", "Github tag to build")
 	buildCmd.PersistentFlags().Int16P("number", "n", 5, "Number of releases to build per chain")
 	buildCmd.PersistentFlags().BoolP("skip", "s", false, "Skip pushing images to registry")
+
+	buildCmd.PersistentFlags().BoolP("use-buildkit", "b", false, "Use buildkit to build multi-arch images")
+	buildCmd.PersistentFlags().String("buildkit-addr", docker.BuildKitSock, "Address of the buildkit socket, can be unix, tcp, ssl")
+	buildCmd.PersistentFlags().StringP("platform", "p", docker.DefaultPlatforms, "Platforms to build")
 }

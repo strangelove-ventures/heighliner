@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-images:
-    runs-on: [self-hosted, linux, X64]
+    runs-on: [self-hosted, linux]
     permissions:
       contents: read
       packages: write
@@ -22,8 +22,14 @@ jobs:
       - name: Build heighliner
         run: go build
 
-      - name: Build and push images
-        run: ./heighliner build -r ghcr.io/strangelove-ventures/heighliner
+      - name: Login to docker
+        run: echo $DOCKER_PASSWORD | docker login ghcr.io -u $DOCKER_USER --password-stdin
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push images
+        run: ./heighliner build -b --buildkit-addr tcp://127.0.0.1:8125 -r ghcr.io/strangelove-ventures/heighliner
+        env:
+          GITHUB_USER: ${{ secrets.DOCKER_USER }}
+          GITHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
