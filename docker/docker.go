@@ -39,7 +39,8 @@ func BuildDockerImage(ctx context.Context, dockerfileDir string, tags []string, 
 	buildArgs := map[string]*string{}
 
 	for arg, value := range args {
-		buildArgs[arg] = &value
+		thisValue := value
+		buildArgs[arg] = &thisValue
 	}
 
 	opts := types.ImageBuildOptions{
