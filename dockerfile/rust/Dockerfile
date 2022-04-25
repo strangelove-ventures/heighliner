@@ -23,9 +23,9 @@ RUN git checkout ${VERSION}
 
 RUN cargo fetch
 
-RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
-    if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi; \
-    if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
+RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
+    [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
+    [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     cargo ${BUILD_TARGET}
 
 RUN mkdir /root/bin

@@ -88,6 +88,7 @@
   github-organization: CosmosContracts
   github-repo: juno
   language: go
+  wasm: true
   build-target: install
   binaries:
     - /go/bin/junod
@@ -118,16 +119,17 @@
   github-organization: osmosis-labs
   github-repo: osmosis
   language: go
+  wasm: true
   build-target: build-linux
   binaries:
     - build/osmosisd
   # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
-  rocksdb-version:
-    v6.0.0: v6.10.2
-    v6.1.0: v6.24.2
-    v6.2.0: v6.24.2
-    v6.4.0: v6.29.3
-    v7.0.2: v6.29.3
+  # rocksdb-version:
+  #   v6.0.0: v6.10.2
+  #   v6.1.0: v6.24.2
+  #   v6.2.0: v6.24.2
+  #   v6.4.0: v6.29.3
+  #   v7.0.2: v6.29.3
   build-env:
     - BUILD_TAGS=muslc
 
@@ -183,6 +185,7 @@
   github-organization: public-awesome
   github-repo: stargaze
   language: go
+  wasm: true
   build-target: install
   binaries:
     - /go/bin/starsd
