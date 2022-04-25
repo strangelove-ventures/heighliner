@@ -34,7 +34,7 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     export GOARCH=$TARGETARCH; \
     make ${BUILD_TARGET}
 
-RUN [ -d "/go/bin/${TARGETOS}_${TARGETARCH}" ] && mv /go/bin/${TARGETOS}_${TARGETARCH}/* /go/bin/
+RUN [ -d "/go/bin/${TARGETOS}_${TARGETARCH}" ] && mv /go/bin/${TARGETOS}_${TARGETARCH}/* /go/bin/ || true
 
 RUN mkdir /root/bin
 ENV BINARIES_ENV ${BINARIES}
