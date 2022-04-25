@@ -30,8 +30,7 @@ Docker image `heighliner/gaia:v6.0.0` will now be available in your local docker
 #### Example: build and push the gaia v6.0.0 docker image to ghcr:
 
 ```bash
-export DOCKER_USER=github_user
-export DOCKER_PASSWORD=github_personal_access_token
+# docker login ...
 heighliner build -r ghcr.io/strangelove-ventures/heighliner -c gaia -v v6.0.0
 ```
 
@@ -40,8 +39,7 @@ Docker image `ghcr.io/strangelove-ventures/heighliner/gaia:v6.0.0` will be built
 #### Example: build and push last n releases of osmosis chain
 
 ```bash
-export DOCKER_USER=github_user
-export DOCKER_PASSWORD=github_personal_access_token
+# docker login ...
 heighliner build -r ghcr.io/strangelove-ventures/heighliner -c osmosis -n 3
 ```
 
@@ -53,12 +51,35 @@ heighliner will fetch the last 3 osmosis release tags from github, build docker 
 #### Example: build and push last n releases of all chains
 
 ```bash
-export DOCKER_USER=github_user
-export DOCKER_PASSWORD=github_personal_access_token
+# docker login ...
 heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 3
 ```
 
 heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](./chains.yaml), build docker images, and push them.
+
+## Cross compiling
+Depends on docker [buildkit](https://github.com/moby/buildkit). Requires `buildkitd` server to be running.
+Pass `-b` flag to use buildkit. 
+
+The build will look for the local buildkit unix socket by default. Change address with `--buildkit-addr` flag.
+
+Customize the platform(s) to be built with the `--platform` flag.
+
+#### Example: build x64 and arm64 docker images for gaia v7.0.1:
+
+```bash
+heighliner build -c gaia -v v7.0.1
+```
+
+Docker images for `heighliner/gaia:v7.0.1` will now be available in your local docker. The manifest for the tag will contain both amd64 and arm64 images.
+
+#### Example: Use custom buildkit server, build x64 and arm64 docker images for gaia v7.0.1, and push:
+
+```bash
+heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -v v7.0.1 -r ghcr.io/strangelove-ventures/heighliner
+```
+
+Docker images for `heighliner/gaia:v7.0.1` will be built on the remote buildkit server and then pushed to the container repository. The manifest for the tag will contain both amd64 and arm64 images.
 
 ## Add a new chain
 
