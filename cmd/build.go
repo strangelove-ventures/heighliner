@@ -22,7 +22,6 @@ type ChainNodeConfig struct {
 	GithubRepo         string            `yaml:"github-repo"`
 	Language           string            `yaml:"language"`
 	BuildTarget        string            `yaml:"build-target"`
-	WASM               bool              `yaml:"wasm"`
 	Binaries           []string          `yaml:"binaries"`
 	PreBuild           string            `yaml:"pre-build"`
 	BuildEnv           []string          `yaml:"build-env"`
@@ -66,9 +65,6 @@ func buildChainNodeDockerImage(
 		if rocksDbVersion != "" {
 			dockerfile = "./dockerfile/sdk-rocksdb"
 			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(version, "/", "-"))
-		} else if chainNodeConfig.WASM {
-			dockerfile = "./dockerfile/sdk-wasm"
-			imageTag = strings.ReplaceAll(version, "/", "-")
 		} else {
 			dockerfile = "./dockerfile/sdk"
 			imageTag = strings.ReplaceAll(version, "/", "-")
@@ -202,6 +198,7 @@ it will be built and pushed`,
 		buildKitAddr, _ := cmdFlags.GetString("buildkit-addr")
 		platform, _ := cmdFlags.GetString("platform")
 		noCache, _ := cmdFlags.GetBool("no-cache")
+		latest, _ := cmdFlags.GetBool("latest")
 
 		// Parse chains.yaml
 		dat, err := os.ReadFile("./chains.yaml")
@@ -223,12 +220,12 @@ it will be built and pushed`,
 			fmt.Printf("Chain: %s\n", chainNodeConfig.Name)
 			if version != "" {
 				fmt.Printf("Building tag: %s\n", version)
-				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, "", useBuildKit, buildKitAddr, platform, noCache)
+				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, latest, skip, "", useBuildKit, buildKitAddr, platform, noCache)
 				if err != nil {
 					log.Fatalf("Error building docker image: %v", err)
 				}
 				if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[version]; ok {
-					err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, false, skip, rocksDbVersion, useBuildKit, buildKitAddr, platform, noCache)
+					err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, latest, skip, rocksDbVersion, useBuildKit, buildKitAddr, platform, noCache)
 					if err != nil {
 						log.Fatalf("Error building rocksdb docker image: %v", err)
 					}
@@ -252,6 +249,7 @@ func init() {
 	buildCmd.PersistentFlags().StringP("version", "v", "", "Github tag to build")
 	buildCmd.PersistentFlags().Int16P("number", "n", 5, "Number of releases to build per chain")
 	buildCmd.PersistentFlags().BoolP("skip", "s", false, "Skip pushing images to registry")
+	buildCmd.PersistentFlags().BoolP("latest", "l", false, "Also push latest tag (for single version build only)")
 
 	buildCmd.PersistentFlags().BoolP("use-buildkit", "b", false, "Use buildkit to build multi-arch images")
 	buildCmd.PersistentFlags().String("buildkit-addr", docker.BuildKitSock, "Address of the buildkit socket, can be unix, tcp, ssl")

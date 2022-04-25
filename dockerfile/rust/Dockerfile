@@ -1,12 +1,8 @@
 FROM --platform=$BUILDPLATFORM rust:latest AS build-env
-ARG VERSION
-ARG GITHUB_ORGANIZATION
-ARG GITHUB_REPO
-ARG BINARIES
-ARG BUILD_TARGET
-ARG BUILD_ENV
-ARG BUILD_TAGS
-ARG PRE_BUILD
+
+
+
+
 
 RUN apt-get update && apt-get install -y clang libclang-dev
 
@@ -15,13 +11,27 @@ RUN rustup component add rustfmt
 
 WORKDIR /build
 
+ARG GITHUB_ORGANIZATION
+ARG GITHUB_REPO
+
 RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /build/${GITHUB_REPO}
 
+ARG VERSION
+
 RUN git checkout ${VERSION}
 
 RUN cargo fetch
+
+ARG TARGETARCH
+ARG TARGETOS
+ARG BUILDARCH
+
+ARG BUILD_TARGET
+ARG BUILD_ENV
+ARG BUILD_TAGS
+ARG PRE_BUILD
 
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
@@ -45,6 +55,7 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     fi;
 
 RUN mkdir /root/bin
+ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c 'BINARIES_ARR=($BINARIES_ENV); for BINARY in "${BINARIES_ARR[@]}"; do cp $BINARY /root/bin/ ; done'
 

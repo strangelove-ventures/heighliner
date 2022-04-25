@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/client/llb"
@@ -46,19 +47,16 @@ func BuildDockerImageWithBuildKit(ctx context.Context, dockerfileDir string, tag
 
 	eg, ctx := errgroup.WithContext(ctx)
 
-	exports := []client.ExportEntry{}
-	for _, tag := range tags {
-		export := client.ExportEntry{
-			Type: "image",
-			Attrs: map[string]string{
-				"name": tag,
-			},
-		}
-		if push {
-			export.Attrs["push"] = "true"
-		}
-		exports = append(exports, export)
+	export := client.ExportEntry{
+		Type: "image",
+		Attrs: map[string]string{
+			"name": strings.Join(tags, ","),
+		},
 	}
+	if push {
+		export.Attrs["push"] = "true"
+	}
+	exports := []client.ExportEntry{export}
 
 	opts := map[string]string{
 		"platform": buildKitOptions.Platform,

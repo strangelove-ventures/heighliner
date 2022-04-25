@@ -1,7 +1,5 @@
 FROM golang:alpine AS rocksdb-build
 
-ARG ROCKSDB_VERSION
-
 RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
 RUN apk add --update --no-cache build-base linux-headers git cmake bash perl #wget mercurial g++ autoconf libgflags-dev cmake \
   bash zlib zlib-dev bzip2 bzip2-dev snappy snappy-dev lz4 lz4-dev zstd@testing zstd-dev@testing libtbb-dev@testing libtbb@testing
@@ -16,6 +14,8 @@ RUN cd /tmp && \
     cd /tmp && \
     rm -R /tmp/gflags/
 
+ARG ROCKSDB_VERSION
+
 RUN cd /tmp && \
     git clone https://github.com/facebook/rocksdb.git && \
     cd rocksdb && \
@@ -23,14 +23,6 @@ RUN cd /tmp && \
     make shared_lib
 
 FROM golang:alpine AS build-env
-ARG VERSION
-ARG NAME
-ARG GITHUB_ORGANIZATION
-ARG GITHUB_REPO
-ARG BINARY
-ARG BUILD_TARGET
-ARG BUILD_ENV
-ARG BUILD_TAGS
 
 # Install rocksdb
 COPY --from=rocksdb-build /usr/local/lib/libgflags* /usr/local/lib/
@@ -39,27 +31,43 @@ COPY --from=rocksdb-build /tmp/rocksdb/include/rocksdb /usr/include/rocksdb
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev cmake clang build-base llvm-static llvm-dev clang-static clang-dev
 
+RUN git clone https://github.com/notional-labs/tendermint && \
+  cd tendermint && \
+  git checkout remotes/origin/callum/app-version && \
+  go install -tags rocksdb ./... 
+
+ARG GITHUB_ORGANIZATION
+
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}
+
+ARG GITHUB_REPO
 
 RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
+RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.$(uname -m).a
+
+ARG VERSION
 
 RUN git checkout ${VERSION}
+
+ARG BUILD_TARGET
+ARG BUILD_ENV
+ARG BUILD_TAGS
+ARG PRE_BUILD
 
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     make ${BUILD_TARGET}
 
-RUN cp ${BINARY} /root/cosmos
+RUN mkdir /root/bin
 
-RUN git clone https://github.com/notional-labs/tendermint && \
-  cd tendermint && \
-  git checkout remotes/origin/callum/app-version && \
-  go install -tags rocksdb ./... 
+ARG BINARIES
+
+ENV BINARIES_ENV ${BINARIES}
+RUN bash -c 'BINARIES_ARR=($BINARIES_ENV); for BINARY in "${BINARIES_ARR[@]}"; do cp $BINARY /root/bin/ ; done'
 
 FROM alpine:edge
 
