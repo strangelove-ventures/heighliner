@@ -44,14 +44,17 @@ ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
+ARG WASM
 
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
-    if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; \
-    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; \
+    if [ "${WASM}" = "true" ]; then \
+      if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
+        export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; \
+      elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
+        export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; \
+      fi; \
     fi; \
     export GOOS=linux GOARCH=$TARGETARCH; \
     make ${BUILD_TARGET}

@@ -88,6 +88,7 @@
   github-organization: CosmosContracts
   github-repo: juno
   language: go
+  wasm: true
   build-target: install
   binaries:
     - /go/bin/junod
@@ -118,6 +119,7 @@
   github-organization: osmosis-labs
   github-repo: osmosis
   language: go
+  wasm: true
   build-target: build-linux
   binaries:
     - build/osmosisd
@@ -183,6 +185,7 @@
   github-organization: public-awesome
   github-repo: stargaze
   language: go
+  wasm: true
   build-target: install
   binaries:
     - /go/bin/starsd
