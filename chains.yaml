@@ -44,8 +44,8 @@
   binaries:
     - build/gaiad
   # Map from gaia version to rocks db version. Will build -rocks tag for these versions
-  rocksdb-version:
-    v6.0.0: v6.10.2
+  # rocksdb-version:
+  #   v6.0.0: v6.10.2
 
 # Crescent
 - name: crescent
