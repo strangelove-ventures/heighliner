@@ -3,7 +3,6 @@
   github-organization: ovrclk
   github-repo: akash
   language: go
-  wasm: true
   build-target: install
   binaries:
     - /go/bin/akash
@@ -41,7 +40,6 @@
   github-organization: cosmos
   github-repo: gaia
   language: go
-  wasm: true
   build-target: install
   build-env:
     - LEDGER_ENABLED=false
@@ -93,7 +91,6 @@
   github-organization: CosmosContracts
   github-repo: juno
   language: go
-  wasm: true
   build-target: install
   binaries:
     - /go/bin/junod
@@ -124,7 +121,6 @@
   github-organization: osmosis-labs
   github-repo: osmosis
   language: go
-  wasm: true
   build-target: build-linux
   binaries:
     - build/osmosisd
@@ -162,7 +158,6 @@
   github-organization: sentinel-official
   github-repo: hub
   language: go
-  wasm: true
   build-target: install
   binaries:
     - /go/bin/sentinelhub
@@ -172,7 +167,6 @@
   github-organization: cosmos
   github-repo: cosmos-sdk
   language: go
-  wasm: true
   build-target: build
   binaries:
     - build/simd
@@ -182,7 +176,6 @@
   github-organization: peggyjv
   github-repo: sommelier
   language: go
-  wasm: true
   build-target: install
   binaries:
     - /go/bin/sommelier
@@ -192,7 +185,6 @@
   github-organization: public-awesome
   github-repo: stargaze
   language: go
-  wasm: true
   build-target: install
   binaries:
     - /go/bin/starsd
@@ -204,7 +196,6 @@
   github-organization: tendermint
   github-repo: tendermint
   language: go
-  wasm: true
   build-target: build
   binaries:
     - /go/src/github.com/tendermint/tendermint/build/tendermint
