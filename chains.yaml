@@ -3,6 +3,7 @@
   github-organization: ovrclk
   github-repo: akash
   language: go
+  wasm: true
   build-target: install
   binaries:
     - /go/bin/akash
@@ -40,9 +41,13 @@
   github-organization: cosmos
   github-repo: gaia
   language: go
-  build-target: build-linux
+  wasm: true
+  build-target: install
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
   binaries:
-    - build/gaiad
+    - /go/bin/gaiad
   # Map from gaia version to rocks db version. Will build -rocks tag for these versions
   # rocksdb-version:
   #   v6.0.0: v6.10.2
@@ -157,17 +162,18 @@
   github-organization: sentinel-official
   github-repo: hub
   language: go
+  wasm: true
   build-target: install
   binaries:
     - /go/bin/sentinelhub
-
 
 # Sim (for testing)
 - name: sim
   github-organization: cosmos
   github-repo: cosmos-sdk
   language: go
-  build-target: build-linux
+  wasm: true
+  build-target: build
   binaries:
     - build/simd
 
@@ -176,6 +182,7 @@
   github-organization: peggyjv
   github-repo: sommelier
   language: go
+  wasm: true
   build-target: install
   binaries:
     - /go/bin/sommelier
@@ -197,6 +204,7 @@
   github-organization: tendermint
   github-repo: tendermint
   language: go
-  build-target: build-linux
+  wasm: true
+  build-target: build
   binaries:
     - /go/src/github.com/tendermint/tendermint/build/tendermint

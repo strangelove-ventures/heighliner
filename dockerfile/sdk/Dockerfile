@@ -5,12 +5,6 @@ RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eu
 ARG TARGETARCH
 ARG BUILDARCH
 
-RUN git clone https://github.com/tendermint/tendermint; \
-  cd tendermint; \
-  git checkout remotes/origin/callum/app-version; \
-  export GOOS=linux GOARCH=$TARGETARCH; \
-  go install ./...
-
 RUN LIBDIR=/lib; \
     if [ "${TARGETARCH}" = "arm64" ]; then \
       ARCH=aarch64; \
@@ -29,6 +23,18 @@ RUN LIBDIR=/lib; \
     fi; \
     wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.$ARCH.a
 
+RUN git clone https://github.com/tendermint/tendermint; \
+  cd tendermint; \
+  git checkout remotes/origin/callum/app-version; \
+  if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
+    export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; \
+  elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
+    export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; \
+  fi; \
+  export GOOS=linux GOARCH=$TARGETARCH; \
+  go install ./...
+
+
 ARG GITHUB_ORGANIZATION
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}
 ARG GITHUB_REPO
@@ -44,19 +50,16 @@ ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
-ARG WASM
 
-RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
-    [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
-    [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
-    if [ "${WASM}" = "true" ]; then \
-      if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-        export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; \
-      elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-        export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; \
-      fi; \
+RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
+      export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; \
+    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
+      export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; \
     fi; \
     export GOOS=linux GOARCH=$TARGETARCH; \
+    [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
+    [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
+    [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     make ${BUILD_TARGET}
 
 RUN [ -d "/go/bin/linux_${TARGETARCH}" ] && mv /go/bin/linux_${TARGETARCH}/* /go/bin/ || true

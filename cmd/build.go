@@ -22,7 +22,6 @@ type ChainNodeConfig struct {
 	GithubRepo         string            `yaml:"github-repo"`
 	Language           string            `yaml:"language"`
 	BuildTarget        string            `yaml:"build-target"`
-	WASM               bool              `yaml:"wasm"`
 	Binaries           []string          `yaml:"binaries"`
 	PreBuild           string            `yaml:"pre-build"`
 	BuildEnv           []string          `yaml:"build-env"`
@@ -110,7 +109,6 @@ func buildChainNodeDockerImage(
 		"GITHUB_REPO":         chainNodeConfig.GithubRepo,
 		"BUILD_TARGET":        chainNodeConfig.BuildTarget,
 		"BINARIES":            binaries,
-		"WASM":                fmt.Sprintf("%v", chainNodeConfig.WASM),
 		"PRE_BUILD":           chainNodeConfig.PreBuild,
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
