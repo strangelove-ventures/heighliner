@@ -37,12 +37,15 @@ RUN git clone https://github.com/tendermint/tendermint; \
 
 ARG GITHUB_ORGANIZATION
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}
+
 ARG GITHUB_REPO
+ARG VERSION
+
 RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-ARG VERSION
+
 
 RUN git checkout ${VERSION}
 
