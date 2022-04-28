@@ -1,8 +1,7 @@
 name: Build Docker Images
 on:
   schedule:
-    # TODO: only run daily
-    - cron: '*/30 * * * *'
+    - cron: '0 * * * *'
 
 jobs:
   build-images:
