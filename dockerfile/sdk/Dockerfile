@@ -42,11 +42,7 @@ ARG GITHUB_REPO
 ARG VERSION
 
 RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
-
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
-
-
-
 RUN git checkout ${VERSION}
 
 ARG BUILD_TARGET
@@ -55,9 +51,9 @@ ARG BUILD_TAGS
 ARG PRE_BUILD
 
 RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; \
+      export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; CXX=aarch64-linux-musl-g++;\
     elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; \
+      export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; CXX=x86_64-linux-musl-g++; \
     fi; \
     export GOOS=linux GOARCH=$TARGETARCH; \
     [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
