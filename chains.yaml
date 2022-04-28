@@ -121,7 +121,7 @@
   github-organization: osmosis-labs
   github-repo: osmosis
   language: go
-  build-target: build-linux
+  build-target: build
   binaries:
     - build/osmosisd
   # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
