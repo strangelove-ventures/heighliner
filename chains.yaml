@@ -35,6 +35,15 @@
   binaries:
     - /go/bin/bcnad
 
+# BitSong
+- name: bitsong
+  github-organization: bitsongofficial
+  github-repo: go-bitsong
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/bitsongd
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
