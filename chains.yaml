@@ -44,6 +44,17 @@
   binaries:
     - /go/bin/bitsongd
 
+# Bostrom
+- name: bostrom
+  github-organization: cybercongress
+  github-repo: go-cyber
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/cyber
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
