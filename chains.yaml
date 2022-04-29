@@ -190,6 +190,27 @@
   binaries:
     - /go/bin/persistenceCore
 
+# Provenance
+- name: provenance
+  github-organization: provenance-io
+  github-repo: provenance
+  language: go
+  build-target: install
+  pre-build: |
+    apk add --no-cache g++
+    git clone https://github.com/edenhill/librdkafka.git
+    cd librdkafka
+    git checkout v1.8.2
+    ./configure
+    make
+    make install
+  binaries:
+    - /go/bin/provenanced
+  build-env:
+    - WITH_LEDGER=false
+    - WITH_CLEVELDB=false
+    - BUILD_TAGS=muslc musl dynamic
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official

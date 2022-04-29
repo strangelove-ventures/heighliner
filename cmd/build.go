@@ -102,8 +102,12 @@ func buildChainNodeDockerImage(
 	buildTagsEnvVar := ""
 	for _, envVar := range chainConfig.Build.BuildEnv {
 		envVarSplit := strings.Split(envVar, "=")
-		if envVarSplit[0] == "BUILD_TAGS" && chainConfig.RocksDBVersion != "" {
-			buildTagsEnvVar = fmt.Sprintf("BUILD_TAGS=%s rocksdb", trimQuotes(envVarSplit[1]))
+		if envVarSplit[0] == "BUILD_TAGS" {
+			if chainConfig.RocksDBVersion != "" {
+				buildTagsEnvVar = fmt.Sprintf("BUILD_TAGS=%s rocksdb", trimQuotes(envVarSplit[1]))
+			} else {
+				buildTagsEnvVar = envVar
+			}
 		} else {
 			buildEnv += envVar + " "
 		}

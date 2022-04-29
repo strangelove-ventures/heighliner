@@ -17,7 +17,7 @@ RUN LIBDIR=/lib; \
       ARCH=x86_64; \
       if [ "${BUILDARCH}" != "amd64" ]; then \
         wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr; \
-        LIBDIR=/lib/x86_64-linux-musl; \
+        LIBDIR=/usr/x86_64-linux-musl/lib; \
         mkdir $LIBDIR; \
       fi; \
     fi; \
@@ -33,7 +33,6 @@ RUN git clone https://github.com/tendermint/tendermint; \
   fi; \
   export GOOS=linux GOARCH=$TARGETARCH; \
   go install ./...
-
 
 ARG GITHUB_ORGANIZATION
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}
@@ -52,9 +51,9 @@ ARG PRE_BUILD
 ARG BUILD_DIR
 
 RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; CXX=aarch64-linux-musl-g++;\
+      export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++;\
     elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; CXX=x86_64-linux-musl-g++; \
+      export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++; \
     fi; \
     export GOOS=linux GOARCH=$TARGETARCH; \
     [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
@@ -82,5 +81,8 @@ COPY --from=build-env /go/bin/tendermint /usr/bin/
 
 # Install chain binaries
 COPY --from=build-env /root/bin /usr/local/bin
+
+# Install libraries
+COPY --from=build-env /usr/local/lib /usr/local/lib
 
 EXPOSE 26657
