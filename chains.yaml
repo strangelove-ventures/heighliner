@@ -253,6 +253,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Starname
+- name: starname
+  github-organization: iov-one
+  github-repo: starnamed
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/starnamed
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Tendermint
 - name: tendermint
   github-organization: tendermint
