@@ -68,6 +68,15 @@
   binaries:
     - /go/bin/crescentd
 
+# Cronos
+- name: cronos
+  github-organization: crypto-org-chain
+  github-repo: cronos
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/cronosd
+
 # Evmos
 - name: evmos
   github-organization: tharsis
