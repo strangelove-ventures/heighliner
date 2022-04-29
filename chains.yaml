@@ -135,6 +135,15 @@
   binaries:
     - /go/bin/liked
 
+# Lum 
+- name: lum
+  github-organization: lum-network
+  github-repo: chain
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/lumd
+
 #Omniflix
 - name: omniflix
   github-organization: OmniFlix
