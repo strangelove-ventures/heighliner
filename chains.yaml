@@ -86,15 +86,6 @@
   binaries:
     - /go/bin/evmosd
 
-# Interchain accounts demo
-- name: icad
-  github-organization: cosmos
-  github-repo: interchain-accounts-demo
-  language: go
-  build-target: install
-  binaries:
-    - /go/bin/icad
-
 # FirmaChain 
 - name: firmachain
   github-organization: FirmaChain
@@ -103,6 +94,25 @@
   build-target: install
   binaries:
     - /go/bin/firmachaind
+
+# FirmaChain 
+- name: gravitybridge
+  github-organization: Gravity-Bridge
+  github-repo: Gravity-Bridge
+  language: go
+  build-target: build
+  build-dir: module
+  binaries:
+    - module/build/gravity
+
+# Interchain accounts demo
+- name: icad
+  github-organization: cosmos
+  github-repo: interchain-accounts-demo
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/icad
 
 # Juno
 - name: juno

@@ -23,6 +23,7 @@ type ChainNodeConfig struct {
 	GithubRepo         string            `yaml:"github-repo"`
 	Language           string            `yaml:"language"`
 	BuildTarget        string            `yaml:"build-target"`
+	BuildDir           string            `yaml:"build-dir"`
 	Binaries           []string          `yaml:"binaries"`
 	PreBuild           string            `yaml:"pre-build"`
 	BuildEnv           []string          `yaml:"build-env"`
@@ -125,6 +126,7 @@ func buildChainNodeDockerImage(
 		"PRE_BUILD":           chainConfig.Build.PreBuild,
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
+		"BUILD_DIR":           chainConfig.Build.BuildDir,
 		"ROCKSDB_VERSION":     chainConfig.RocksDBVersion,
 	}
 

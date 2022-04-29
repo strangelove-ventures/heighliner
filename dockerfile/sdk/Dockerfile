@@ -49,6 +49,7 @@ ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
+ARG BUILD_DIR
 
 RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
       export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; CXX=aarch64-linux-musl-g++;\
@@ -59,6 +60,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
     [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
+    [ ! -z "$BUILD_DIR" ] && cd "${BUILD_DIR}"; \
     make ${BUILD_TARGET}
 
 RUN [ -d "/go/bin/linux_${TARGETARCH}" ] && mv /go/bin/linux_${TARGETARCH}/* /go/bin/ || true
