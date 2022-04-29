@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -41,95 +42,113 @@ func trimQuotes(s string) string {
 	return s
 }
 
+type ChainNodeDockerBuildConfig struct {
+	Build          ChainNodeConfig
+	Version        string
+	Latest         bool
+	RocksDBVersion string
+}
+
+type HeighlinerDockerBuildConfig struct {
+	ContainerRegistry string
+	SkipPush          bool
+	UseBuildKit       bool
+	BuildKitAddr      string
+	Platform          string
+	NoCache           bool
+}
+
+type HeighlinerQueuedChainBuilds struct {
+	ChainConfigs []ChainNodeDockerBuildConfig
+}
+
 func buildChainNodeDockerImage(
-	containerRegistry string,
-	chainNodeConfig ChainNodeConfig,
-	version string,
-	latest bool,
-	skip bool,
-	rocksDbVersion string,
-	useBuildKit bool,
-	buildKitAddr string,
-	platform string,
-	noCache bool,
+	buildConfig *HeighlinerDockerBuildConfig,
+	chainConfig *ChainNodeDockerBuildConfig,
 ) error {
 	var dockerfile string
 	var imageTag string
-	switch chainNodeConfig.Language {
+	switch chainConfig.Build.Language {
 	case "rust":
 		dockerfile = "./dockerfile/rust"
-		imageTag = strings.ReplaceAll(version, "/", "-")
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "go":
 		fallthrough
 	default:
-		if rocksDbVersion != "" {
+		if chainConfig.RocksDBVersion != "" {
 			dockerfile = "./dockerfile/sdk-rocksdb"
-			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(version, "/", "-"))
+			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(chainConfig.Version, "/", "-"))
 		} else {
 			dockerfile = "./dockerfile/sdk"
-			imageTag = strings.ReplaceAll(version, "/", "-")
+			imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 		}
 	}
 
 	var imageName string
-	if containerRegistry == "" {
-		imageName = chainNodeConfig.Name
+	if buildConfig.ContainerRegistry == "" {
+		imageName = chainConfig.Build.Name
 	} else {
-		imageName = fmt.Sprintf("%s/%s", containerRegistry, chainNodeConfig.Name)
+		imageName = fmt.Sprintf("%s/%s", buildConfig.ContainerRegistry, chainConfig.Build.Name)
 	}
 
 	imageTags := []string{fmt.Sprintf("%s:%s", imageName, imageTag)}
-	if latest {
+	if chainConfig.Latest {
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
 	buildEnv := ""
 
 	buildTagsEnvVar := ""
-	for _, envVar := range chainNodeConfig.BuildEnv {
+	for _, envVar := range chainConfig.Build.BuildEnv {
 		envVarSplit := strings.Split(envVar, "=")
-		if envVarSplit[0] == "BUILD_TAGS" && rocksDbVersion != "" {
+		if envVarSplit[0] == "BUILD_TAGS" && chainConfig.RocksDBVersion != "" {
 			buildTagsEnvVar = fmt.Sprintf("BUILD_TAGS=%s rocksdb", trimQuotes(envVarSplit[1]))
 		} else {
 			buildEnv += envVar + " "
 		}
 	}
-	if buildTagsEnvVar == "" && rocksDbVersion != "" {
+	if buildTagsEnvVar == "" && chainConfig.RocksDBVersion != "" {
 		buildTagsEnvVar = "BUILD_TAGS=rocksdb"
 	}
 
-	binaries := strings.Join(chainNodeConfig.Binaries, " ")
+	binaries := strings.Join(chainConfig.Build.Binaries, " ")
 
 	fmt.Printf("Building with dockerfile: %s\n", dockerfile)
 
 	buildArgs := map[string]string{
-		"VERSION":             version,
-		"NAME":                chainNodeConfig.Name,
-		"GITHUB_ORGANIZATION": chainNodeConfig.GithubOrganization,
-		"GITHUB_REPO":         chainNodeConfig.GithubRepo,
-		"BUILD_TARGET":        chainNodeConfig.BuildTarget,
+		"VERSION":             chainConfig.Version,
+		"NAME":                chainConfig.Build.Name,
+		"GITHUB_ORGANIZATION": chainConfig.Build.GithubOrganization,
+		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
+		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
 		"BINARIES":            binaries,
-		"PRE_BUILD":           chainNodeConfig.PreBuild,
+		"PRE_BUILD":           chainConfig.Build.PreBuild,
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
-		"ROCKSDB_VERSION":     rocksDbVersion,
+		"ROCKSDB_VERSION":     chainConfig.RocksDBVersion,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*15))
 	defer cancel()
 
-	if useBuildKit {
+	push := buildConfig.ContainerRegistry != "" && !buildConfig.SkipPush
+
+	if buildConfig.UseBuildKit {
 		buildKitOptions := docker.GetDefaultBuildKitOptions()
-		buildKitOptions.Address = buildKitAddr
-		buildKitOptions.Platform = platform
-		buildKitOptions.NoCache = noCache
-		return docker.BuildDockerImageWithBuildKit(ctx, dockerfile, imageTags, containerRegistry != "" && !skip, buildArgs, buildKitOptions)
+		buildKitOptions.Address = buildConfig.BuildKitAddr
+		buildKitOptions.Platform = buildConfig.Platform
+		buildKitOptions.NoCache = buildConfig.NoCache
+		return docker.BuildDockerImageWithBuildKit(ctx, dockerfile, imageTags, push, buildArgs, buildKitOptions)
 	} else {
-		return docker.BuildDockerImage(ctx, dockerfile, imageTags, containerRegistry != "" && !skip, buildArgs, noCache)
+		return docker.BuildDockerImage(ctx, dockerfile, imageTags, push, buildArgs, buildConfig.NoCache)
 	}
 }
 
-func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int16, containerRegistry string, skip bool, useBuildKit bool, buildKitAddr string, platform string, noCache bool) error {
+func queueMostRecentReleasesForChain(
+	chainQueuedBuilds *HeighlinerQueuedChainBuilds,
+	chainNodeConfig ChainNodeConfig,
+	number int16,
+) error {
 	client := http.Client{Timeout: 5 * time.Second}
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
@@ -161,17 +180,19 @@ func buildMostRecentReleasesForChain(chainNodeConfig ChainNodeConfig, number int
 		return fmt.Errorf("error parsing github releases response: %v", err)
 	}
 	for i, release := range releases {
-		fmt.Printf("Building tag: %s\n", release.TagName)
-		err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, "", useBuildKit, buildKitAddr, platform, noCache)
-		if err != nil {
-			fmt.Printf("Error building docker image: %v\n", err)
-			continue
-		}
+		chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, ChainNodeDockerBuildConfig{
+			Build:   chainNodeConfig,
+			Version: release.TagName,
+			Latest:  i == 0,
+		})
+
 		if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[release.TagName]; ok {
-			err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, release.TagName, i == 0, skip, rocksDbVersion, useBuildKit, buildKitAddr, platform, noCache)
-			if err != nil {
-				fmt.Printf("Error building rocksdb docker image: %v\n", err)
-			}
+			chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, ChainNodeDockerBuildConfig{
+				Build:          chainNodeConfig,
+				Version:        release.TagName,
+				Latest:         i == 0,
+				RocksDBVersion: rocksDbVersion,
+			})
 		}
 	}
 	return nil
@@ -199,6 +220,7 @@ it will be built and pushed`,
 		platform, _ := cmdFlags.GetString("platform")
 		noCache, _ := cmdFlags.GetBool("no-cache")
 		latest, _ := cmdFlags.GetBool("latest")
+		parallel, _ := cmdFlags.GetInt16("parallel")
 
 		// Parse chains.yaml
 		dat, err := os.ReadFile("./chains.yaml")
@@ -211,34 +233,106 @@ it will be built and pushed`,
 			log.Fatalf("Error parsing chains.yaml: %v", err)
 		}
 
+		buildQueue := []*HeighlinerQueuedChainBuilds{}
+		buildConfig := HeighlinerDockerBuildConfig{
+			ContainerRegistry: containerRegistry,
+			SkipPush:          skip,
+			UseBuildKit:       useBuildKit,
+			BuildKitAddr:      buildKitAddr,
+			Platform:          platform,
+			NoCache:           noCache,
+		}
+
 		for _, chainNodeConfig := range chains {
 			// If chain is provided, only build images for that chain
 			// Chain must be declared in chains.yaml
 			if chain != "" && chainNodeConfig.Name != chain {
 				continue
 			}
-			fmt.Printf("Chain: %s\n", chainNodeConfig.Name)
+			chainQueuedBuilds := HeighlinerQueuedChainBuilds{ChainConfigs: []ChainNodeDockerBuildConfig{}}
 			if version != "" {
-				fmt.Printf("Building tag: %s\n", version)
-				err := buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, latest, skip, "", useBuildKit, buildKitAddr, platform, noCache)
-				if err != nil {
-					log.Fatalf("Error building docker image: %v", err)
+				chainConfig := ChainNodeDockerBuildConfig{
+					Build:   chainNodeConfig,
+					Version: version,
+					Latest:  latest,
 				}
+				chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, chainConfig)
 				if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[version]; ok {
-					err = buildChainNodeDockerImage(containerRegistry, chainNodeConfig, version, latest, skip, rocksDbVersion, useBuildKit, buildKitAddr, platform, noCache)
-					if err != nil {
-						log.Fatalf("Error building rocksdb docker image: %v", err)
+					rocksDBChainConfig := ChainNodeDockerBuildConfig{
+						Build:          chainNodeConfig,
+						Version:        version,
+						Latest:         latest,
+						RocksDBVersion: rocksDbVersion,
 					}
+					chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, rocksDBChainConfig)
 				}
+				buildQueue = append(buildQueue, &chainQueuedBuilds)
+				buildImages(&buildConfig, buildQueue, parallel)
 				return
 			}
 			// If specific version not provided, build images for the last n releases from the chain
-			err := buildMostRecentReleasesForChain(chainNodeConfig, number, containerRegistry, skip, useBuildKit, buildKitAddr, platform, noCache)
+			err := queueMostRecentReleasesForChain(&chainQueuedBuilds, chainNodeConfig, number)
 			if err != nil {
-				log.Fatalf("Error building docker images: %v", err)
+				log.Fatalf("Error queueing docker image builds: %v", err)
+			}
+			if len(chainQueuedBuilds.ChainConfigs) > 0 {
+				buildQueue = append(buildQueue, &chainQueuedBuilds)
 			}
 		}
+		buildImages(&buildConfig, buildQueue, parallel)
 	},
+}
+
+// returns queue items, starting with latest for each chain
+func getQueueItem(queue []*HeighlinerQueuedChainBuilds, index int) *ChainNodeDockerBuildConfig {
+	j := 0
+	for i := 0; true; i++ {
+		foundForThisIndex := false
+		for _, queuedChainBuilds := range queue {
+			if i < len(queuedChainBuilds.ChainConfigs) {
+				if j == index {
+					return &queuedChainBuilds.ChainConfigs[i]
+				}
+				j++
+				foundForThisIndex = true
+			}
+		}
+		if !foundForThisIndex {
+			// all done
+			return nil
+		}
+	}
+	return nil
+}
+
+func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, buildIndex *int, buildIndexLock *sync.Mutex, wg *sync.WaitGroup) {
+	buildIndexLock.Lock()
+	defer buildIndexLock.Unlock()
+	chainConfig := getQueueItem(queue, *buildIndex)
+	*buildIndex++
+	if chainConfig == nil {
+		wg.Done()
+		return
+	}
+	go func() {
+		log.Printf("Building docker image: %s:%s\n", chainConfig.Build.Name, chainConfig.Version)
+		if err := buildChainNodeDockerImage(buildConfig, chainConfig); err != nil {
+			log.Printf("Error building docker image: %v\n", err)
+		}
+		buildNextImage(buildConfig, queue, buildIndex, buildIndexLock, wg)
+	}()
+
+}
+
+func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, parallel int16) {
+	buildIndex := 0
+	buildIndexLock := sync.Mutex{}
+	wg := sync.WaitGroup{}
+	for i := int16(0); i < parallel; i++ {
+		wg.Add(1)
+		buildNextImage(buildConfig, queue, &buildIndex, &buildIndexLock, &wg)
+	}
+	wg.Wait()
 }
 
 func init() {
@@ -248,6 +342,7 @@ func init() {
 	buildCmd.PersistentFlags().StringP("chain", "c", "", "Cosmos chain to build from chains.yaml")
 	buildCmd.PersistentFlags().StringP("version", "v", "", "Github tag to build")
 	buildCmd.PersistentFlags().Int16P("number", "n", 5, "Number of releases to build per chain")
+	buildCmd.PersistentFlags().Int16("parallel", 1, "Number of docker builds to run simultaneously")
 	buildCmd.PersistentFlags().BoolP("skip", "s", false, "Skip pushing images to registry")
 	buildCmd.PersistentFlags().BoolP("latest", "l", false, "Also push latest tag (for single version build only)")
 
