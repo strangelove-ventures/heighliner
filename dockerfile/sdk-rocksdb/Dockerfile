@@ -92,6 +92,6 @@ COPY --from=build-env /go/bin/tendermint /usr/bin/
 COPY --from=build-env /root/cosmos .
 RUN mv /root/cosmos /usr/bin/$(basename $BINARY)
 
-EXPOSE 26657
-
-CMD env $(basename $BINARY) start
+RUN addgroup -S heighliner && adduser -S heighliner -G heighliner
+WORKDIR /home/heighliner
+USER heighliner

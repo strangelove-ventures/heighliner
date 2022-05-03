@@ -85,4 +85,6 @@ COPY --from=build-env /root/bin /usr/local/bin
 # Install libraries
 COPY --from=build-env /usr/local/lib /usr/local/lib
 
-EXPOSE 26657
+RUN addgroup -S heighliner && adduser -S heighliner -G heighliner
+WORKDIR /home/heighliner
+USER heighliner

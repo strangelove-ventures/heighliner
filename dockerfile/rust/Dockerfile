@@ -65,4 +65,6 @@ WORKDIR /root
 # Install chain binaries
 COPY --from=build-env /root/bin /usr/local/bin
 
-EXPOSE 26657
+RUN groupadd -r heighliner && useradd --no-log-init -r -g heighliner heighliner
+WORKDIR /home/heighliner
+USER heighliner

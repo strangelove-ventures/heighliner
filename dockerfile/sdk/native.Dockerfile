@@ -5,7 +5,7 @@ RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eu
 ARG TARGETARCH
 ARG BUILDARCH
 
-RUN wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.$(uname -m).a
+RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.$(uname -m).a
 
 RUN git clone https://github.com/tendermint/tendermint; \
   cd tendermint; \
@@ -44,7 +44,6 @@ FROM alpine:edge
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
 RUN apk add --no-cache ca-certificates jq curl git gcc
-WORKDIR /root
 
 # Install tendermint
 COPY --from=build-env /go/bin/tendermint /usr/bin/
@@ -55,4 +54,6 @@ COPY --from=build-env /root/bin /usr/local/bin
 # Install libraries
 COPY --from=build-env /usr/local/lib /usr/local/lib
 
-EXPOSE 26657
+RUN addgroup -S heighliner && adduser -S heighliner -G heighliner
+WORKDIR /home/heighliner
+USER heighliner
