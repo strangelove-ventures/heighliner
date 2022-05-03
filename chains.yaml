@@ -1,3 +1,12 @@
+# Agoric
+- name: agoric
+  github-organization: Agoric
+  github-repo: ag0
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/ag0
+
 # Akash
 - name: akash
   github-organization: ovrclk
@@ -125,6 +134,15 @@
   binaries:
     - module/build/gravity
 
+# ImpactHub
+- name: impacthub
+  github-organization: ixofoundation
+  github-repo: ixo-blockchain
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/ixod
+
 # Interchain accounts demo
 - name: icad
   github-organization: cosmos
@@ -231,6 +249,15 @@
     - WITH_CLEVELDB=false
     - BUILD_TAGS=muslc musl dynamic
 
+# Regen
+- name: regen
+  github-organization: regen-network
+  github-repo: regen-ledger
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/regen
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
@@ -292,3 +319,14 @@
   build-target: build
   binaries:
     - /go/src/github.com/tendermint/tendermint/build/tendermint
+
+# Terra
+- name: terra
+  github-organization: terra-money
+  github-repo: core
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/terrad
+  build-env:
+    - BUILD_TAGS=muslc
