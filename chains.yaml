@@ -310,3 +310,14 @@
   build-target: build
   binaries:
     - /go/src/github.com/tendermint/tendermint/build/tendermint
+
+# Terra
+- name: terra
+  github-organization: terra-money
+  github-repo: core
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/terrad
+  build-env:
+    - BUILD_TAGS=muslc
