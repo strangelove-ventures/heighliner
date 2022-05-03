@@ -240,6 +240,15 @@
     - WITH_CLEVELDB=false
     - BUILD_TAGS=muslc musl dynamic
 
+# Regen
+- name: regen
+  github-organization: regen-network
+  github-repo: regen-ledger
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/regen
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
