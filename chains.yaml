@@ -1,3 +1,12 @@
+# Agoric
+- name: agoric
+  github-organization: Agoric
+  github-repo: ag0
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/ag0
+
 # Akash
 - name: akash
   github-organization: ovrclk
