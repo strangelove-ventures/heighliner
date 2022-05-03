@@ -59,7 +59,7 @@ FROM debian:bullseye
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
-RUN apt update && apt install -y ca-certificates jq curl git gcc
+RUN apt update && apt install -y ca-certificates jq curl git gcc nano
 WORKDIR /root
 
 # Install chain binaries

@@ -43,7 +43,7 @@ FROM alpine:edge
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
-RUN apk add --no-cache ca-certificates jq curl git gcc
+RUN apk add --no-cache ca-certificates jq curl git gcc nano
 
 # Install tendermint
 COPY --from=build-env /go/bin/tendermint /usr/bin/
