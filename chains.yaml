@@ -115,7 +115,7 @@
   binaries:
     - /go/bin/firmachaind
 
-# FirmaChain 
+# Gravity Bridge 
 - name: gravitybridge
   github-organization: Gravity-Bridge
   github-repo: Gravity-Bridge

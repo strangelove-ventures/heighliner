@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -43,9 +44,14 @@ func BuildDockerImage(ctx context.Context, dockerfileDir string, tags []string, 
 		buildArgs[arg] = &thisValue
 	}
 
+	dockerfile := fmt.Sprintf("%s/native.Dockerfile", dockerfileDir)
+	if _, err := os.Stat(dockerfile); errors.Is(err, os.ErrNotExist) {
+		dockerfile = fmt.Sprintf("%s/Dockerfile", dockerfileDir)
+	}
+
 	opts := types.ImageBuildOptions{
 		NoCache:     noCache,
-		Dockerfile:  fmt.Sprintf("%s/Dockerfile", dockerfileDir),
+		Dockerfile:  dockerfile,
 		Tags:        tags,
 		NetworkMode: "host",
 		Remove:      true,
