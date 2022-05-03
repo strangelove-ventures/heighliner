@@ -92,6 +92,6 @@ COPY --from=build-env /go/bin/tendermint /usr/bin/
 COPY --from=build-env /root/cosmos .
 RUN mv /root/cosmos /usr/bin/$(basename $BINARY)
 
-RUN addgroup -S heighliner && adduser -S heighliner -G heighliner
+RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 WORKDIR /home/heighliner
 USER heighliner
