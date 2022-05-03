@@ -311,7 +311,7 @@ func getQueueItem(queue []*HeighlinerQueuedChainBuilds, index int) *ChainNodeDoc
 	return nil
 }
 
-func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, buildIndex *int, buildIndexLock *sync.Mutex, wg *sync.WaitGroup) {
+func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, buildIndex *int, buildIndexLock *sync.Mutex, wg *sync.WaitGroup, errors *[]error, errorsLock *sync.Mutex) {
 	buildIndexLock.Lock()
 	defer buildIndexLock.Unlock()
 	chainConfig := getQueueItem(queue, *buildIndex)
@@ -323,9 +323,11 @@ func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*Heighline
 	go func() {
 		log.Printf("Building docker image: %s:%s\n", chainConfig.Build.Name, chainConfig.Version)
 		if err := buildChainNodeDockerImage(buildConfig, chainConfig); err != nil {
-			log.Printf("Error building docker image: %v\n", err)
+			errorsLock.Lock()
+			*errors = append(*errors, fmt.Errorf("error building docker image for %s:%s - %v\n", chainConfig.Build.Name, chainConfig.Version, err))
+			errorsLock.Unlock()
 		}
-		buildNextImage(buildConfig, queue, buildIndex, buildIndexLock, wg)
+		buildNextImage(buildConfig, queue, buildIndex, buildIndexLock, wg, errors, errorsLock)
 	}()
 
 }
@@ -333,12 +335,21 @@ func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*Heighline
 func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, parallel int16) {
 	buildIndex := 0
 	buildIndexLock := sync.Mutex{}
+	errors := []error{}
+	errorsLock := sync.Mutex{}
+
 	wg := sync.WaitGroup{}
 	for i := int16(0); i < parallel; i++ {
 		wg.Add(1)
-		buildNextImage(buildConfig, queue, &buildIndex, &buildIndexLock, &wg)
+		buildNextImage(buildConfig, queue, &buildIndex, &buildIndexLock, &wg, &errors, &errorsLock)
 	}
 	wg.Wait()
+	if len(errors) > 0 {
+		for _, err := range errors {
+			log.Println(err)
+		}
+		panic("Some images failed to build")
+	}
 }
 
 func init() {
