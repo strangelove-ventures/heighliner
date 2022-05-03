@@ -76,7 +76,7 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 ARG BINARY
 ENV BINARY ${BINARY}
 
-RUN apk add --no-cache ca-certificates libstdc++ libgcc curl jq git nano lz4 wget
+RUN apk add --no-cache ca-certificates libstdc++ libgcc curl jq git nano lz4 wget unzip
 
 WORKDIR /root
 
