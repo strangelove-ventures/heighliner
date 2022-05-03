@@ -125,6 +125,15 @@
   binaries:
     - module/build/gravity
 
+# ImpactHub
+- name: impacthub
+  github-organization: ixofoundation
+  github-repo: ixo-blockchain
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/ixod
+
 # Interchain accounts demo
 - name: icad
   github-organization: cosmos
