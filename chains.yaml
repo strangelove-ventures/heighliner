@@ -267,6 +267,15 @@
   binaries:
     - /go/bin/regen
 
+# Rizon
+- name: rizon
+  github-organization: rizon-world
+  github-repo: rizon
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/rizond
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
