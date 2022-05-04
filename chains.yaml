@@ -228,6 +228,17 @@
   binaries:
     - /go/bin/persistenceCore
 
+# Polkadot
+- name: polkadot
+  github-organization: paritytech
+  github-repo: polkadot
+  language: rust
+  build-target: build --release
+  pre-build: |
+    ./scripts/init.sh
+  binaries:
+    - /build/polkadot/target/release/polkadot
+
 # Provenance
 - name: provenance
   github-organization: provenance-io
