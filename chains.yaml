@@ -106,6 +106,15 @@
   binaries:
     - /go/bin/chain-maind
 
+# Decentr 
+- name: decentr
+  github-organization: Decentr-net
+  github-repo: decentr
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/decentrd
+
 # Evmos
 - name: evmos
   github-organization: tharsis
