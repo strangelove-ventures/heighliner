@@ -64,6 +64,56 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Carbon
+- name: carbon
+  github-organization: Switcheo
+  github-repo: carbon-bootstrap
+  language: rust
+  build-target:
+  pre-build: |
+    apt update && apt install wget build-essential jq cmake -y
+
+    wget https://github.com/google/leveldb/archive/1.23.tar.gz && \
+      tar -zxvf 1.23.tar.gz && \
+      wget https://github.com/google/googletest/archive/release-1.11.0.tar.gz && \
+      tar -zxvf release-1.11.0.tar.gz && \
+      mv googletest-release-1.11.0/* leveldb-1.23/third_party/googletest && \
+
+      wget https://github.com/google/benchmark/archive/v1.5.5.tar.gz && \
+      tar -zxvf v1.5.5.tar.gz && \
+      mv benchmark-1.5.5/* leveldb-1.23/third_party/benchmark && \
+
+      cd leveldb-1.23 && \
+      mkdir -p build && \
+
+      cd build && \
+      cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON .. && \
+      cmake --build . && \
+      cp -P libleveldb.so* /usr/local/lib/ && \
+      ldconfig && \
+      cd .. && \
+
+      cp -r include/leveldb /usr/local/include/ && \
+      cd .. && \
+
+      rm -rf benchmark-1.5.5/ && \
+      rm -f v1.5.5.tar.gz && \
+
+      rm -rf googletest-release-1.11.0/ && \
+      rm -f release-1.11.0.tar.gz && \
+
+      rm -rf leveldb-1.23/ && \
+      rm -f 1.23.tar.gz
+
+    VERSION=2.0.0
+    NETWORK=mainnet
+    wget https://github.com/Switcheo/carbon-bootstrap/releases/download/v${VERSION}/carbond${VERSION}-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    tar -xvf carbond${VERSION}-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    mv carbond /usr/local/bin
+    rm carbond${VERSION}-${NETWORK}.linux-amd64.tar.gz 
+  binaries:
+    - /usr/local/bin/carbond
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
