@@ -18,7 +18,9 @@ ARG VERSION
 
 RUN git checkout ${VERSION}
 
-RUN cargo fetch
+ARG BUILD_TARGET
+
+RUN [ ! -z "$BUILD_TARGET" ] && cargo fetch || true
 
 ARG TARGETARCH
 ARG TARGETOS
@@ -38,16 +40,16 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
       apt install -y gcc-aarch64-linux-gnu; \
       dpkg --add-architecture arm64; \
       apt update && apt install -y libssl-dev:arm64; \
-      cargo ${BUILD_TARGET} --target $TARGET; \
+      [ ! -z "$BUILD_TARGET" ] && cargo ${BUILD_TARGET} --target $TARGET; \
     elif [ "$TARGETARCH" == "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
       TARGET=x86_64-unknown-linux-gnu; \
       rustup target add $TARGET; \
       apt install -y gcc-x86_64-linux-gnu; \
       dpkg --add-architecture amd64; \
       apt update && apt install -y libssl-dev:amd64; \
-      cargo ${BUILD_TARGET} --target $TARGET; \
+      [ ! -z "$BUILD_TARGET" ] && cargo ${BUILD_TARGET} --target $TARGET; \
     else \
-      cargo ${BUILD_TARGET}; \
+      [ ! -z "$BUILD_TARGET" ] && cargo ${BUILD_TARGET}; \
     fi;
 
 RUN mkdir /root/bin
@@ -64,6 +66,10 @@ WORKDIR /root
 
 # Install chain binaries
 COPY --from=build-env /root/bin /usr/local/bin
+
+# Install libraries
+COPY --from=build-env /usr/local/lib /usr/local/lib
+RUN cp -r /usr/local/lib/* /lib/
 
 RUN groupadd -g 1025 -r heighliner && useradd -u 1025 --no-log-init -r -g heighliner heighliner
 WORKDIR /home/heighliner

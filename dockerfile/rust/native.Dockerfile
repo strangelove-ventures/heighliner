@@ -18,9 +18,10 @@ ARG VERSION
 
 RUN git checkout ${VERSION}
 
-RUN cargo fetch
-
 ARG BUILD_TARGET
+
+RUN [ ! -z "$BUILD_TARGET" ] && cargo fetch || true
+
 ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
@@ -28,7 +29,8 @@ ARG PRE_BUILD
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
-    cargo ${BUILD_TARGET}
+    [ ! -z "$BUILD_TARGET" ] && cargo ${BUILD_TARGET} || true
+
 
 RUN mkdir /root/bin
 ARG BINARIES
@@ -45,6 +47,11 @@ WORKDIR /root
 # Install chain binaries
 COPY --from=build-env /root/bin /usr/local/bin
 
+# Install libraries
+COPY --from=build-env /usr/local/lib /usr/local/lib
+RUN cp -r /usr/local/lib/* /lib/
+
+RUN ls /usr/local/lib/ && sleep 20
 RUN groupadd -g 1025 -r heighliner && useradd -u 1025 --no-log-init -r -g heighliner heighliner
 WORKDIR /home/heighliner
 USER heighliner
