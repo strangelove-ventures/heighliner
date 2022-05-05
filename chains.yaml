@@ -64,6 +64,15 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Cerberus
+- name: cerberus
+  github-organization: cerberus-zone
+  github-repo: cerberus
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/cerberusd
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
