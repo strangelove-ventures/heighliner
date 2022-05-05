@@ -114,6 +114,15 @@
   binaries:
     - /usr/local/bin/carbond
 
+# Cerberus
+- name: cerberus
+  github-organization: cerberus-zone
+  github-repo: cerberus
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/cerberusd
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
@@ -155,6 +164,26 @@
   build-target: install
   binaries:
     - /go/bin/chain-maind
+
+# Decentr 
+- name: decentr
+  github-organization: Decentr-net
+  github-repo: decentr
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/decentrd
+
+# Desmos
+- name: desmos
+  github-organization: desmos-labs
+  github-repo: desmos
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/desmos
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Evmos
 - name: evmos
@@ -278,6 +307,17 @@
   binaries:
     - /go/bin/persistenceCore
 
+# Polkadot
+- name: polkadot
+  github-organization: paritytech
+  github-repo: polkadot
+  language: rust
+  build-target: build --release
+  pre-build: |
+    ./scripts/init.sh
+  binaries:
+    - /build/polkadot/target/release/polkadot
+
 # Provenance
 - name: provenance
   github-organization: provenance-io
@@ -308,18 +348,28 @@
   binaries:
     - /go/bin/regen
 
+# Rizon
+- name: rizon
+  github-organization: rizon-world
+  github-repo: rizon
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/rizond
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
   github-repo: hub
   language: go
+  # Hack, using pre-build instead of build target to build
   build-target: tools
   pre-build: |
+    BUILD_TAGS=netgo,muslc
+    LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=sentinel -X github.com/cosmos/cosmos-sdk/version.AppName=sentinelhub -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')"
     go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="${LD_FLAGS}" ./cmd/sentinelhub
   binaries:
     - /go/bin/sentinelhub
-  build-env:
-    - BUILD_TAGS=muslc
 
 # Sim (for testing)
 - name: sim

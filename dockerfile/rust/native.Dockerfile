@@ -54,4 +54,5 @@ RUN cp -r /usr/local/lib/* /lib/
 RUN ls /usr/local/lib/ && sleep 20
 RUN groupadd -g 1025 -r heighliner && useradd -u 1025 --no-log-init -r -g heighliner heighliner
 WORKDIR /home/heighliner
+RUN chown -R heighliner:heighliner /home/heighliner
 USER heighliner
