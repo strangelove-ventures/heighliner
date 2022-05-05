@@ -64,6 +64,15 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Cerberus
+- name: cerberus
+  github-organization: cerberus-zone
+  github-repo: cerberus
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/cerberusd
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
@@ -105,6 +114,26 @@
   build-target: install
   binaries:
     - /go/bin/chain-maind
+
+# Decentr 
+- name: decentr
+  github-organization: Decentr-net
+  github-repo: decentr
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/decentrd
+
+# Desmos
+- name: desmos
+  github-organization: desmos-labs
+  github-repo: desmos
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/desmos
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Evmos
 - name: evmos
@@ -268,6 +297,15 @@
   build-target: install
   binaries:
     - /go/bin/regen
+
+# Rizon
+- name: rizon
+  github-organization: rizon-world
+  github-repo: rizon
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/rizond
 
 # Sentinel
 - name: sentinel
