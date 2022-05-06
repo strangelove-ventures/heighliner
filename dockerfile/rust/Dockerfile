@@ -32,14 +32,14 @@ ARG PRE_BUILD
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
-    if [ "$TARGETARCH" == "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
+    if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
       TARGET=aarch64-unknown-linux-gnu; \
       rustup target add $TARGET; \
       apt install -y gcc-aarch64-linux-gnu; \
       dpkg --add-architecture arm64; \
       apt update && apt install -y libssl-dev:arm64; \
       cargo ${BUILD_TARGET} --target $TARGET; \
-    elif [ "$TARGETARCH" == "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
+    elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
       TARGET=x86_64-unknown-linux-gnu; \
       rustup target add $TARGET; \
       apt install -y gcc-x86_64-linux-gnu; \
