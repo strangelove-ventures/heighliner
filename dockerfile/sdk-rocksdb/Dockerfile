@@ -36,19 +36,19 @@ RUN git clone https://github.com/notional-labs/tendermint && \
   git checkout remotes/origin/callum/app-version && \
   go install -tags rocksdb ./... 
 
+RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.$(uname -m).a
+
+
 ARG GITHUB_ORGANIZATION
 
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}
 
 ARG GITHUB_REPO
+ARG VERSION
 
 RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
-
-RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.$(uname -m).a
-
-ARG VERSION
 
 RUN git checkout ${VERSION}
 
