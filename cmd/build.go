@@ -26,6 +26,7 @@ type ChainNodeConfig struct {
 	BuildDir           string            `yaml:"build-dir"`
 	Binaries           []string          `yaml:"binaries"`
 	PreBuild           string            `yaml:"pre-build"`
+	Platforms          []string          `yaml:"platforms"`
 	BuildEnv           []string          `yaml:"build-env"`
 	RocksDBVersion     map[string]string `yaml:"rocksdb-version"`
 }
@@ -142,7 +143,25 @@ func buildChainNodeDockerImage(
 	if buildConfig.UseBuildKit {
 		buildKitOptions := docker.GetDefaultBuildKitOptions()
 		buildKitOptions.Address = buildConfig.BuildKitAddr
-		buildKitOptions.Platform = buildConfig.Platform
+		supportedPlatforms := chainConfig.Build.Platforms
+
+		if len(supportedPlatforms) > 0 {
+			platforms := []string{}
+			requestedPlatforms := strings.Split(buildConfig.Platform, ",")
+			for _, supportedPlatform := range supportedPlatforms {
+				for _, requestedPlatform := range requestedPlatforms {
+					if supportedPlatform == requestedPlatform {
+						platforms = append(platforms, requestedPlatform)
+					}
+				}
+			}
+			if len(platforms) == 0 {
+				return fmt.Errorf("no requested platforms are supported for this chain: %s. requested: %s, supported: %s", chainConfig.Build.Name, buildConfig.Platform, strings.Join(supportedPlatforms, ","))
+			}
+			buildKitOptions.Platform = strings.Join(platforms, ",")
+		} else {
+			buildKitOptions.Platform = buildConfig.Platform
+		}
 		buildKitOptions.NoCache = buildConfig.NoCache
 		return docker.BuildDockerImageWithBuildKit(ctx, dockerfile, imageTags, push, buildArgs, buildKitOptions)
 	} else {

@@ -73,6 +73,19 @@
   binaries:
     - /go/bin/cerberusd
 
+# Composable
+- name: composable
+  github-organization: ComposableFi
+  github-repo: composable
+  language: rust
+  platforms:
+    - linux/amd64
+  build-target: build --release
+  pre-build: |
+    ./scripts/init.sh
+  binaries:
+    - /build/composable/target/release/composable
+
 # Cosmos Hub
 - name: gaia
   github-organization: cosmos
@@ -243,6 +256,8 @@
   github-organization: penumbra-zone
   github-repo: penumbra
   language: rust
+  platforms:
+    - linux/amd64
   build-target: build --release
   binaries:
     - /build/penumbra/target/release/pd
@@ -262,6 +277,8 @@
   github-organization: paritytech
   github-repo: polkadot
   language: rust
+  platforms:
+    - linux/amd64
   build-target: build --release
   pre-build: |
     ./scripts/init.sh
