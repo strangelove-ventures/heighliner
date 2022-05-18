@@ -1,11 +1,7 @@
 # Agoric
 - name: agoric
-  github-organization: Agoric
-  github-repo: ag0
-  language: go
-  build-target: install
-  binaries:
-    - /go/bin/ag0
+  language: imported
+  base-image: agoric/agoric-sdk
 
 # Akash
 - name: akash
@@ -34,6 +30,19 @@
     mv build/* ../contract-artifacts/gateway/
     cd ..
     bash scripts/populate-bytecode.sh
+
+# Basilisk
+- name: basilisk
+  github-organization: galacticcouncil
+  github-repo: Basilisk-node
+  language: rust
+  platforms:
+    - linux/amd64
+  build-target: build --release
+  pre-build: |
+    ./scripts/init.sh
+  binaries:
+    - /build/Basilisk-node/target/release/basilisk
 
 # Bitcanna
 - name: bitcanna

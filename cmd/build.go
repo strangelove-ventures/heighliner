@@ -29,6 +29,7 @@ type ChainNodeConfig struct {
 	Platforms          []string          `yaml:"platforms"`
 	BuildEnv           []string          `yaml:"build-env"`
 	RocksDBVersion     map[string]string `yaml:"rocksdb-version"`
+	BaseImage          string            `yaml:"base-image"`
 }
 
 type GithubRelease struct {
@@ -71,6 +72,9 @@ func buildChainNodeDockerImage(
 	var dockerfile string
 	var imageTag string
 	switch chainConfig.Build.Language {
+	case "imported":
+		dockerfile = "./dockerfile/imported"
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "rust":
 		dockerfile = "./dockerfile/rust"
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
@@ -98,6 +102,8 @@ func buildChainNodeDockerImage(
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
+	fmt.Printf("Image Tags: +%v\n", imageTags)
+
 	buildEnv := ""
 
 	buildTagsEnvVar := ""
@@ -124,6 +130,7 @@ func buildChainNodeDockerImage(
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Version,
 		"NAME":                chainConfig.Build.Name,
+		"BASE_IMAGE":          chainConfig.Build.BaseImage,
 		"GITHUB_ORGANIZATION": chainConfig.Build.GithubOrganization,
 		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
 		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
@@ -135,7 +142,7 @@ func buildChainNodeDockerImage(
 		"ROCKSDB_VERSION":     chainConfig.RocksDBVersion,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*15))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*60))
 	defer cancel()
 
 	push := buildConfig.ContainerRegistry != "" && !buildConfig.SkipPush
