@@ -21,7 +21,7 @@ RUN LIBDIR=/lib; \
         mkdir $LIBDIR; \
       fi; \
     fi; \
-    wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0-beta10/libwasmvm_muslc.$ARCH.a
+    wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$ARCH.a
 
 RUN git clone https://github.com/tendermint/tendermint; \
   cd tendermint; \
