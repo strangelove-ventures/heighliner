@@ -181,6 +181,9 @@ func queueMostRecentReleasesForChain(
 	chainNodeConfig ChainNodeConfig,
 	number int16,
 ) error {
+	if chainNodeConfig.GithubOrganization == "" || chainNodeConfig.GithubRepo == "" {
+		return fmt.Errorf("github organization: %s and/or repo: %s not provided for chain: %s\n", chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, chainNodeConfig.Name)
+	}
 	client := http.Client{Timeout: 5 * time.Second}
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
@@ -209,7 +212,7 @@ func queueMostRecentReleasesForChain(
 	releases := []GithubRelease{}
 	err = json.Unmarshal(body, &releases)
 	if err != nil {
-		return fmt.Errorf("error parsing github releases response: %v", err)
+		return fmt.Errorf("error parsing github releases response: %s, error: %v", body, err)
 	}
 	for i, release := range releases {
 		chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, ChainNodeDockerBuildConfig{
@@ -305,7 +308,8 @@ it will be built and pushed`,
 			// If specific version not provided, build images for the last n releases from the chain
 			err := queueMostRecentReleasesForChain(&chainQueuedBuilds, chainNodeConfig, number)
 			if err != nil {
-				log.Fatalf("Error queueing docker image builds: %v", err)
+				log.Printf("Error queueing docker image builds for chain %s: %v", chainNodeConfig.Name, err)
+				continue
 			}
 			if len(chainQueuedBuilds.ChainConfigs) > 0 {
 				buildQueue = append(buildQueue, &chainQueuedBuilds)
