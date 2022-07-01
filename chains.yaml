@@ -215,6 +215,18 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
+# Kujira
+- name: kujira
+  github-organization: Team-Kujira
+  github-repo: core
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/kujirad
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
+
 # Likecoin 
 - name: likecoin
   github-organization: likecoin
