@@ -1,5 +1,6 @@
 ARG BASE_IMAGE
-FROM $BASE_IMAGE
+ARG VERSION
+FROM $BASE_IMAGE:$VERSION
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
