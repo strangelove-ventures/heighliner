@@ -1,28 +1,14 @@
-FROM --platform=$BUILDPLATFORM rust:latest AS build-env
+FROM rust:latest AS build-env
 
 RUN apt-get update && apt-get install -y clang libclang-dev
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path --default-toolchain none -y
 RUN rustup component add rustfmt
 
-ARG TARGETARCH
-ARG BUILDARCH
-
-RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      dpkg --add-architecture arm64; \
-      rustup target add aarch64-unknown-linux-gnu; \
-      apt update && apt install -y gcc-aarch64-linux-gnu libssl-dev:arm64 openssl:arm64; \ 
-    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      dpkg --add-architecture amd64; \
-      rustup target add x86_64-unknown-linux-gnu; \
-      apt update && apt install -y gcc-x86_64-linux-gnu libssl-dev:amd64 openssl:amd64; \
-    fi
-
 WORKDIR /build
 
 ARG GITHUB_ORGANIZATION
 ARG GITHUB_REPO
-
 ARG VERSION
 
 RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
@@ -30,6 +16,8 @@ RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 WORKDIR /build/${GITHUB_REPO}
 
 RUN git checkout ${VERSION}
+
+RUN cargo fetch
 
 ARG BUILD_TARGET
 ARG BUILD_ENV
@@ -39,18 +27,7 @@ ARG PRE_BUILD
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
-    if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
-      export TARGET=aarch64-unknown-linux-gnu TARGET_CC=aarch64-linux-gnu-gcc; \
-      cargo fetch --target $TARGET; \
-      cargo ${BUILD_TARGET} --target $TARGET; \
-    elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
-      export TARGET=x86_64-unknown-linux-gnu TARGET_CC=x86_64-linux-gnu-gcc; \
-      cargo fetch --target $TARGET; \
-      cargo ${BUILD_TARGET} --target $TARGET; \
-    else \
-      cargo fetch; \
-      cargo ${BUILD_TARGET}; \
-    fi;
+    cargo ${BUILD_TARGET}
 
 RUN mkdir /root/bin
 ARG BINARIES

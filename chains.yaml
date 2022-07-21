@@ -277,8 +277,6 @@
   github-organization: penumbra-zone
   github-repo: penumbra
   language: rust
-  platforms:
-    - linux/amd64
   build-target: build --release
   binaries:
     - /build/penumbra/target/release/pd
