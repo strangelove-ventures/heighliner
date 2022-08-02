@@ -4,7 +4,7 @@
   base-image: agoric/agoric-sdk
 
 # Ag0
-- name: agoric
+- name: ag0
   language: imported
   base-image: agoric/ag0
 
