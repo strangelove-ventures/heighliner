@@ -1,7 +1,12 @@
-# Agoric
+# Agoric-sdk
 - name: agoric
   language: imported
   base-image: agoric/agoric-sdk
+
+# Ag0
+- name: ag0
+  language: imported
+  base-image: agoric/ag0
 
 # Akash
 - name: akash
