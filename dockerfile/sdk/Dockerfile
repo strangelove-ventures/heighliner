@@ -35,13 +35,16 @@ RUN git clone https://github.com/tendermint/tendermint; \
   go install ./...
 
 ARG GITHUB_ORGANIZATION
-WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}
+ARG REPO_HOST
+
+WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
 
 ARG GITHUB_REPO
 ARG VERSION
 
-RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
-WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
+RUN git clone https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
+
+WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 RUN git checkout ${VERSION}
 
 ARG BUILD_TARGET
