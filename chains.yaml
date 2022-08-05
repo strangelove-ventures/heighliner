@@ -348,6 +348,13 @@
   binaries:
     - /go/bin/rizond
 
+# Secret Network
+- name: secretnetwork
+  language: imported
+  base-image: ghcr.io/scrtlabs/secret-network-node
+  platforms:
+    - linux/amd64
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
@@ -421,3 +428,16 @@
     - /go/bin/terrad
   build-env:
     - BUILD_TAGS=muslc
+
+# Thorchain
+- name: thorchain
+  repo-host: gitlab.com
+  github-organization: thorchain
+  github-repo: thornode
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/thornode
+  pre-build: |
+    apk --no-cache add findutils protoc && \
+    rm -rf /var/cache/apk/*
