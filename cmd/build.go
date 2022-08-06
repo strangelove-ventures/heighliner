@@ -126,16 +126,16 @@ func buildChainNodeDockerImage(
 
 	binaries := strings.Join(chainConfig.Build.Binaries, " ")
 
-	repo_host := chainConfig.Build.RepoHost
-	if repo_host == "" {
-		repo_host = "github.com"
+	repoHost := chainConfig.Build.RepoHost
+	if repoHost == "" {
+		repoHost = "github.com"
 	}
 
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Version,
 		"NAME":                chainConfig.Build.Name,
 		"BASE_IMAGE":          chainConfig.Build.BaseImage,
-		"REPO_HOST":           repo_host,
+		"REPO_HOST":           repoHost,
 		"GITHUB_ORGANIZATION": chainConfig.Build.GithubOrganization,
 		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
 		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
