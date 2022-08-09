@@ -427,6 +427,15 @@
   binaries:
     - /go/bin/certik
 
+# Sifchain
+- name: sifchain
+  github-organization: Sifchain
+  github-repo: sifnode
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/sifnoded
+
 # Sim (for testing)
 - name: sim
   github-organization: cosmos
