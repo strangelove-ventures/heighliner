@@ -87,6 +87,15 @@
   binaries:
     - /go/bin/cerberusd
 
+# Cheqd
+- name: cheqd
+  github-organization: cheqd
+  github-repo: cheqd-node
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/cheqd-noded
+
 # Composable
 - name: composable
   github-organization: ComposableFi
@@ -161,6 +170,15 @@
     - /go/bin/desmos
   build-env:
     - BUILD_TAGS=muslc
+
+# Emoney
+- name: emoney 
+  github-organization: e-money
+  github-repo: em-ledger
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/emd
 
 # Evmos
 - name: evmos
@@ -421,3 +439,12 @@
     - /go/bin/terrad
   build-env:
     - BUILD_TAGS=muslc
+
+# Umee
+- name: umee
+  github-organization: umee-network
+  github-repo: umee
+  language: go
+  build-target: install
+  binaries: 
+    - /go/bin/umeed
