@@ -87,7 +87,6 @@
   binaries:
     - /go/bin/cerberusd
 
-<<<<<<< HEAD
 # Cheqd
 - name: cheqd
   github-organization: cheqd
@@ -96,7 +95,7 @@
   build-target: install
   binaries:
     - /go/bin/cheqd-noded
-=======
+
 # Chihuahua
 - name: chihuahua
   github-organization: ChihuahuaChain
@@ -105,7 +104,6 @@
   build-target: install
   binaries:
     - /go/bin/chihuahuad
->>>>>>> add Chihuahua and Shentu
 
 # Composable
 - name: composable
@@ -247,6 +245,17 @@
     - /go/bin/junod
   build-env:
     - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
+
+# Kichain 
+- name: kichain
+  github-organization: KiFoundation
+  github-repo: ki-tools
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/kid
+  build-env:
     - BUILD_TAGS=muslc
 
 # Kujira
@@ -488,3 +497,12 @@
   build-target: install
   binaries: 
     - /go/bin/umeed
+
+# Vidulum 
+- name: vidulum
+  github-organization: vidulum
+  github-repo: mainnet
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/vidulumd
