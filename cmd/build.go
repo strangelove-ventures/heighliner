@@ -19,6 +19,7 @@ import (
 
 type ChainNodeConfig struct {
 	Name               string            `yaml:"name"`
+	RepoHost           string            `yaml:"repo-host"`
 	GithubOrganization string            `yaml:"github-organization"`
 	GithubRepo         string            `yaml:"github-repo"`
 	Language           string            `yaml:"language"`
@@ -125,12 +126,16 @@ func buildChainNodeDockerImage(
 
 	binaries := strings.Join(chainConfig.Build.Binaries, " ")
 
-	fmt.Printf("Building with dockerfile: %s\n", dockerfile)
+	repoHost := chainConfig.Build.RepoHost
+	if repoHost == "" {
+		repoHost = "github.com"
+	}
 
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Version,
 		"NAME":                chainConfig.Build.Name,
 		"BASE_IMAGE":          chainConfig.Build.BaseImage,
+		"REPO_HOST":           repoHost,
 		"GITHUB_ORGANIZATION": chainConfig.Build.GithubOrganization,
 		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
 		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
