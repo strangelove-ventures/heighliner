@@ -87,6 +87,7 @@
   binaries:
     - /go/bin/cerberusd
 
+<<<<<<< HEAD
 # Cheqd
 - name: cheqd
   github-organization: cheqd
@@ -95,6 +96,16 @@
   build-target: install
   binaries:
     - /go/bin/cheqd-noded
+=======
+# Chihuahua
+- name: chihuahua
+  github-organization: ChihuahuaChain
+  github-repo: chihuahua
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/chihuahuad
+>>>>>>> add Chihuahua and Shentu
 
 # Composable
 - name: composable
@@ -386,6 +397,15 @@
     go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="${LD_FLAGS}" ./cmd/sentinelhub
   binaries:
     - /go/bin/sentinelhub
+
+# Shentu
+- name: shentu
+  github-organization: ShentuChain
+  github-repo: shentu
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/certik
 
 # Sim (for testing)
 - name: sim
