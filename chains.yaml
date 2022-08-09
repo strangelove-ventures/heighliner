@@ -315,6 +315,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# panacea
+- name: panacea
+  github-organization: medibloc
+  github-repo: panacea-core
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/panacead
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Penumbra
 - name: penumbra
   github-organization: penumbra-zone
