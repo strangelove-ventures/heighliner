@@ -96,6 +96,15 @@
   binaries:
     - /go/bin/cheqd-noded
 
+# Chihuahua
+- name: chihuahua
+  github-organization: ChihuahuaChain
+  github-repo: chihuahua
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/chihuahuad
+
 # Composable
 - name: composable
   github-organization: ComposableFi
@@ -238,6 +247,17 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
+# Kichain 
+- name: kichain
+  github-organization: KiFoundation
+  github-repo: ki-tools
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/kid
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Kujira
 - name: kujira
   github-organization: Team-Kujira
@@ -292,6 +312,17 @@
   #   v6.2.0: v6.24.2
   #   v6.4.0: v6.29.3
   #   v7.0.2: v6.29.3
+  build-env:
+    - BUILD_TAGS=muslc
+
+# panacea
+- name: panacea
+  github-organization: medibloc
+  github-repo: panacea-core
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/panacead
   build-env:
     - BUILD_TAGS=muslc
 
@@ -387,6 +418,24 @@
   binaries:
     - /go/bin/sentinelhub
 
+# Shentu
+- name: shentu
+  github-organization: ShentuChain
+  github-repo: shentu
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/certik
+
+# Sifchain
+- name: sifchain
+  github-organization: Sifchain
+  github-repo: sifnode
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/sifnoded
+
 # Sim (for testing)
 - name: sim
   github-organization: cosmos
@@ -468,3 +517,12 @@
   build-target: install
   binaries: 
     - /go/bin/umeed
+
+# Vidulum 
+- name: vidulum
+  github-organization: vidulum
+  github-repo: mainnet
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/vidulumd
