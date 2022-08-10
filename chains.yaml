@@ -171,6 +171,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Dig
+- name: dig
+  github-organization: notional-labs
+  github-repo: dig
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/digd
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Emoney
 - name: emoney 
   github-organization: e-money
