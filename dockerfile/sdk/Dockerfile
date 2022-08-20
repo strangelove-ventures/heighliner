@@ -23,17 +23,6 @@ RUN LIBDIR=/lib; \
     fi; \
     wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$ARCH.a
 
-RUN git clone https://github.com/tendermint/tendermint; \
-  cd tendermint; \
-  git checkout remotes/origin/callum/app-version; \
-  if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-    export CGO_ENABLED=1 CC=aarch64-linux-musl-gcc; \
-  elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-    export CGO_ENABLED=1 CC=x86_64-linux-musl-gcc; \
-  fi; \
-  export GOOS=linux GOARCH=$TARGETARCH; \
-  go install ./...
-
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 
@@ -72,22 +61,23 @@ ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c 'BINARIES_ARR=($BINARIES_ENV); for BINARY in "${BINARIES_ARR[@]}"; do cp $BINARY /root/bin/ ; done'
 
-FROM alpine:edge
+RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
+
+FROM scratch
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
-
-RUN apk add --no-cache ca-certificates jq curl git gcc nano lz4 wget unzip
-WORKDIR /root
-
-# Install tendermint
-COPY --from=build-env /go/bin/tendermint /usr/bin/
 
 # Install chain binaries
 COPY --from=build-env /root/bin /usr/local/bin
 
+# Install musl
+COPY --from=build-env /lib/ld-musl-x86_64.so.1 /lib/ld-musl-x86_64.so.1
+
 # Install libraries
 COPY --from=build-env /usr/local/lib /usr/local/lib
 
-RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
+# Install heighliner user
+COPY --from=build-env /etc/passwd /etc/passwd
+
 WORKDIR /home/heighliner
 USER heighliner
