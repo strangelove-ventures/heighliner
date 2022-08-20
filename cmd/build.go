@@ -151,7 +151,7 @@ func buildChainNodeDockerImage(
 		"ROCKSDB_VERSION":     chainConfig.RocksDBVersion,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*60))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
 	defer cancel()
 
 	push := buildConfig.ContainerRegistry != "" && !buildConfig.SkipPush
