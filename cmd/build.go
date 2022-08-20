@@ -26,6 +26,7 @@ type ChainNodeConfig struct {
 	BuildTarget        string            `yaml:"build-target"`
 	BuildDir           string            `yaml:"build-dir"`
 	Binaries           []string          `yaml:"binaries"`
+	Libraries          []string          `yaml:"libraries"`
 	PreBuild           string            `yaml:"pre-build"`
 	Platforms          []string          `yaml:"platforms"`
 	BuildEnv           []string          `yaml:"build-env"`
@@ -80,8 +81,6 @@ func buildChainNodeDockerImage(
 		dockerfile = "./dockerfile/rust"
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "go":
-		fallthrough
-	default:
 		if chainConfig.RocksDBVersion != "" {
 			dockerfile = "./dockerfile/sdk-rocksdb"
 			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(chainConfig.Version, "/", "-"))
@@ -89,6 +88,9 @@ func buildChainNodeDockerImage(
 			dockerfile = "./dockerfile/sdk"
 			imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 		}
+	default:
+		dockerfile = "./dockerfile/none"
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	}
 
 	var imageName string
@@ -125,6 +127,7 @@ func buildChainNodeDockerImage(
 	}
 
 	binaries := strings.Join(chainConfig.Build.Binaries, " ")
+	libraries := strings.Join(chainConfig.Build.Libraries, " ")
 
 	repoHost := chainConfig.Build.RepoHost
 	if repoHost == "" {
@@ -140,6 +143,7 @@ func buildChainNodeDockerImage(
 		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
 		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
 		"BINARIES":            binaries,
+		"LIBRARIES":           libraries,
 		"PRE_BUILD":           chainConfig.Build.PreBuild,
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
