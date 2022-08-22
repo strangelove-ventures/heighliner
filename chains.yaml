@@ -505,6 +505,15 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Stride
+- name: stride
+  github-organization: Stride-Labs
+  github-repo: stride
+  language: go
+  build-target: build
+  binaries:
+    - build/strided
+
 # Tendermint
 - name: tendermint
   github-organization: tendermint
