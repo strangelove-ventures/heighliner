@@ -31,7 +31,7 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     [ ! -z "$BUILD_DIR" ] && cd "${BUILD_DIR}"; \
-    [ ! -z "$BUILD_TARGET" ] && make ${BUILD_TARGET} || true
+    LDFLAGS='-linkmode external -extldflags "-static"' make ${BUILD_TARGET}
 
 RUN mkdir /root/bin
 ARG BINARIES
@@ -46,9 +46,6 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 # Install chain binaries
 COPY --from=build-env /root/bin /usr/local/bin
-
-# Install musl
-COPY --from=build-env /lib/ld-musl-x86_64.so.1 /lib/ld-musl-x86_64.so.1
 
 # Install libraries
 COPY --from=build-env /usr/local/lib /usr/local/lib
