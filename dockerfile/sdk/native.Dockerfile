@@ -57,14 +57,23 @@ FROM scratch
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
-# Install shell with minimal read-only utils
-COPY --from=busybox /bin/sh /bin/ls /bin/cat /bin/pwd /bin/less /bin/
+# Install sh and ln (will be two copies of the busybox binary) for making hard links
+COPY --from=busybox /bin/sh /bin/ln /bin/
+
+# Add hard links for read-only utils, then remove ln and rm
+# Will then only have one copy of the busybox binary, with all other utils pointing to the same underlying data
+RUN ln /bin/sh /bin/pwd; \
+    ln /bin/sh /bin/ls; \
+    ln /bin/sh /bin/cat; \
+    ln /bin/sh /bin/less; \
+    ln /bin/sh /bin/rm; \
+    rm /bin/rm /bin/ln
 
 # Install chain binaries
-COPY --from=build-env /root/bin /usr/bin
+COPY --from=build-env /root/bin /bin
 
 # Install libraries
-COPY --from=build-env /root/lib /usr/lib
+COPY --from=build-env /root/lib /lib
 
 # Install heighliner user
 COPY --from=build-env /etc/passwd /etc/passwd
