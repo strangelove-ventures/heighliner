@@ -23,6 +23,19 @@ RUN LIBDIR=/lib; \
     fi; \
     wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$ARCH.a
 
+# Build minimal busybox
+WORKDIR /
+# busybox v1.34.1 stable
+RUN git clone -b 1_34_1 --single-branch https://git.busybox.net/busybox
+WORKDIR /busybox
+ADD busybox.min.config .config
+RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
+      export CC=aarch64-linux-musl-gcc; \
+    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
+      export CC=x86_64-linux-musl-gcc; \
+    fi; \
+    make
+
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 
@@ -70,14 +83,6 @@ ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
-
-# Build minimal busybox
-WORKDIR /
-# busybox v1.34.1 stable
-RUN git clone -b 1_34_1 --single-branch https://git.busybox.net/busybox
-WORKDIR /busybox
-ADD busybox.min.config .config
-RUN make
 
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
