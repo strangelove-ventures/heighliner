@@ -36,7 +36,7 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     [ ! -z "$BUILD_DIR" ] && cd "${BUILD_DIR}"; \
-    make ${BUILD_TARGET}
+    [ ! -z "$BUILD_TARGET" ] && make ${BUILD_TARGET} || true
 
 RUN mkdir /root/bin
 ARG BINARIES

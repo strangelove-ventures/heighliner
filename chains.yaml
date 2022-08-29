@@ -264,6 +264,16 @@
   binaries:
     - /go/bin/icad
 
+# Interchain queries demo
+- name: icqd
+  github-organization: quasar-finance
+  github-repo: interchain-query-demo
+  language: go
+  pre-build: |
+    go build -o build/icq ./cmd/interchain-query-demod
+  binaries:
+    - build/icq
+
 # Juno
 - name: juno
   github-organization: CosmosContracts
