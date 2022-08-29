@@ -37,7 +37,14 @@ func GetDefaultBuildKitOptions() BuildKitOptions {
 	}
 }
 
-func BuildDockerImageWithBuildKit(ctx context.Context, dockerfileDir string, tags []string, push bool, args map[string]string, buildKitOptions BuildKitOptions) error {
+func BuildDockerImageWithBuildKit(
+	ctx context.Context,
+	dockerfileDir string,
+	tags []string,
+	push bool,
+	args map[string]string,
+	buildKitOptions BuildKitOptions,
+) error {
 	c, err := client.New(ctx, buildKitOptions.Address)
 	if err != nil {
 		return fmt.Errorf("error getting buildkit client: %v", err)
@@ -66,6 +73,7 @@ func BuildDockerImageWithBuildKit(ctx context.Context, dockerfileDir string, tag
 	}
 
 	locals := map[string]string{
+		"context":    ".",
 		"dockerfile": dockerfileDir,
 	}
 
