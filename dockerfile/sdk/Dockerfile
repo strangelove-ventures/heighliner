@@ -71,9 +71,16 @@ RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}
 
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
+# Will use this for copying a few minimal utils
+FROM busybox:latest AS busybox
+
+# Build final image from scratch
 FROM scratch
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
+
+# Install shell with minimal read-only utils
+COPY --from=busybox /bin/sh /bin/ls /bin/cat /bin/pwd /bin/less /bin/
 
 # Install chain binaries
 COPY --from=build-env /root/bin /usr/bin
