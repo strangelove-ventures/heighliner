@@ -83,6 +83,7 @@ COPY --from=build-env /root/lib /usr/lib
 
 # Install heighliner user
 COPY --from=build-env /etc/passwd /etc/passwd
+COPY --from=build-env --chown=1025:1025 /home/heighliner /home/heighliner
 
 WORKDIR /home/heighliner
 USER heighliner
