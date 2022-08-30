@@ -282,7 +282,7 @@
   github-repo: interchain-query-demo
   language: go
   pre-build: |
-    go build -o build/icq ./cmd/interchain-query-demod
+    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod 
   binaries:
     - build/icq
 
@@ -461,11 +461,10 @@
   github-repo: hub
   language: go
   # Hack, using pre-build instead of build target to build
-  build-target: tools
   pre-build: |
     BUILD_TAGS=netgo,muslc
     LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=sentinel -X github.com/cosmos/cosmos-sdk/version.AppName=sentinelhub -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')"
-    go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="${LD_FLAGS}" ./cmd/sentinelhub
+    go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="$LDFLAGS ${LD_FLAGS}" ./cmd/sentinelhub
   binaries:
     - /go/bin/sentinelhub
 
