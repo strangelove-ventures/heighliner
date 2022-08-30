@@ -276,6 +276,16 @@
   binaries:
     - /go/bin/icad
 
+# Interchain queries demo
+- name: icqd
+  github-organization: quasar-finance
+  github-repo: interchain-query-demo
+  language: go
+  pre-build: |
+    go build -o build/icq ./cmd/interchain-query-demod
+  binaries:
+    - build/icq
+
 # Juno
 - name: juno
   github-organization: CosmosContracts
@@ -516,6 +526,15 @@
     - /go/bin/starnamed
   build-env:
     - BUILD_TAGS=muslc
+
+# Stride
+- name: stride
+  github-organization: Stride-Labs
+  github-repo: stride
+  language: go
+  build-target: build
+  binaries:
+    - build/strided
 
 # Tendermint
 - name: tendermint
