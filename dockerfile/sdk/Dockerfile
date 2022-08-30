@@ -44,10 +44,9 @@ WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
 ARG GITHUB_REPO
 ARG VERSION
 
-RUN git clone https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
+RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
-RUN git checkout ${VERSION}
 
 ARG BUILD_TARGET
 ARG BUILD_ENV
@@ -107,6 +106,7 @@ RUN ln sh pwd && \
     ln sh cat && \
     ln sh less && \
     ln sh grep && \
+    ln sh sleep && \
     rm ln rm
 
 # Install chain binaries
