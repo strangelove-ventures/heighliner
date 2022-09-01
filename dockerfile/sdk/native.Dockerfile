@@ -79,6 +79,7 @@ RUN ln sh pwd && \
     ln sh less && \
     ln sh grep && \
     ln sh sleep && \
+    ln sh du && \
     rm ln rm
 
 # Install chain binaries
