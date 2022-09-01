@@ -18,8 +18,6 @@ WORKDIR /build/${GITHUB_REPO}
 
 RUN git checkout ${VERSION}
 
-# RUN cargo fetch
-
 ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
