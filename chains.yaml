@@ -256,12 +256,12 @@
     apt install unzip
     wget https://github.com/InjectiveLabs/injective-chain-releases/releases/download/$VERSION/linux-amd64.zip
     unzip linux-amd64.zip
-    mv injectived peggo injective-exchange /usr/bin
+    mv injectived peggo injective-indexer /usr/bin
     mv libwasmvm.x86_64.so /usr/lib
   binaries:
     - /usr/bin/injectived
     - /usr/bin/peggo
-    - /usr/bin/injective-exchange
+    - /usr/bin/injective-indexer
   libraries:
     - /usr/lib/libwasmvm.x86_64.so
   platforms:
