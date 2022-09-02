@@ -116,10 +116,10 @@
       cd .. && \
       sudo cp -r include/leveldb /usr/local/include/ && \
       cd .. && \
-    VERSION=2.0.0
     NETWORK=mainnet
-    wget https://github.com/Switcheo/carbon-bootstrap/releases/download/v${VERSION}/carbond${VERSION}-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
-    tar -xvf carbond${VERSION}-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    VERSION_NUM=$(echo ${VERSION} | cut -c 2-)
+    wget https://github.com/Switcheo/carbon-bootstrap/releases/download/"${VERSION}"/carbond"${VERSION_NUM}"-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    tar -xvf carbond${VERSION_NUM}-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
     sudo mv carbond /usr/local/bin
   libraries:
     - /usr/local/lib/libleveldb.so.*
