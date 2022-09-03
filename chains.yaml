@@ -531,8 +531,7 @@
   github-organization: Stride-Labs
   github-repo: stride
   language: go
-  pre-build: |
-    go build -mod=readonly -trimpath -ldflags "$LDFLAGS" -o ./build ./...;
+  build-target: build
   binaries:
     - build/strided
 
