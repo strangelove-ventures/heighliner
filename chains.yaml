@@ -145,6 +145,18 @@
   # rocksdb-version:
   #   v6.0.0: v6.10.2
 
+# Cosmos Hub ICS
+- name: ics
+  github-organization: cosmos
+  github-repo: interchain-security
+  language: go
+  build-target: install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/interchain-security-pd
+    - /go/bin/interchain-security-cd
+
 # Crescent
 - name: crescent
   github-organization: crescent-network
