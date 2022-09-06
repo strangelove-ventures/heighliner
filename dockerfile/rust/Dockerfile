@@ -26,6 +26,7 @@ ARG PRE_BUILD
 
 RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
     if [ ! -z "$BUILD_TARGET" ]; then \
+      cargo fetch; \
       if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi; \
       if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
       if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
