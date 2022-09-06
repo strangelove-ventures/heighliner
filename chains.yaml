@@ -145,6 +145,22 @@
   # rocksdb-version:
   #   v6.0.0: v6.10.2
 
+# Cosmos Hub ICS
+- name: ics
+  github-organization: cosmos
+  github-repo: interchain-security
+  language: go
+
+  pre-build: |
+    export GOFLAGS='-buildmode=pie'
+    export CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2"
+    export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fstack-protector"
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-pd
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-cd
+  binaries:
+    - /go/bin/interchain-security-pd
+    - /go/bin/interchain-security-cd
+
 # Crescent
 - name: crescent
   github-organization: crescent-network
