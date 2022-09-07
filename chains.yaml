@@ -181,6 +181,22 @@
   # rocksdb-version:
   #   v6.0.0: v6.10.2
 
+# Cosmos Hub ICS
+- name: ics
+  github-organization: cosmos
+  github-repo: interchain-security
+  language: go
+
+  pre-build: |
+    export GOFLAGS='-buildmode=pie'
+    export CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2"
+    export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fstack-protector"
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-pd
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-cd
+  binaries:
+    - /go/bin/interchain-security-pd
+    - /go/bin/interchain-security-cd
+
 # Crescent
 - name: crescent
   github-organization: crescent-network
@@ -292,12 +308,12 @@
     apt install unzip
     wget https://github.com/InjectiveLabs/injective-chain-releases/releases/download/$VERSION/linux-amd64.zip
     unzip linux-amd64.zip
-    mv injectived peggo injective-exchange /usr/bin
+    mv injectived peggo injective-indexer /usr/bin
     mv libwasmvm.x86_64.so /usr/lib
   binaries:
     - /usr/bin/injectived
     - /usr/bin/peggo
-    - /usr/bin/injective-exchange
+    - /usr/bin/injective-indexer
   libraries:
     - /usr/lib/libwasmvm.x86_64.so
   platforms:
