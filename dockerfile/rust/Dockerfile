@@ -20,8 +20,7 @@ RUN git checkout ${VERSION}
 
 ARG BUILD_TARGET
 
-RUN if [ ! -z "$BUILD_TARGET" ]; then \
-      cargo fetch;
+RUN if [ ! -z "$BUILD_TARGET" ]; then cargo fetch; fi
 
 ARG BUILD_ENV
 ARG BUILD_TAGS
