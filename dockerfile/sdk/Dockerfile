@@ -116,6 +116,9 @@ COPY --from=build-env /root/bin /bin
 # Install libraries
 COPY --from=build-env /root/lib /lib
 
+# Install trusted CA certificates
+COPY --from=build-env /etc/ssl/cert.pem /etc/ssl/cert.pem
+
 # Install heighliner user
 COPY --from=build-env /etc/passwd /etc/passwd
 COPY --from=build-env --chown=1025:1025 /home/heighliner /home/heighliner

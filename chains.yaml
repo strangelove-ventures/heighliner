@@ -153,6 +153,17 @@
   binaries:
     - /go/bin/chihuahuad
 
+# Comdex
+- name: comdex
+  github-organization: comdex-official
+  github-repo: comdex
+  language: go
+  build-target: install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/comdex
+
 # Composable
 - name: composable
   github-organization: ComposableFi
@@ -273,6 +284,17 @@
   binaries:
     - /go/bin/evmosd
 
+# Fetchhub
+- name: fetchhub
+  github-organization: fetchai
+  github-repo: fetchd
+  language: go
+  build-target: install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/fetchd
+
 # FirmaChain 
 - name: firmachain
   github-organization: FirmaChain
@@ -360,6 +382,17 @@
     - /go/bin/kid
   build-env:
     - BUILD_TAGS=muslc
+
+# Konstellation
+- name: konstellation
+  github-organization: knstl
+  github-repo: konstellation
+  language: go
+  build-target: install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/knstld
 
 # Kujira
 - name: kujira
@@ -637,3 +670,14 @@
   build-target: install
   binaries:
     - /go/bin/vidulumd
+
+# Wasm
+- name: wasm
+  github-organization: CosmWasm
+  github-repo: wasmd
+  language: go
+  build-target: build
+  binaries:
+    - build/wasmd
+  build-env:
+    - BUILD_TAGS=muslc
