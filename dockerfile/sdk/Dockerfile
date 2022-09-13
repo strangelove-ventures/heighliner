@@ -21,7 +21,7 @@ RUN LIBDIR=/lib; \
         mkdir $LIBDIR; \
       fi; \
     fi; \
-    wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$ARCH.a
+    wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.1.0/libwasmvm_muslc.$ARCH.a
 
 # Build minimal busybox
 WORKDIR /
