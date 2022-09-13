@@ -173,7 +173,6 @@
   language: go
   build-target: install
   build-env:
-    - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
   binaries:
     - /go/bin/gaiad
@@ -347,7 +346,6 @@
   binaries:
     - /go/bin/junod
   build-env:
-    - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
 # Kichain 
@@ -370,7 +368,6 @@
   binaries:
     - /go/bin/kujirad
   build-env:
-    - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
 # Likecoin 

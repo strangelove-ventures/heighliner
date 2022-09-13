@@ -1,6 +1,6 @@
 FROM golang:1.19.0-alpine3.16 AS build-env
 
-RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev
+RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev libusb-dev
 
 ARG TARGETARCH
 ARG BUILDARCH
