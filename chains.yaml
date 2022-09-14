@@ -360,6 +360,15 @@
   binaries:
     - build/icq
 
+# IRISnet
+- name: irisnet
+  github-organization: irisnet
+  github-repo: irishub
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/iris
+
 # Juno
 - name: juno
   github-organization: CosmosContracts
