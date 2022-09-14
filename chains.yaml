@@ -433,6 +433,15 @@
   binaries:
     - /go/bin/lumd
 
+# Nomic 
+- name: nomic
+  github-organization: nomic-io
+  github-repo: nomic
+  language: rust
+  build-target: install --locked --path .
+  binaries:
+    - /build/nomic/target/release/nomic
+
 #Omniflix
 - name: omniflix
   github-organization: OmniFlix
