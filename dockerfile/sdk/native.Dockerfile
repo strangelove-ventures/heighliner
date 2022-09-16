@@ -5,7 +5,7 @@ RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eu
 ARG TARGETARCH
 ARG BUILDARCH
 
-RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.1.0/libwasmvm_muslc.$(uname -m).a
+RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$(uname -m).a
 
 # Build minimal busybox
 WORKDIR /
