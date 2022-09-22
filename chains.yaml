@@ -171,6 +171,7 @@
   language: rust
   platforms:
     - linux/amd64
+  build-dir: code
   build-target: build --release
   pre-build: |
     ./scripts/init.sh
