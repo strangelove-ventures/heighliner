@@ -80,6 +80,9 @@ func buildChainNodeDockerImage(
 	case "rust":
 		dockerfile = "./dockerfile/rust"
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
+	case "nix":
+		dockerfile = "./dockerfile/nix"
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "go":
 		if chainConfig.RocksDBVersion != "" {
 			dockerfile = "./dockerfile/sdk-rocksdb"
