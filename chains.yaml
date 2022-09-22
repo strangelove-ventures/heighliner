@@ -168,12 +168,10 @@
 - name: composable
   github-organization: ComposableFi
   github-repo: composable
-  language: rust
+  language: nix
   platforms:
     - linux/amd64
-  build-target: build --release
-  pre-build: |
-    ./scripts/init.sh
+  build-target: run .#devnet-dali --extra-experimental-features nix-command --extra-experimental-features flakes
   binaries:
     - /build/composable/target/release/composable
 
