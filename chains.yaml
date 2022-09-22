@@ -358,6 +358,15 @@
   binaries:
     - build/icq
 
+# IRISnet
+- name: irisnet
+  github-organization: irisnet
+  github-repo: irishub
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/iris
+
 # Juno
 - name: juno
   github-organization: CosmosContracts
@@ -421,6 +430,15 @@
   build-target: install
   binaries:
     - /go/bin/lumd
+
+# Nomic 
+- name: nomic
+  github-organization: nomic-io
+  github-repo: nomic
+  language: rust
+  build-target: install --locked --path .
+  binaries:
+    - /build/nomic/target/release/nomic
 
 #Omniflix
 - name: omniflix
