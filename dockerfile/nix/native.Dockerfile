@@ -1,26 +1,6 @@
-FROM --platform=$BUILDPLATFORM golang:1.19.0-alpine3.16 AS busybox-min
+FROM golang:1.19.0-alpine3.16 AS busybox-min
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
-
-ARG TARGETARCH
-ARG BUILDARCH
-
-RUN LIBDIR=/lib; \
-    if [ "${TARGETARCH}" = "arm64" ]; then \
-      ARCH=aarch64; \
-      if [ "${BUILDARCH}" != "arm64" ]; then \
-        wget -c https://musl.cc/aarch64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr; \
-        LIBDIR=/usr/aarch64-linux-musl/lib; \
-        mkdir $LIBDIR; \
-      fi; \
-    elif [ "${TARGETARCH}" = "amd64" ]; then \
-      ARCH=x86_64; \
-      if [ "${BUILDARCH}" != "amd64" ]; then \
-        wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr; \
-        LIBDIR=/usr/x86_64-linux-musl/lib; \
-        mkdir $LIBDIR; \
-      fi; \
-    fi;
 
 # Build minimal busybox
 WORKDIR /
@@ -28,16 +8,11 @@ WORKDIR /
 RUN git clone -b 1_34_1 --single-branch https://git.busybox.net/busybox
 WORKDIR /busybox
 ADD busybox.min.config .config
-RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      export CC=aarch64-linux-musl-gcc; \
-    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      export CC=x86_64-linux-musl-gcc; \
-    fi; \
-    make
+RUN make
 
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
-FROM --platform=$BUILDPLATFORM nixos/nix:latest AS build-env
+FROM nixos/nix:latest AS build-env
 
 WORKDIR /build
 
@@ -101,10 +76,15 @@ WORKDIR /bin
 # Install ln (for making hard links), rm (for cleanup), mv, mkdir, and dirname from full busybox image (will be deleted, only needed for image assembly)
 COPY --from=busybox-full /bin/ln /bin/rm /bin/mv /bin/mkdir /bin/dirname ./
 
+# Commented out, but very useful for figuring out which libs are missing in final image
+# Example: /bin/ldd $BINARY to find out which libraries it is looking for.
+# COPY --from=busybox-min /lib/ld-musl-x86_64.so.1 /lib/ld-musl-x86_64.so.1
+# COPY --from=busybox-min /usr/bin/ldd /bin/ldd
+
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
 COPY --from=busybox-min /busybox/busybox /bin/sh
 
-# Add hard links for read-only utils, then remove ln and rm
+# Add hard links for read-only utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
 RUN ln sh pwd && \
     ln sh ls && \
@@ -112,7 +92,7 @@ RUN ln sh pwd && \
     ln sh less && \
     ln sh grep && \
     ln sh sleep && \
-    ln sh du
+    ln sh du 
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
