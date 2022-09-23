@@ -171,7 +171,7 @@
   language: nix
   platforms:
     - linux/amd64
-  build-target: run .#devnet-dali --extra-experimental-features nix-command --extra-experimental-features flakes
+  build-target: build .#composable-node-release --extra-experimental-features nix-command --extra-experimental-features flakes
   binaries:
     - /build/composable/target/release/composable
 
