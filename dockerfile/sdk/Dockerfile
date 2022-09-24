@@ -71,12 +71,26 @@ RUN set -eux; \
 
 RUN if [ -d "/go/bin/linux_${TARGETARCH}" ]; then mv /go/bin/linux_${TARGETARCH}/* /go/bin/; fi
 
+# Copy all binaries to /root/bin, for a single place to copy into final image.
+# If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
 RUN mkdir /root/bin
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
-RUN bash -c 'BINARIES_ARR=($BINARIES_ENV); for BINARY in "${BINARIES_ARR[@]}"; do cp $BINARY /root/bin/ ; done'
+RUN bash -c \
+  'BINARIES_ARR=($BINARIES_ENV); \
+  cd /root/bin ; \
+  for BINARY in "${BINARIES_ARR[@]}"; do \
+    BINSPLIT=(${BINARY//:/ }) ; \
+    BINPATH=${BINSPLIT[1]} ; \
+    if [ ! -z "$BINPATH" ]; then \
+      mkdir -p "$(dirname "${BINPATH}")" ; \
+      cp ${BINSPLIT[0]} "${BINPATH}"; \
+    else \
+      cp ${BINSPLIT[0]} . ; \
+    fi; \
+  done'
 
-RUN mkdir /root/lib
+RUN mkdir -p /root/lib
 ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'

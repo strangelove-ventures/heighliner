@@ -43,14 +43,27 @@ RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
 # COPY --from=busybox-min /usr/bin/ldd /bin/ldd
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
+# If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
 RUN mkdir /root/bin
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
-RUN bash -c 'BINARIES_ARR=($BINARIES_ENV); for BINARY in "${BINARIES_ARR[@]}"; do cp $BINARY /root/bin/ ; done'
+RUN bash -c \
+  'BINARIES_ARR=($BINARIES_ENV); \
+  cd /root/bin ; \
+  for BINARY in "${BINARIES_ARR[@]}"; do \
+    BINSPLIT=(${BINARY//:/ }) ; \
+    BINPATH=${BINSPLIT[1]} ; \
+    if [ ! -z "$BINPATH" ]; then \
+      mkdir -p "$(dirname "${BINPATH}")" ; \
+      cp ${BINSPLIT[0]} "${BINPATH}"; \
+    else \
+      cp ${BINSPLIT[0]} . ; \
+    fi; \
+  done'
 
 # Copy all libraries to an indexed filepath in /root/lib for a single place to copy into final image.
 # Maintain their original filepath in /root/lib.list since they need to be in the same place in the final image for nix.
-RUN mkdir /root/lib && touch /root/lib.list
+RUN mkdir -p /root/lib && touch /root/lib.list
 ARG LIBRARIES
 ENV FILES_ENV ${LIBRARIES}
 RUN bash -c 'FILES_ARR=($FILES_ENV); i=0; for FILE in "${FILES_ARR[@]}"; do \

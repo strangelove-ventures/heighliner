@@ -171,9 +171,9 @@
   language: nix
   platforms:
     - linux/amd64
-  build-target: build .#composable-node-release --extra-experimental-features nix-command --extra-experimental-features flakes
+  build-target: build .#composable-node --extra-experimental-features nix-command --extra-experimental-features flakes
   binaries:
-    - /nix/store/*-composable-node-release-*/bin/composable-node
+    - /nix/store/*-composable-node-*/bin/composable-node
   libraries:
     - /nix/store/*-glibc-2.35-163/lib/ld-linux-x86-64.so.2
     - /nix/store/*-glibc-2.35-163/lib/libgcc_s.so.1
