@@ -19,7 +19,7 @@ Please keep chains in alphabetical order.
 
 `build-target` -> The argument to call after `make`.
 
-`binaries` -> The location of where the the build target places the binarie(s).
+`binaries` -> The location of where the the build target places the binarie(s). Adding a ":" after the path allows for the ability to rename the binary.
 
 `pre-build` -> Any extra arguments needed to build the chain binary. 
 
