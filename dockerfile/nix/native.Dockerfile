@@ -1,4 +1,4 @@
-FROM golang:1.19.0-alpine3.16 AS busybox-min
+FROM ghcr.io/strangelove-ventures/heighliner/busybox:v0.0.1 AS busybox-min
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -20,6 +20,7 @@ ARG GITHUB_ORGANIZATION
 ARG GITHUB_REPO
 ARG VERSION
 ARG REPO_HOST
+ARG BUILD_TIMESTAMP
 
 RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 

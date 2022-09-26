@@ -9,16 +9,11 @@ RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/d
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
-
-WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
-
 ARG GITHUB_REPO
-ARG VERSION
-ARG BUILD_TIMESTAMP
-
-RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
+
+ADD . .
 
 ARG BUILD_TARGET
 ARG BUILD_ENV

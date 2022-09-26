@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.19.0-alpine3.16 AS build-env
+FROM --platform=$BUILDPLATFORM golang:1.19-alpine AS build-env
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -11,30 +11,17 @@ RUN LIBDIR=/lib; \
       if [ "${BUILDARCH}" != "arm64" ]; then \
         wget -c https://musl.cc/aarch64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr; \
         LIBDIR=/usr/aarch64-linux-musl/lib; \
-        mkdir $LIBDIR; \
+        mkdir -p $LIBDIR; \
       fi; \
     elif [ "${TARGETARCH}" = "amd64" ]; then \
       ARCH=x86_64; \
       if [ "${BUILDARCH}" != "amd64" ]; then \
         wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr; \
         LIBDIR=/usr/x86_64-linux-musl/lib; \
-        mkdir $LIBDIR; \
+        mkdir -p $LIBDIR; \
       fi; \
     fi; \
     wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$ARCH.a
-
-# Build minimal busybox
-WORKDIR /
-# busybox v1.34.1 stable
-RUN git clone -b 1_34_1 --single-branch https://git.busybox.net/busybox
-WORKDIR /busybox
-ADD busybox.min.config .config
-RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      export CC=aarch64-linux-musl-gcc; \
-    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      export CC=x86_64-linux-musl-gcc; \
-    fi; \
-    make
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
@@ -43,6 +30,7 @@ WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
 
 ARG GITHUB_REPO
 ARG VERSION
+ARG BUILD_TIMESTAMP
 
 RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
@@ -95,7 +83,8 @@ ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
-RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
+# Use bins from minimal busybox image for scratch image
+FROM ghcr.io/strangelove-ventures/heighliner/busybox:v0.0.1 AS busybox-min
 
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
@@ -111,7 +100,7 @@ WORKDIR /bin
 COPY --from=busybox-full /bin/ln /bin/rm ./
 
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
-COPY --from=build-env /busybox/busybox /bin/sh
+COPY --from=busybox-min /busybox/busybox /bin/sh
 
 # Add hard links for read-only utils, then remove ln and rm
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
@@ -131,11 +120,11 @@ COPY --from=build-env /root/bin /bin
 COPY --from=build-env /root/lib /lib
 
 # Install trusted CA certificates
-COPY --from=build-env /etc/ssl/cert.pem /etc/ssl/cert.pem
+COPY --from=busybox-min /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install heighliner user
-COPY --from=build-env /etc/passwd /etc/passwd
-COPY --from=build-env --chown=1025:1025 /home/heighliner /home/heighliner
+COPY --from=busybox-min /etc/passwd /etc/passwd
+COPY --from=busybox-min --chown=1025:1025 /home/heighliner /home/heighliner
 
 WORKDIR /home/heighliner
 USER heighliner

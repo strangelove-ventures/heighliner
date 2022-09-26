@@ -90,6 +90,10 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Busybox image with minimal utils that are copied into other images
+- name: busybox
+  language: busybox 
+
 # Carbon
 - name: carbon
   github-organization: Switcheo
