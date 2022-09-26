@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.19.0-alpine3.16 AS build-env
+FROM --platform=$BUILDPLATFORM golang:1.19.0-alpine3.16 AS busybox-min
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -20,8 +20,7 @@ RUN LIBDIR=/lib; \
         LIBDIR=/usr/x86_64-linux-musl/lib; \
         mkdir $LIBDIR; \
       fi; \
-    fi; \
-    wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$ARCH.a
+    fi;
 
 # Build minimal busybox
 WORKDIR /
@@ -36,40 +35,37 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
     fi; \
     make
 
+RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
+
+FROM --platform=$BUILDPLATFORM nixos/nix:latest AS build-env
+
+WORKDIR /build
+
 ARG GITHUB_ORGANIZATION
-ARG REPO_HOST
-
-WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
-
 ARG GITHUB_REPO
 ARG VERSION
+ARG REPO_HOST
 
 RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
-WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
+WORKDIR /build/${GITHUB_REPO}
 
 ARG BUILD_TARGET
-ARG BUILD_ENV
-ARG BUILD_TAGS
-ARG PRE_BUILD
-ARG BUILD_DIR
 
-RUN set -eux; \
-    if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      export CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++;\
-    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      export CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++; \
-    fi; \
-    export GOOS=linux GOARCH=$TARGETARCH CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"'; \
-    if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
+ARG BUILD_ENV
+ARG PRE_BUILD
+
+RUN if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
     if [ ! -z "$BUILD_TARGET" ]; then \
       if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi; \
-      if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
       if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
-      make ${BUILD_TARGET}; \
+      nix ${BUILD_TARGET}; \
     fi
 
-RUN if [ -d "/go/bin/linux_${TARGETARCH}" ]; then mv /go/bin/linux_${TARGETARCH}/* /go/bin/; fi
+# Commented out, but very useful for figuring out which libs are needed to copy over.
+# Example: ldd $BINARY to find out which libraries it is looking for.
+# COPY --from=busybox-min /lib/ld-musl-x86_64.so.1 /lib/ld-musl-x86_64.so.1
+# COPY --from=busybox-min /usr/bin/ldd /bin/ldd
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
@@ -90,14 +86,22 @@ RUN bash -c \
     fi; \
   done'
 
-RUN mkdir -p /root/lib
+# Copy all libraries to an indexed filepath in /root/lib for a single place to copy into final image.
+# Maintain their original filepath in /root/lib.list since they need to be in the same place in the final image for nix.
+RUN mkdir -p /root/lib && touch /root/lib.list
 ARG LIBRARIES
-ENV LIBRARIES_ENV ${LIBRARIES}
-RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
+ENV FILES_ENV ${LIBRARIES}
+RUN bash -c 'FILES_ARR=($FILES_ENV); i=0; for FILE in "${FILES_ARR[@]}"; do \
+    FILES_NESTED=($(ls -d $FILE)); \
+    for FILE_NESTED in "${FILES_NESTED[@]}"; do \
+      cp $FILE_NESTED /root/lib/$i; \
+      echo "COPYING $i: $FILE_NESTED"; \
+      echo $FILE_NESTED >> /root/lib.list; \
+      ((i = i + 1)) ;\
+    done; \
+  done'
 
-RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
-
-# Use ln and rm from full featured busybox for assembling final image
+# Use utils from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
 
 # Build final image from scratch
@@ -107,11 +111,11 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install ln (for making hard links) and rm (for cleanup) from full busybox image (will be deleted, only needed for image assembly)
-COPY --from=busybox-full /bin/ln /bin/rm ./
+# Install ln (for making hard links), rm (for cleanup), mv, mkdir, and dirname from full busybox image (will be deleted, only needed for image assembly)
+COPY --from=busybox-full /bin/ln /bin/rm /bin/mv /bin/mkdir /bin/dirname ./
 
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
-COPY --from=build-env /busybox/busybox /bin/sh
+COPY --from=busybox-min /busybox/busybox /bin/sh
 
 # Add hard links for read-only utils, then remove ln and rm
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
@@ -121,21 +125,33 @@ RUN ln sh pwd && \
     ln sh less && \
     ln sh grep && \
     ln sh sleep && \
-    ln sh du && \
-    rm ln rm
+    ln sh du
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
 
-# Install libraries
-COPY --from=build-env /root/lib /lib
+# Copy over libraries
+COPY --from=build-env /root/lib /root/lib
+COPY --from=build-env /root/lib.list /root/lib.list
+
+# Move libraries to their exact locations.
+RUN sh -c 'i=0; while read FILE; do \
+      echo "$i: $FILE"; \
+      DIR="$(dirname "$FILE")"; \
+      mkdir -p "$DIR"; \
+      mv /root/lib/$i $FILE; \
+      i=$((i+1)); \
+    done < /root/lib.list'
+
+# Remove write utils used to construct image and tmp dir/file for lib copy.
+RUN rm -rf ln rm mv mkdir dirname /root/lib /root/lib.list
 
 # Install trusted CA certificates
-COPY --from=build-env /etc/ssl/cert.pem /etc/ssl/cert.pem
+COPY --from=busybox-min /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install heighliner user
-COPY --from=build-env /etc/passwd /etc/passwd
-COPY --from=build-env --chown=1025:1025 /home/heighliner /home/heighliner
+COPY --from=busybox-min /etc/passwd /etc/passwd
+COPY --from=busybox-min --chown=1025:1025 /home/heighliner /home/heighliner
 
 WORKDIR /home/heighliner
 USER heighliner

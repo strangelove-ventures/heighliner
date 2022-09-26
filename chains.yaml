@@ -168,14 +168,25 @@
 - name: composable
   github-organization: ComposableFi
   github-repo: composable
-  language: rust
+  language: nix
   platforms:
     - linux/amd64
-  build-target: build --release
-  pre-build: |
-    ./scripts/init.sh
+  build-target: build .#composable-node --extra-experimental-features nix-command --extra-experimental-features flakes
   binaries:
-    - /build/composable/target/release/composable
+    - /nix/store/*-composable-node-*/bin/composable-node
+  libraries:
+    - /nix/store/*-glibc-2.35-163/lib/ld-linux-x86-64.so.2
+    - /nix/store/*-glibc-2.35-163/lib/libgcc_s.so.1
+    - /nix/store/*-glibc-2.35-163/lib/libm.so.6
+    - /nix/store/*-glibc-2.35-163/lib/libc.so.6
+    - /nix/store/*-glibc-2.35-163/lib/libpthread.so.0
+    - /nix/store/*-rocksdb-7.4.4/lib/librocksdb.so.7
+    - /nix/store/*-snappy-1.1.9/lib/libsnappy.so.1
+    - /nix/store/*-zlib-1.2.12/lib/libz.so.1
+    - /nix/store/*-bzip2-1.0.8/lib/libbz2.so.1
+    - /nix/store/*-lz4-1.9.3/lib/liblz4.so.1
+    - /nix/store/*-zstd-1.5.2/lib/libzstd.so.1
+    - /nix/store/*-gcc-11.3.0-lib/lib/libstdc++.so.6
 
 # Cosmos Hub
 - name: gaia
