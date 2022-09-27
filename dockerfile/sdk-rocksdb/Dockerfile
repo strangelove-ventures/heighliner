@@ -40,15 +40,16 @@ RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/d
 
 
 ARG GITHUB_ORGANIZATION
+ARG REPO_HOST
 
-WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}
+WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
 
 ARG GITHUB_REPO
 ARG VERSION
 
-RUN git clone https://github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
+RUN git clone https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
-WORKDIR /go/src/github.com/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
+WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
 RUN git checkout ${VERSION}
 

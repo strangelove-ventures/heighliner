@@ -22,19 +22,31 @@
   github-organization: axelarnetwork
   github-repo: axelar-core
   language: go
-  build-target: build
   binaries:
     - bin/axelard
   pre-build: |
-    git clone https://github.com/axelarnetwork/solidity-cgp-gateway.git
-    cd solidity-cgp-gateway
-    git checkout v2.1.0
-    apk add --update npm jq
+    set -eux
+    apk add --update nodejs npm jq py3-pip
+    git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
+    cd axelar-cgp-solidity
     npm ci
-    npm run build:prod
-    mv build/* ../contract-artifacts/gateway/
+    npm run build
+    npm run flatten
+    mkdir -p ../contract-artifacts/gateway
+    mv artifacts/* ../contract-artifacts/
     cd ..
-    bash scripts/populate-bytecode.sh
+    make generate
+    VERSION=$(echo $(git describe --tags) | sed 's/^v//')
+    COMMIT=$(git log -1 --format='%H')
+    BUILD_TAGS=muslc
+    LDFLAGS="$LDFLAGS -X github.com/cosmos/cosmos-sdk/version.Name=axelar \
+      -X github.com/cosmos/cosmos-sdk/version.AppName=axelard \
+      -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
+      -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
+      -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
+    go build -o ./bin/axelard -mod=readonly -tags "$BUILD_TAGS" -ldflags "$LDFLAGS" ./cmd/axelard
+  platforms:
+    - linux/amd64
 
 # Basilisk
 - name: basilisk
@@ -78,6 +90,42 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Carbon
+- name: carbon
+  github-organization: Switcheo
+  github-repo: carbon-bootstrap
+  language: rust
+  build-target:
+  pre-build: |
+    apt update && apt install wget build-essential jq cmake sudo -y
+    wget https://github.com/google/leveldb/archive/1.23.tar.gz && \
+      tar -zxvf 1.23.tar.gz && \
+      wget https://github.com/google/googletest/archive/release-1.11.0.tar.gz && \
+      tar -zxvf release-1.11.0.tar.gz && \
+      mv googletest-release-1.11.0/* leveldb-1.23/third_party/googletest && \
+      wget https://github.com/google/benchmark/archive/v1.5.5.tar.gz && \
+      tar -zxvf v1.5.5.tar.gz && \
+      mv benchmark-1.5.5/* leveldb-1.23/third_party/benchmark && \
+      cd leveldb-1.23 && \
+      mkdir -p build && \
+      cd build && \
+      cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON .. && \
+      cmake --build . && \
+      sudo cp -P libleveldb.so* /usr/local/lib/ && \
+      sudo ldconfig && \
+      cd .. && \
+      sudo cp -r include/leveldb /usr/local/include/ && \
+      cd .. && \
+    NETWORK=mainnet
+    VERSION_NUM=$(echo ${VERSION} | cut -c 2-)
+    wget https://github.com/Switcheo/carbon-bootstrap/releases/download/"${VERSION}"/carbond"${VERSION_NUM}"-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    tar -xvf carbond${VERSION_NUM}-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    sudo mv carbond /usr/local/bin
+  libraries:
+    - /usr/local/lib/libleveldb.so.*
+  binaries:
+    - /usr/local/bin/carbond
+
 # Cerberus
 - name: cerberus
   github-organization: cerberus-zone
@@ -87,18 +135,58 @@
   binaries:
     - /go/bin/cerberusd
 
+# Cheqd
+- name: cheqd
+  github-organization: cheqd
+  github-repo: cheqd-node
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/cheqd-noded
+
+# Chihuahua
+- name: chihuahua
+  github-organization: ChihuahuaChain
+  github-repo: chihuahua
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/chihuahuad
+
+# Comdex
+- name: comdex
+  github-organization: comdex-official
+  github-repo: comdex
+  language: go
+  build-target: install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/comdex
+
 # Composable
 - name: composable
   github-organization: ComposableFi
   github-repo: composable
-  language: rust
+  language: nix
   platforms:
     - linux/amd64
-  build-target: build --release
-  pre-build: |
-    ./scripts/init.sh
+  build-target: build .#composable-node --extra-experimental-features nix-command --extra-experimental-features flakes
   binaries:
-    - /build/composable/target/release/composable
+    - /nix/store/*-composable-node-*/bin/composable-node
+  libraries:
+    - /nix/store/*-glibc-2.35-163/lib/ld-linux-x86-64.so.2
+    - /nix/store/*-glibc-2.35-163/lib/libgcc_s.so.1
+    - /nix/store/*-glibc-2.35-163/lib/libm.so.6
+    - /nix/store/*-glibc-2.35-163/lib/libc.so.6
+    - /nix/store/*-glibc-2.35-163/lib/libpthread.so.0
+    - /nix/store/*-rocksdb-7.4.4/lib/librocksdb.so.7
+    - /nix/store/*-snappy-1.1.9/lib/libsnappy.so.1
+    - /nix/store/*-zlib-1.2.12/lib/libz.so.1
+    - /nix/store/*-bzip2-1.0.8/lib/libbz2.so.1
+    - /nix/store/*-lz4-1.9.3/lib/liblz4.so.1
+    - /nix/store/*-zstd-1.5.2/lib/libzstd.so.1
+    - /nix/store/*-gcc-11.3.0-lib/lib/libstdc++.so.6
 
 # Cosmos Hub
 - name: gaia
@@ -114,6 +202,22 @@
   # Map from gaia version to rocks db version. Will build -rocks tag for these versions
   # rocksdb-version:
   #   v6.0.0: v6.10.2
+
+# Cosmos Hub ICS
+- name: ics
+  github-organization: cosmos
+  github-repo: interchain-security
+  language: go
+
+  pre-build: |
+    export GOFLAGS='-buildmode=pie'
+    export CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2"
+    export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fstack-protector"
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-pd
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-cd
+  binaries:
+    - /go/bin/interchain-security-pd
+    - /go/bin/interchain-security-cd
 
 # Crescent
 - name: crescent
@@ -162,6 +266,26 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Dig
+- name: dig
+  github-organization: notional-labs
+  github-repo: dig
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/digd
+  build-env:
+    - BUILD_TAGS=muslc
+
+# Emoney
+- name: emoney 
+  github-organization: e-money
+  github-repo: em-ledger
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/emd
+
 # Evmos
 - name: evmos
   github-organization: tharsis
@@ -170,6 +294,17 @@
   build-target: install
   binaries:
     - /go/bin/evmosd
+
+# Fetchhub
+- name: fetchhub
+  github-organization: fetchai
+  github-repo: fetchd
+  language: go
+  build-target: install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/fetchd
 
 # FirmaChain 
 - name: firmachain
@@ -199,6 +334,24 @@
   binaries:
     - /go/bin/ixod
 
+# Injective
+- name: injective
+  pre-build: |
+    apt update
+    apt install unzip
+    wget https://github.com/InjectiveLabs/injective-chain-releases/releases/download/$VERSION/linux-amd64.zip
+    unzip linux-amd64.zip
+    mv injectived peggo injective-indexer /usr/bin
+    mv libwasmvm.x86_64.so /usr/lib
+  binaries:
+    - /usr/bin/injectived
+    - /usr/bin/peggo
+    - /usr/bin/injective-indexer
+  libraries:
+    - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64
+
 # Interchain accounts demo
 - name: icad
   github-organization: cosmos
@@ -207,6 +360,25 @@
   build-target: install
   binaries:
     - /go/bin/icad
+
+# Interchain queries demo
+- name: icqd
+  github-organization: quasar-finance
+  github-repo: interchain-query-demo
+  language: go
+  pre-build: |
+    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod 
+  binaries:
+    - build/icq
+
+# IRISnet
+- name: irisnet
+  github-organization: irisnet
+  github-repo: irishub
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/iris
 
 # Juno
 - name: juno
@@ -219,6 +391,28 @@
   build-env:
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
+
+# Kichain 
+- name: kichain
+  github-organization: KiFoundation
+  github-repo: ki-tools
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/kid
+  build-env:
+    - BUILD_TAGS=muslc
+
+# Konstellation
+- name: konstellation
+  github-organization: knstl
+  github-repo: konstellation
+  language: go
+  build-target: install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/knstld
 
 # Kujira
 - name: kujira
@@ -250,6 +444,15 @@
   binaries:
     - /go/bin/lumd
 
+# Nomic 
+- name: nomic
+  github-organization: nomic-io
+  github-repo: nomic
+  language: rust
+  build-target: install --locked --path .
+  binaries:
+    - /build/nomic/target/release/nomic
+
 #Omniflix
 - name: omniflix
   github-organization: OmniFlix
@@ -274,6 +477,17 @@
   #   v6.2.0: v6.24.2
   #   v6.4.0: v6.29.3
   #   v7.0.2: v6.29.3
+  build-env:
+    - BUILD_TAGS=muslc
+
+# panacea
+- name: panacea
+  github-organization: medibloc
+  github-repo: panacea-core
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/panacead
   build-env:
     - BUILD_TAGS=muslc
 
@@ -348,19 +562,43 @@
   binaries:
     - /go/bin/rizond
 
+# Secret Network
+- name: secretnetwork
+  language: imported
+  base-image: ghcr.io/scrtlabs/secret-network-node
+  platforms:
+    - linux/amd64
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
   github-repo: hub
   language: go
   # Hack, using pre-build instead of build target to build
-  build-target: tools
   pre-build: |
     BUILD_TAGS=netgo,muslc
     LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=sentinel -X github.com/cosmos/cosmos-sdk/version.AppName=sentinelhub -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')"
-    go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="${LD_FLAGS}" ./cmd/sentinelhub
+    go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="$LDFLAGS ${LD_FLAGS}" ./cmd/sentinelhub
   binaries:
     - /go/bin/sentinelhub
+
+# Shentu
+- name: shentu
+  github-organization: ShentuChain
+  github-repo: shentu
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/certik
+
+# Sifchain
+- name: sifchain
+  github-organization: Sifchain
+  github-repo: sifnode
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/sifnoded
 
 # Sim (for testing)
 - name: sim
@@ -402,6 +640,15 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Stride
+- name: stride
+  github-organization: Stride-Labs
+  github-repo: stride
+  language: go
+  build-target: build
+  binaries:
+    - build/strided
+
 # Tendermint
 - name: tendermint
   github-organization: tendermint
@@ -419,5 +666,47 @@
   build-target: install
   binaries:
     - /go/bin/terrad
+  build-env:
+    - BUILD_TAGS=muslc
+
+# Thorchain
+- name: thorchain
+  repo-host: gitlab.com
+  github-organization: thorchain
+  github-repo: thornode
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/thornode
+  pre-build: |
+    apk --no-cache add findutils protoc && \
+    rm -rf /var/cache/apk/*
+
+# Umee
+- name: umee
+  github-organization: umee-network
+  github-repo: umee
+  language: go
+  build-target: install
+  binaries: 
+    - /go/bin/umeed
+
+# Vidulum 
+- name: vidulum
+  github-organization: vidulum
+  github-repo: mainnet
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/vidulumd
+
+# Wasm
+- name: wasm
+  github-organization: CosmWasm
+  github-repo: wasmd
+  language: go
+  build-target: build
+  binaries:
+    - build/wasmd
   build-env:
     - BUILD_TAGS=muslc

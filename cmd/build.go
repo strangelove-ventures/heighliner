@@ -19,12 +19,14 @@ import (
 
 type ChainNodeConfig struct {
 	Name               string            `yaml:"name"`
+	RepoHost           string            `yaml:"repo-host"`
 	GithubOrganization string            `yaml:"github-organization"`
 	GithubRepo         string            `yaml:"github-repo"`
 	Language           string            `yaml:"language"`
 	BuildTarget        string            `yaml:"build-target"`
 	BuildDir           string            `yaml:"build-dir"`
 	Binaries           []string          `yaml:"binaries"`
+	Libraries          []string          `yaml:"libraries"`
 	PreBuild           string            `yaml:"pre-build"`
 	Platforms          []string          `yaml:"platforms"`
 	BuildEnv           []string          `yaml:"build-env"`
@@ -78,9 +80,10 @@ func buildChainNodeDockerImage(
 	case "rust":
 		dockerfile = "./dockerfile/rust"
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
+	case "nix":
+		dockerfile = "./dockerfile/nix"
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "go":
-		fallthrough
-	default:
 		if chainConfig.RocksDBVersion != "" {
 			dockerfile = "./dockerfile/sdk-rocksdb"
 			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(chainConfig.Version, "/", "-"))
@@ -88,6 +91,9 @@ func buildChainNodeDockerImage(
 			dockerfile = "./dockerfile/sdk"
 			imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 		}
+	default:
+		dockerfile = "./dockerfile/none"
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	}
 
 	var imageName string
@@ -124,17 +130,23 @@ func buildChainNodeDockerImage(
 	}
 
 	binaries := strings.Join(chainConfig.Build.Binaries, " ")
+	libraries := strings.Join(chainConfig.Build.Libraries, " ")
 
-	fmt.Printf("Building with dockerfile: %s\n", dockerfile)
+	repoHost := chainConfig.Build.RepoHost
+	if repoHost == "" {
+		repoHost = "github.com"
+	}
 
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Version,
 		"NAME":                chainConfig.Build.Name,
 		"BASE_IMAGE":          chainConfig.Build.BaseImage,
+		"REPO_HOST":           repoHost,
 		"GITHUB_ORGANIZATION": chainConfig.Build.GithubOrganization,
 		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
 		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
 		"BINARIES":            binaries,
+		"LIBRARIES":           libraries,
 		"PRE_BUILD":           chainConfig.Build.PreBuild,
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
@@ -142,7 +154,7 @@ func buildChainNodeDockerImage(
 		"ROCKSDB_VERSION":     chainConfig.RocksDBVersion,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*60))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
 	defer cancel()
 
 	push := buildConfig.ContainerRegistry != "" && !buildConfig.SkipPush
