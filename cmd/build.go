@@ -350,6 +350,7 @@ it will be built and pushed`,
 		containerRegistry, _ := cmdFlags.GetString("registry")
 		chain, _ := cmdFlags.GetString("chain")
 		version, _ := cmdFlags.GetString("version")
+		org, _ := cmdFlags.GetString("org")
 		number, _ := cmdFlags.GetInt16("number")
 		skip, _ := cmdFlags.GetBool("skip")
 
@@ -378,6 +379,9 @@ it will be built and pushed`,
 			// Chain must be declared in chains.yaml
 			if chain != "" && chainNodeConfig.Name != chain {
 				continue
+			}
+			if org != "" {
+				chainNodeConfig.GithubOrganization = org
 			}
 			chainQueuedBuilds := HeighlinerQueuedChainBuilds{ChainConfigs: []ChainNodeDockerBuildConfig{}}
 			if version != "" || local {
@@ -482,6 +486,7 @@ func init() {
 	buildCmd.PersistentFlags().StringP("file", "f", "", "chains.yaml config file path")
 	buildCmd.PersistentFlags().StringP("registry", "r", "", "Docker Container Registry for pushing images")
 	buildCmd.PersistentFlags().StringP("chain", "c", "", "Cosmos chain to build from chains.yaml")
+	buildCmd.PersistentFlags().StringP("org", "o", "", "Github organization override for building from a fork")
 	buildCmd.PersistentFlags().StringP("version", "v", "", "Github tag to build")
 	buildCmd.PersistentFlags().Int16P("number", "n", 5, "Number of releases to build per chain")
 	buildCmd.PersistentFlags().Int16("parallel", 1, "Number of docker builds to run simultaneously")
