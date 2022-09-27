@@ -439,8 +439,8 @@
   binaries:
     - /go/bin/liked
 
-# Lum 
-- name: lum
+# Lumnetwork 
+- name: lumnetwork
   github-organization: lum-network
   github-repo: chain
   language: go
@@ -457,8 +457,8 @@
   binaries:
     - /build/nomic/target/release/nomic
 
-#Omniflix
-- name: omniflix
+#Omniflixhub
+- name: omniflixhub
   github-organization: OmniFlix
   github-repo: omniflixhub
   language: go
