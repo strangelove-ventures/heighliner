@@ -2,6 +2,52 @@
 - name: agoric
   language: imported
   base-image: agoric/agoric-sdk
+  binaries:
+    - /usr/local/bin/agd
+    - /usr/local/bin/agoric
+    - /usr/local/bin/ag-chain-cosmos
+    - /usr/local/bin/ag-cosmos-helper
+    - /usr/local/bin/ag-solo
+    - /usr/local/bin/node
+  libraries:
+    - /usr/local/bin/npx
+    - /usr/local/bin/npm
+    - /usr/local/lib/node_modules/**/*
+    - /usr/src/agoric-sdk/**/*
+
+    # amd64 libs
+    - /lib/x86_64-linux-gnu/libpthread.so.0
+    - /lib/x86_64-linux-gnu/libpthread-2.28.so
+    - /lib/x86_64-linux-gnu/librt.so.1
+    - /lib/x86_64-linux-gnu/librt-2.28.so
+    - /lib/x86_64-linux-gnu/libm.so.6
+    - /lib/x86_64-linux-gnu/libm-2.28.so
+    - /lib/x86_64-linux-gnu/libgcc_s.so.1
+    - /lib/x86_64-linux-gnu/libc.so.6
+    - /lib/x86_64-linux-gnu/libc-2.28.so
+    - /lib/x86_64-linux-gnu/libdl.so.2
+    - /lib/x86_64-linux-gnu/libdl-2.28.so
+    - /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+    - /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+    - /lib64/ld-linux-x86-64.so.2
+    - /lib/x86_64-linux-gnu/ld-2.28.so
+
+    # arm64 libs
+    - /lib/aarch64-linux-gnu/libpthread.so.0
+    - /lib/aarch64-linux-gnu/libpthread-2.28.so
+    - /lib/aarch64-linux-gnu/librt.so.1
+    - /lib/aarch64-linux-gnu/librt-2.28.so
+    - /lib/aarch64-linux-gnu/libm.so.6
+    - /lib/aarch64-linux-gnu/libm-2.28.so
+    - /lib/aarch64-linux-gnu/libgcc_s.so.1
+    - /lib/aarch64-linux-gnu/libc.so.6
+    - /lib/aarch64-linux-gnu/libc-2.28.so
+    - /lib/aarch64-linux-gnu/libdl.so.2
+    - /lib/aarch64-linux-gnu/libdl-2.28.so
+    - /usr/lib/aarch64-linux-gnu/libstdc++.so.6
+    - /usr/lib/aarch64-linux-gnu/libstdc++.so.6.0.25
+    - /lib64/ld-linux-aarch64.so.2
+    - /lib/aarch64-linux-gnu/ld-2.28.so
 
 # Ag0
 - name: ag0
@@ -89,10 +135,6 @@
     - /go/bin/cyber
   build-env:
     - BUILD_TAGS=muslc
-
-# Busybox image with minimal utils that are copied into other images
-- name: busybox
-  language: busybox 
 
 # Carbon
 - name: carbon
@@ -471,9 +513,9 @@
   github-organization: osmosis-labs
   github-repo: osmosis
   language: go
-  build-target: build
+  build-target: install
   binaries:
-    - build/osmosisd
+    - /go/bin/osmosisd
   # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
   # rocksdb-version:
   #   v6.0.0: v6.10.2

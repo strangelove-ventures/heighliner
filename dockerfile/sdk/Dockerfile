@@ -83,8 +83,9 @@ ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
-# Use bins from minimal busybox image for scratch image
-FROM ghcr.io/strangelove-ventures/heighliner/busybox:v0.0.1 AS busybox-min
+# Use minimal busybox from infra-toolkit image for final scratch image
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.5 AS busybox-min
+RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
@@ -110,6 +111,9 @@ RUN ln sh pwd && \
     ln sh less && \
     ln sh grep && \
     ln sh sleep && \
+    ln sh env && \
+    ln sh tar && \
+    ln sh tee && \
     ln sh du && \
     rm ln rm
 

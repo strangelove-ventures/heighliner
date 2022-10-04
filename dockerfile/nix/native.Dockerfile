@@ -1,4 +1,5 @@
-FROM ghcr.io/strangelove-ventures/heighliner/busybox:v0.0.1 AS busybox-min
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.5 AS busybox-min
+RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -106,6 +107,9 @@ RUN ln sh pwd && \
     ln sh less && \
     ln sh grep && \
     ln sh sleep && \
+    ln sh env && \
+    ln sh tar && \
+    ln sh tee && \
     ln sh du 
 
 # Install chain binaries
