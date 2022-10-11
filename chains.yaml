@@ -341,6 +341,7 @@
     apt install unzip
     wget https://github.com/InjectiveLabs/injective-chain-releases/releases/download/$VERSION/linux-amd64.zip
     unzip linux-amd64.zip
+    ls -last
     mv injectived peggo injective-indexer /usr/bin
     mv libwasmvm.x86_64.so /usr/lib
   binaries:
@@ -384,6 +385,18 @@
 - name: juno
   github-organization: CosmosContracts
   github-repo: juno
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/junod
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
+
+# Juno-dragonberry
+- name: dragonberry-juno
+  github-organization: dimiandre
+  github-repo: dragonberry-juno
   language: go
   build-target: install
   binaries:
@@ -461,6 +474,16 @@
   build-target: install
   binaries:
     - /go/bin/omniflixhubd
+
+#Omniflixhub-dragon
+- name: omniflixhub-dragon
+  github-organization: OmniFlix
+  github-repo: dragonberry-omniflixhub
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/omniflixhubd
+
 
 # Osmosis
 - name: osmosis
