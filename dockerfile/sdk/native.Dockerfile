@@ -50,15 +50,18 @@ ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c \
   'BINARIES_ARR=($BINARIES_ENV); \
-  cd /root/bin ; \
   for BINARY in "${BINARIES_ARR[@]}"; do \
     BINSPLIT=(${BINARY//:/ }) ; \
     BINPATH=${BINSPLIT[1]} ; \
     if [ ! -z "$BINPATH" ]; then \
-      mkdir -p "$(dirname "${BINPATH}")" ; \
-      cp ${BINSPLIT[0]} "${BINPATH}"; \
+      if [[ $BINPATH == *"/"* ]]; then \
+        mkdir -p "$(dirname "${BINPATH}")" ; \
+        cp ${BINSPLIT[0]} "${BINPATH}"; \
+      else \
+        cp ${BINSPLIT[0]} "/root/bin/${BINPATH}"; \
+      fi ;\
     else \
-      cp ${BINSPLIT[0]} . ; \
+      cp ${BINSPLIT[0]} /root/bin/ ; \
     fi; \
   done'
 
