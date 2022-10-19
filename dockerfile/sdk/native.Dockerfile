@@ -5,8 +5,6 @@ RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eu
 ARG TARGETARCH
 ARG BUILDARCH
 
-RUN wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/v1.0.0/libwasmvm_muslc.$(uname -m).a
-
 # Build minimal busybox
 WORKDIR /
 # busybox v1.34.1 stable
@@ -34,6 +32,10 @@ ARG PRE_BUILD
 ARG BUILD_DIR
 
 RUN set -eux; \
+    WASM_VERSION=$(go list -u -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
+    if [ ! -z "${WASM_VERSION}" ]; then \
+      wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
+    fi; \
     export CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"'; \
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
     if [ ! -z "$BUILD_TARGET" ]; then \
