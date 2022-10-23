@@ -34,6 +34,7 @@ ARG BUILD_DIR
 RUN set -eux; \
     WASM_VERSION=$(go list -u -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
     if [ ! -z "${WASM_VERSION}" ]; then \
+      if [ "${WASM_VERSION}" = "v1.1.0" ]; then WASM_VERSION=v1.0.0; fi; \
       wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
     fi; \
     export CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"'; \

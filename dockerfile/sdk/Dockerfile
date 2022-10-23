@@ -61,6 +61,7 @@ RUN set -eux; \
     fi; \
     WASM_VERSION=$(go list -u -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
     if [ ! -z "${WASM_VERSION}" ]; then \
+      if [ "${WASM_VERSION}" = "v1.1.0" ]; then WASM_VERSION=v1.0.0; fi; \
       wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$ARCH.a; \
     fi; \
     export GOOS=linux GOARCH=$TARGETARCH CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"'; \
