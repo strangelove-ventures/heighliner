@@ -103,7 +103,10 @@ func buildChainNodeDockerImage(
 		imageName = fmt.Sprintf("%s/%s", buildConfig.ContainerRegistry, chainConfig.Build.Name)
 	}
 
-	imageTags := []string{fmt.Sprintf("%s:%s", imageName, imageTag)}
+	imageTags := []string{
+		fmt.Sprintf("%s:%s", imageName, imageTag),
+		fmt.Sprintf("%s:%s-%s", imageName, imageTag, version),
+	}
 	if chainConfig.Latest {
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
