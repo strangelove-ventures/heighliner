@@ -1,4 +1,5 @@
-FROM golang:1.19.0-alpine3.16 AS busybox-min
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.6 AS busybox-min
+RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
 
@@ -20,6 +21,7 @@ ARG GITHUB_ORGANIZATION
 ARG GITHUB_REPO
 ARG VERSION
 ARG REPO_HOST
+ARG BUILD_TIMESTAMP
 
 RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
@@ -108,6 +110,9 @@ RUN ln sh pwd && \
     ln sh less && \
     ln sh grep && \
     ln sh sleep && \
+    ln sh env && \
+    ln sh tar && \
+    ln sh tee && \
     ln sh du 
 
 # Install chain binaries
