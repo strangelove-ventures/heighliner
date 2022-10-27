@@ -199,9 +199,6 @@
     - BUILD_TAGS=muslc
   binaries:
     - /go/bin/gaiad
-  # Map from gaia version to rocks db version. Will build -rocks tag for these versions
-  # rocksdb-version:
-  #   v6.0.0: v6.10.2
 
 # Cosmos Hub ICS
 - name: ics
@@ -470,13 +467,6 @@
   build-target: build
   binaries:
     - build/osmosisd
-  # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
-  # rocksdb-version:
-  #   v6.0.0: v6.10.2
-  #   v6.1.0: v6.24.2
-  #   v6.2.0: v6.24.2
-  #   v6.4.0: v6.29.3
-  #   v7.0.2: v6.29.3
   build-env:
     - BUILD_TAGS=muslc
 
