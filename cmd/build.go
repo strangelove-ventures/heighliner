@@ -487,6 +487,7 @@ func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQu
 
 	// Delete tmp dirs on ctrl+c
 	c := make(chan os.Signal)
+	//nolint:govet
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
