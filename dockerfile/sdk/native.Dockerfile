@@ -1,17 +1,10 @@
-FROM golang:1.19.0-alpine3.16 AS build-env
+FROM golang:1.19-alpine3.16 AS build-env
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev
 
 ARG TARGETARCH
 ARG BUILDARCH
 
-# Build minimal busybox
-WORKDIR /
-# busybox v1.34.1 stable
-RUN git clone -b 1_34_1 --single-branch https://git.busybox.net/busybox
-WORKDIR /busybox
-ADD busybox.min.config .config
-RUN make
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
@@ -20,6 +13,7 @@ WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
 
 ARG GITHUB_REPO
 ARG VERSION
+ARG BUILD_TIMESTAMP
 
 RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
 
@@ -72,6 +66,8 @@ ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
+# Use minimal busybox from infra-toolkit image for final scratch image
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.6 AS busybox-min
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use ln and rm from full featured busybox for assembling final image
@@ -88,7 +84,7 @@ WORKDIR /bin
 COPY --from=busybox-full /bin/ln /bin/rm ./
 
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
-COPY --from=build-env /busybox/busybox /bin/sh
+COPY --from=busybox-min /busybox/busybox /bin/sh
 
 # Add hard links for read-only utils, then remove ln and rm
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
@@ -98,6 +94,9 @@ RUN ln sh pwd && \
     ln sh less && \
     ln sh grep && \
     ln sh sleep && \
+    ln sh env && \
+    ln sh tar && \
+    ln sh tee && \
     ln sh du && \
     rm ln rm
 
@@ -108,11 +107,11 @@ COPY --from=build-env /root/bin /bin
 COPY --from=build-env /root/lib /lib
 
 # Install trusted CA certificates
-COPY --from=build-env /etc/ssl/cert.pem /etc/ssl/cert.pem
+COPY --from=busybox-min /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install heighliner user
-COPY --from=build-env /etc/passwd /etc/passwd
-COPY --from=build-env --chown=1025:1025 /home/heighliner /home/heighliner
+COPY --from=busybox-min /etc/passwd /etc/passwd
+COPY --from=busybox-min --chown=1025:1025 /home/heighliner /home/heighliner
 
 WORKDIR /home/heighliner
 USER heighliner
