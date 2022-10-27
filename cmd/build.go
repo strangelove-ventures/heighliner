@@ -8,12 +8,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/strangelove-ventures/heighliner/docker"
+	"github.com/strangelove-ventures/heighliner/dockerfile"
 	"gopkg.in/yaml.v2"
 )
 
@@ -59,6 +62,7 @@ type HeighlinerDockerBuildConfig struct {
 	BuildKitAddr      string
 	Platform          string
 	NoCache           bool
+	NoBuildCache      bool
 }
 
 type HeighlinerQueuedChainBuilds struct {
@@ -68,26 +72,67 @@ type HeighlinerQueuedChainBuilds struct {
 func buildChainNodeDockerImage(
 	buildConfig *HeighlinerDockerBuildConfig,
 	chainConfig *ChainNodeDockerBuildConfig,
+	local bool,
 ) error {
-	var dockerfile string
+	var df []byte
 	var imageTag string
 	switch chainConfig.Build.Language {
 	case "imported":
-		dockerfile = "./dockerfile/imported"
+		df = dockerfile.Imported
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "rust":
-		dockerfile = "./dockerfile/rust"
+		df = dockerfile.Rust
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "nix":
-		dockerfile = "./dockerfile/nix"
+		if buildConfig.UseBuildKit {
+			df = dockerfile.Nix
+		} else {
+			df = dockerfile.NixNative
+		}
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "go":
-		dockerfile = "./dockerfile/sdk"
+		if local {
+			df = dockerfile.SDKLocal
+			chainConfig.Version = "local"
+		} else {
+			if buildConfig.UseBuildKit {
+				df = dockerfile.SDK
+			} else {
+				df = dockerfile.SDKNative
+			}
+		}
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-
+	case "busybox":
+		var err error
+		df, err = os.ReadFile("dockerfile/busybox/Dockerfile")
+		if err != nil {
+			return fmt.Errorf("Unable to find busybox Dockerfile, needs to be built from root of heighliner repo")
+		}
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	default:
-		dockerfile = "./dockerfile/none"
+		df = dockerfile.None
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("error getting working directory: %w", err)
+	}
+
+	dir, err := os.MkdirTemp(cwd, "heighliner")
+	if err != nil {
+		return fmt.Errorf("error making temporary directory for dockerfile: %w", err)
+	}
+	defer os.RemoveAll(dir)
+
+	reldir, err := filepath.Rel(cwd, dir)
+	if err != nil {
+		return fmt.Errorf("error finding relative path for dockerfile working directory: %w", err)
+	}
+
+	dfilepath := filepath.Join(reldir, "Dockerfile")
+	if err := os.WriteFile(dfilepath, df, 0644); err != nil {
+		return fmt.Errorf("error writing temporary dockerfile: %w", err)
 	}
 
 	var imageName string
@@ -124,6 +169,11 @@ func buildChainNodeDockerImage(
 		repoHost = "github.com"
 	}
 
+	buildTimestamp := ""
+	if buildConfig.NoBuildCache {
+		buildTimestamp = strconv.FormatInt(time.Now().Unix(), 10)
+	}
+
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Version,
 		"NAME":                chainConfig.Build.Name,
@@ -138,6 +188,7 @@ func buildChainNodeDockerImage(
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
+		"BUILD_TIMESTAMP":     buildTimestamp,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
@@ -168,10 +219,15 @@ func buildChainNodeDockerImage(
 			buildKitOptions.Platform = buildConfig.Platform
 		}
 		buildKitOptions.NoCache = buildConfig.NoCache
-		return docker.BuildDockerImageWithBuildKit(ctx, dockerfile, imageTags, push, buildArgs, buildKitOptions)
+		if err := docker.BuildDockerImageWithBuildKit(ctx, reldir, imageTags, push, buildArgs, buildKitOptions); err != nil {
+			return err
+		}
 	} else {
-		return docker.BuildDockerImage(ctx, dockerfile, imageTags, push, buildArgs, buildConfig.NoCache)
+		if err := docker.BuildDockerImage(ctx, dfilepath, imageTags, push, buildArgs, buildConfig.NoCache); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func queueMostRecentReleasesForChain(
@@ -222,6 +278,23 @@ func queueMostRecentReleasesForChain(
 	return nil
 }
 
+func loadChainsYaml(configFile string) error {
+	if _, err := os.Stat(configFile); err != nil {
+		return fmt.Errorf("error checking for file: %s: %w", configFile, err)
+	}
+	bz, err := os.ReadFile(configFile)
+	if err != nil {
+		return fmt.Errorf("error reading file: %s: %w", configFile, err)
+	}
+	var newChains []ChainNodeConfig
+	err = yaml.Unmarshal(bz, &newChains)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling yaml from file: %s: %w", configFile, err)
+	}
+	chains = newChains
+	return nil
+}
+
 var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Build the docker images",
@@ -229,13 +302,31 @@ var buildCmd = &cobra.Command{
 For each tag that doesn't exist in the specified container repository,
 it will be built and pushed`,
 	Run: func(cmd *cobra.Command, args []string) {
-		containerRegistry, _ := cmd.Flags().GetString("registry")
-		fmt.Printf("Container registry: %s\n", containerRegistry)
-
 		cmdFlags := cmd.Flags()
 
+		configFile, _ := cmdFlags.GetString("file")
+		if configFile == "" {
+			// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
+			cwd, err := os.Getwd()
+			if err == nil {
+				chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
+				if err := loadChainsYaml(chainsYamlSearchPath); err != nil {
+					fmt.Printf("No config found at %s, using embedded chains. pass -f to configure config.yaml path.\n", chainsYamlSearchPath)
+				} else {
+					fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
+				}
+			}
+		} else {
+			// if flag is explicitly provided, panic on error since intent was to override embedded chains.
+			if err := loadChainsYaml(configFile); err != nil {
+				panic(err)
+			}
+		}
+
+		containerRegistry, _ := cmdFlags.GetString("registry")
 		chain, _ := cmdFlags.GetString("chain")
 		version, _ := cmdFlags.GetString("version")
+		org, _ := cmdFlags.GetString("org")
 		number, _ := cmdFlags.GetInt16("number")
 		skip, _ := cmdFlags.GetBool("skip")
 
@@ -243,19 +334,10 @@ it will be built and pushed`,
 		buildKitAddr, _ := cmdFlags.GetString("buildkit-addr")
 		platform, _ := cmdFlags.GetString("platform")
 		noCache, _ := cmdFlags.GetBool("no-cache")
+		noBuildCache, _ := cmdFlags.GetBool("no-build-cache")
 		latest, _ := cmdFlags.GetBool("latest")
+		local, _ := cmdFlags.GetBool("local")
 		parallel, _ := cmdFlags.GetInt16("parallel")
-
-		// Parse chains.yaml
-		dat, err := os.ReadFile("./chains.yaml")
-		if err != nil {
-			log.Fatalf("Error reading chains.yaml: %v", err)
-		}
-		chains := []ChainNodeConfig{}
-		err = yaml.Unmarshal(dat, &chains)
-		if err != nil {
-			log.Fatalf("Error parsing chains.yaml: %v", err)
-		}
 
 		buildQueue := []*HeighlinerQueuedChainBuilds{}
 		buildConfig := HeighlinerDockerBuildConfig{
@@ -265,6 +347,7 @@ it will be built and pushed`,
 			BuildKitAddr:      buildKitAddr,
 			Platform:          platform,
 			NoCache:           noCache,
+			NoBuildCache:      noBuildCache,
 		}
 
 		for _, chainNodeConfig := range chains {
@@ -273,8 +356,11 @@ it will be built and pushed`,
 			if chain != "" && chainNodeConfig.Name != chain {
 				continue
 			}
+			if org != "" {
+				chainNodeConfig.GithubOrganization = org
+			}
 			chainQueuedBuilds := HeighlinerQueuedChainBuilds{ChainConfigs: []ChainNodeDockerBuildConfig{}}
-			if version != "" {
+			if version != "" || local {
 				chainConfig := ChainNodeDockerBuildConfig{
 					Build:   chainNodeConfig,
 					Version: version,
@@ -282,7 +368,7 @@ it will be built and pushed`,
 				}
 				chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, chainConfig)
 				buildQueue = append(buildQueue, &chainQueuedBuilds)
-				buildImages(&buildConfig, buildQueue, parallel)
+				buildImages(&buildConfig, buildQueue, parallel, local)
 				return
 			}
 			// If specific version not provided, build images for the last n releases from the chain
@@ -295,7 +381,7 @@ it will be built and pushed`,
 				buildQueue = append(buildQueue, &chainQueuedBuilds)
 			}
 		}
-		buildImages(&buildConfig, buildQueue, parallel)
+		buildImages(&buildConfig, buildQueue, parallel, false)
 	},
 }
 
@@ -321,7 +407,7 @@ func getQueueItem(queue []*HeighlinerQueuedChainBuilds, index int) *ChainNodeDoc
 	return nil
 }
 
-func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, buildIndex *int, buildIndexLock *sync.Mutex, wg *sync.WaitGroup, errors *[]error, errorsLock *sync.Mutex) {
+func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, buildIndex *int, buildIndexLock *sync.Mutex, wg *sync.WaitGroup, errors *[]error, errorsLock *sync.Mutex, local bool) {
 	buildIndexLock.Lock()
 	defer buildIndexLock.Unlock()
 	chainConfig := getQueueItem(queue, *buildIndex)
@@ -332,17 +418,16 @@ func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*Heighline
 	}
 	go func() {
 		log.Printf("Building docker image: %s:%s\n", chainConfig.Build.Name, chainConfig.Version)
-		if err := buildChainNodeDockerImage(buildConfig, chainConfig); err != nil {
+		if err := buildChainNodeDockerImage(buildConfig, chainConfig, local); err != nil {
 			errorsLock.Lock()
 			*errors = append(*errors, fmt.Errorf("error building docker image for %s:%s - %v\n", chainConfig.Build.Name, chainConfig.Version, err))
 			errorsLock.Unlock()
 		}
-		buildNextImage(buildConfig, queue, buildIndex, buildIndexLock, wg, errors, errorsLock)
+		buildNextImage(buildConfig, queue, buildIndex, buildIndexLock, wg, errors, errorsLock, local)
 	}()
-
 }
 
-func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, parallel int16) {
+func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, parallel int16, local bool) {
 	buildIndex := 0
 	buildIndexLock := sync.Mutex{}
 	errors := []error{}
@@ -351,7 +436,7 @@ func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQu
 	wg := sync.WaitGroup{}
 	for i := int16(0); i < parallel; i++ {
 		wg.Add(1)
-		buildNextImage(buildConfig, queue, &buildIndex, &buildIndexLock, &wg, &errors, &errorsLock)
+		buildNextImage(buildConfig, queue, &buildIndex, &buildIndexLock, &wg, &errors, &errorsLock, local)
 	}
 	wg.Wait()
 	if len(errors) > 0 {
@@ -365,16 +450,20 @@ func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQu
 func init() {
 	rootCmd.AddCommand(buildCmd)
 
+	buildCmd.PersistentFlags().StringP("file", "f", "", "chains.yaml config file path")
 	buildCmd.PersistentFlags().StringP("registry", "r", "", "Docker Container Registry for pushing images")
 	buildCmd.PersistentFlags().StringP("chain", "c", "", "Cosmos chain to build from chains.yaml")
+	buildCmd.PersistentFlags().StringP("org", "o", "", "Github organization override for building from a fork")
 	buildCmd.PersistentFlags().StringP("version", "v", "", "Github tag to build")
 	buildCmd.PersistentFlags().Int16P("number", "n", 5, "Number of releases to build per chain")
 	buildCmd.PersistentFlags().Int16("parallel", 1, "Number of docker builds to run simultaneously")
 	buildCmd.PersistentFlags().BoolP("skip", "s", false, "Skip pushing images to registry")
 	buildCmd.PersistentFlags().BoolP("latest", "l", false, "Also push latest tag (for single version build only)")
+	buildCmd.PersistentFlags().Bool("local", false, "Use local directory (not git repository)")
 
 	buildCmd.PersistentFlags().BoolP("use-buildkit", "b", false, "Use buildkit to build multi-arch images")
 	buildCmd.PersistentFlags().String("buildkit-addr", docker.BuildKitSock, "Address of the buildkit socket, can be unix, tcp, ssl")
 	buildCmd.PersistentFlags().StringP("platform", "p", docker.DefaultPlatforms, "Platforms to build")
 	buildCmd.PersistentFlags().Bool("no-cache", false, "Don't use docker cache for building")
+	buildCmd.PersistentFlags().Bool("no-build-cache", false, "Invalidate caches for clone and build.")
 }
