@@ -18,20 +18,19 @@ import (
 )
 
 type ChainNodeConfig struct {
-	Name               string            `yaml:"name"`
-	RepoHost           string            `yaml:"repo-host"`
-	GithubOrganization string            `yaml:"github-organization"`
-	GithubRepo         string            `yaml:"github-repo"`
-	Language           string            `yaml:"language"`
-	BuildTarget        string            `yaml:"build-target"`
-	BuildDir           string            `yaml:"build-dir"`
-	Binaries           []string          `yaml:"binaries"`
-	Libraries          []string          `yaml:"libraries"`
-	PreBuild           string            `yaml:"pre-build"`
-	Platforms          []string          `yaml:"platforms"`
-	BuildEnv           []string          `yaml:"build-env"`
-	RocksDBVersion     map[string]string `yaml:"rocksdb-version"`
-	BaseImage          string            `yaml:"base-image"`
+	Name               string   `yaml:"name"`
+	RepoHost           string   `yaml:"repo-host"`
+	GithubOrganization string   `yaml:"github-organization"`
+	GithubRepo         string   `yaml:"github-repo"`
+	Language           string   `yaml:"language"`
+	BuildTarget        string   `yaml:"build-target"`
+	BuildDir           string   `yaml:"build-dir"`
+	Binaries           []string `yaml:"binaries"`
+	Libraries          []string `yaml:"libraries"`
+	PreBuild           string   `yaml:"pre-build"`
+	Platforms          []string `yaml:"platforms"`
+	BuildEnv           []string `yaml:"build-env"`
+	BaseImage          string   `yaml:"base-image"`
 }
 
 type GithubRelease struct {
@@ -48,10 +47,9 @@ func trimQuotes(s string) string {
 }
 
 type ChainNodeDockerBuildConfig struct {
-	Build          ChainNodeConfig
-	Version        string
-	Latest         bool
-	RocksDBVersion string
+	Build   ChainNodeConfig
+	Version string
+	Latest  bool
 }
 
 type HeighlinerDockerBuildConfig struct {
@@ -84,13 +82,9 @@ func buildChainNodeDockerImage(
 		dockerfile = "./dockerfile/nix"
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
 	case "go":
-		if chainConfig.RocksDBVersion != "" {
-			dockerfile = "./dockerfile/sdk-rocksdb"
-			imageTag = fmt.Sprintf("%s-rocks", strings.ReplaceAll(chainConfig.Version, "/", "-"))
-		} else {
-			dockerfile = "./dockerfile/sdk"
-			imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-		}
+		dockerfile = "./dockerfile/sdk"
+		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
+
 	default:
 		dockerfile = "./dockerfile/none"
 		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
@@ -116,17 +110,10 @@ func buildChainNodeDockerImage(
 	for _, envVar := range chainConfig.Build.BuildEnv {
 		envVarSplit := strings.Split(envVar, "=")
 		if envVarSplit[0] == "BUILD_TAGS" {
-			if chainConfig.RocksDBVersion != "" {
-				buildTagsEnvVar = fmt.Sprintf("BUILD_TAGS=%s rocksdb", trimQuotes(envVarSplit[1]))
-			} else {
-				buildTagsEnvVar = envVar
-			}
+			buildTagsEnvVar = envVar
 		} else {
 			buildEnv += envVar + " "
 		}
-	}
-	if buildTagsEnvVar == "" && chainConfig.RocksDBVersion != "" {
-		buildTagsEnvVar = "BUILD_TAGS=rocksdb"
 	}
 
 	binaries := strings.Join(chainConfig.Build.Binaries, " ")
@@ -151,7 +138,6 @@ func buildChainNodeDockerImage(
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
-		"ROCKSDB_VERSION":     chainConfig.RocksDBVersion,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
@@ -232,15 +218,6 @@ func queueMostRecentReleasesForChain(
 			Version: release.TagName,
 			Latest:  i == 0,
 		})
-
-		if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[release.TagName]; ok {
-			chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, ChainNodeDockerBuildConfig{
-				Build:          chainNodeConfig,
-				Version:        release.TagName,
-				Latest:         i == 0,
-				RocksDBVersion: rocksDbVersion,
-			})
-		}
 	}
 	return nil
 }
@@ -304,15 +281,6 @@ it will be built and pushed`,
 					Latest:  latest,
 				}
 				chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, chainConfig)
-				if rocksDbVersion, ok := chainNodeConfig.RocksDBVersion[version]; ok {
-					rocksDBChainConfig := ChainNodeDockerBuildConfig{
-						Build:          chainNodeConfig,
-						Version:        version,
-						Latest:         latest,
-						RocksDBVersion: rocksDbVersion,
-					}
-					chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, rocksDBChainConfig)
-				}
 				buildQueue = append(buildQueue, &chainQueuedBuilds)
 				buildImages(&buildConfig, buildQueue, parallel)
 				return
