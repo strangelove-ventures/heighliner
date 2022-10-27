@@ -340,7 +340,7 @@ it will be built and pushed`,
 			if err == nil {
 				chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
 				if err := loadChainsYaml(chainsYamlSearchPath); err != nil {
-					fmt.Printf("No config found at %s, using embedded chains. pass -f to configure config.yaml path.\n", chainsYamlSearchPath)
+					fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
 				} else {
 					fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
 				}

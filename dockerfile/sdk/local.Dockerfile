@@ -10,6 +10,8 @@ ARG GITHUB_REPO
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
+# This Dockerfile  is the same as native.Dockerfile except that the chain code is sourced from the
+# current working directory instead of a remote git repository.
 ADD . .
 
 ARG BUILD_TARGET
