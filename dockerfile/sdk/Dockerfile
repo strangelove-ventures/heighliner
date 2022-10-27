@@ -11,19 +11,6 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
         wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr; \
     fi
 
-# Build minimal busybox
-WORKDIR /
-# busybox v1.34.1 stable
-RUN git clone -b 1_34_1 --single-branch https://git.busybox.net/busybox
-WORKDIR /busybox
-ADD busybox.min.config .config
-RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then \
-      export CC=aarch64-linux-musl-gcc; \
-    elif [ "${TARGETARCH}" = "amd64" ] && [ "${BUILDARCH}" != "amd64" ]; then \
-      export CC=x86_64-linux-musl-gcc; \
-    fi; \
-    make
-
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 
