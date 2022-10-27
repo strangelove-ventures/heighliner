@@ -11,9 +11,6 @@ var SDKNative []byte
 //go:embed sdk/local.Dockerfile
 var SDKLocal []byte
 
-//go:embed sdk-rocksdb/Dockerfile
-var SDKRocks []byte
-
 //go:embed imported/Dockerfile
 var Imported []byte
 

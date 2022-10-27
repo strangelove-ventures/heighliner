@@ -8,10 +8,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -40,15 +42,6 @@ type GithubRelease struct {
 	TagName string `json:"tag_name"`
 }
 
-func trimQuotes(s string) string {
-	if len(s) >= 2 {
-		if c := s[len(s)-1]; s[0] == c && (c == '"' || c == '\'') {
-			return s[1 : len(s)-1]
-		}
-	}
-	return s
-}
-
 type ChainNodeDockerBuildConfig struct {
 	Build   ChainNodeConfig
 	Version string
@@ -69,50 +62,80 @@ type HeighlinerQueuedChainBuilds struct {
 	ChainConfigs []ChainNodeDockerBuildConfig
 }
 
+// tagFromVersion returns a sanitized docker image tag from a version string.
+func tagFromVersion(version string) string {
+	return strings.ReplaceAll(version, "/", "-")
+}
+
+// getDockerfile attempts to find Dockerfile within current working directory.
+// Returns embedded Dockerfile if local file is not found or cannot be read.
+func getDockerfile(dockerfile string, embedded []byte) []byte {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Using embedded %s due to working directory not found\n", dockerfile)
+		return embedded
+	}
+
+	absDockerfile := filepath.Join(cwd, "dockerfile", dockerfile)
+	if _, err := os.Stat(absDockerfile); err != nil {
+		fmt.Printf("Using embedded %s due to local dockerfile not found\n", dockerfile)
+		return embedded
+	}
+
+	df, err := os.ReadFile(absDockerfile)
+	if err != nil {
+		fmt.Printf("Using embedded %s due to failure to read local dockerfile\n", dockerfile)
+		return embedded
+	}
+
+	fmt.Printf("Using local %s", dockerfile)
+	return df
+}
+
+// dockerfileAndTag returns the appropriate dockerfile as bytes and the docker image tag
+// based on the input configuration.
+func dockerfileAndTag(
+	buildConfig *HeighlinerDockerBuildConfig,
+	chainConfig *ChainNodeDockerBuildConfig,
+	local bool,
+) ([]byte, string) {
+	switch chainConfig.Build.Language {
+	case "imported":
+		return getDockerfile("imported/Dockerfile", dockerfile.Imported), tagFromVersion(chainConfig.Version)
+	case "rust":
+		return getDockerfile("rust/Dockerfile", dockerfile.Rust), tagFromVersion(chainConfig.Version)
+	case "nix":
+		if buildConfig.UseBuildKit {
+			return getDockerfile("nix/Dockerfile", dockerfile.Nix), tagFromVersion(chainConfig.Version)
+		}
+		return getDockerfile("nix/native.Dockerfile", dockerfile.NixNative), tagFromVersion(chainConfig.Version)
+	case "go":
+		if local {
+			// local builds always use embedded Dockerfile.
+			if chainConfig.Version == "" {
+				return dockerfile.SDKLocal, "local"
+			}
+			return dockerfile.SDKLocal, tagFromVersion(chainConfig.Version)
+		} else {
+			if buildConfig.UseBuildKit {
+				return getDockerfile("sdk/Dockerfile", dockerfile.SDK), tagFromVersion(chainConfig.Version)
+			}
+			return getDockerfile("sdk/native.Dockerfile", dockerfile.SDKNative), tagFromVersion(chainConfig.Version)
+		}
+	default:
+		return getDockerfile("none/Dockerfile", dockerfile.None), tagFromVersion(chainConfig.Version)
+	}
+}
+
+// buildChainNodeDockerImage builds the requested chain node docker image
+// based on the input configuration.
 func buildChainNodeDockerImage(
 	buildConfig *HeighlinerDockerBuildConfig,
 	chainConfig *ChainNodeDockerBuildConfig,
 	local bool,
+	queueTmpDirRemoval func(tmpDir string, start bool),
 ) error {
-	var df []byte
-	var imageTag string
-	switch chainConfig.Build.Language {
-	case "imported":
-		df = dockerfile.Imported
-		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-	case "rust":
-		df = dockerfile.Rust
-		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-	case "nix":
-		if buildConfig.UseBuildKit {
-			df = dockerfile.Nix
-		} else {
-			df = dockerfile.NixNative
-		}
-		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-	case "go":
-		if local {
-			df = dockerfile.SDKLocal
-			chainConfig.Version = "local"
-		} else {
-			if buildConfig.UseBuildKit {
-				df = dockerfile.SDK
-			} else {
-				df = dockerfile.SDKNative
-			}
-		}
-		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-	case "busybox":
-		var err error
-		df, err = os.ReadFile("dockerfile/busybox/Dockerfile")
-		if err != nil {
-			return fmt.Errorf("Unable to find busybox Dockerfile, needs to be built from root of heighliner repo")
-		}
-		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-	default:
-		df = dockerfile.None
-		imageTag = strings.ReplaceAll(chainConfig.Version, "/", "-")
-	}
+	df, imageTag := dockerfileAndTag(buildConfig, chainConfig, local)
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -123,7 +146,14 @@ func buildChainNodeDockerImage(
 	if err != nil {
 		return fmt.Errorf("error making temporary directory for dockerfile: %w", err)
 	}
-	defer os.RemoveAll(dir)
+
+	// queue removal on ctrl+c
+	queueTmpDirRemoval(dir, true)
+	defer func() {
+		// this build is done, so don't need removal on ctrl+c anymore since we are removing now.
+		queueTmpDirRemoval(dir, false)
+		_ = os.RemoveAll(dir)
+	}()
 
 	reldir, err := filepath.Rel(cwd, dir)
 	if err != nil {
@@ -407,7 +437,17 @@ func getQueueItem(queue []*HeighlinerQueuedChainBuilds, index int) *ChainNodeDoc
 	return nil
 }
 
-func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQueuedChainBuilds, buildIndex *int, buildIndexLock *sync.Mutex, wg *sync.WaitGroup, errors *[]error, errorsLock *sync.Mutex, local bool) {
+func buildNextImage(
+	buildConfig *HeighlinerDockerBuildConfig,
+	queue []*HeighlinerQueuedChainBuilds,
+	buildIndex *int,
+	buildIndexLock *sync.Mutex,
+	wg *sync.WaitGroup,
+	errors *[]error,
+	errorsLock *sync.Mutex,
+	local bool,
+	queueTmpDirRemoval func(tmpDir string, start bool),
+) {
 	buildIndexLock.Lock()
 	defer buildIndexLock.Unlock()
 	chainConfig := getQueueItem(queue, *buildIndex)
@@ -418,12 +458,12 @@ func buildNextImage(buildConfig *HeighlinerDockerBuildConfig, queue []*Heighline
 	}
 	go func() {
 		log.Printf("Building docker image: %s:%s\n", chainConfig.Build.Name, chainConfig.Version)
-		if err := buildChainNodeDockerImage(buildConfig, chainConfig, local); err != nil {
+		if err := buildChainNodeDockerImage(buildConfig, chainConfig, local, queueTmpDirRemoval); err != nil {
 			errorsLock.Lock()
 			*errors = append(*errors, fmt.Errorf("error building docker image for %s:%s - %v\n", chainConfig.Build.Name, chainConfig.Version, err))
 			errorsLock.Unlock()
 		}
-		buildNextImage(buildConfig, queue, buildIndex, buildIndexLock, wg, errors, errorsLock, local)
+		buildNextImage(buildConfig, queue, buildIndex, buildIndexLock, wg, errors, errorsLock, local, queueTmpDirRemoval)
 	}()
 }
 
@@ -433,10 +473,36 @@ func buildImages(buildConfig *HeighlinerDockerBuildConfig, queue []*HeighlinerQu
 	errors := []error{}
 	errorsLock := sync.Mutex{}
 
+	tmpDirsToRemove := make(map[string]bool)
+	var tmpDirMapMu sync.Mutex
+	queueTmpDirRemoval := func(tmpDir string, start bool) {
+		tmpDirMapMu.Lock()
+		defer tmpDirMapMu.Unlock()
+		if start {
+			tmpDirsToRemove[tmpDir] = true
+		} else {
+			delete(tmpDirsToRemove, tmpDir)
+		}
+	}
+
+	// Delete tmp dirs on ctrl+c
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		tmpDirMapMu.Lock()
+		defer tmpDirMapMu.Unlock()
+		for dir := range tmpDirsToRemove {
+			_ = os.RemoveAll(dir)
+		}
+
+		os.Exit(1)
+	}()
+
 	wg := sync.WaitGroup{}
 	for i := int16(0); i < parallel; i++ {
 		wg.Add(1)
-		buildNextImage(buildConfig, queue, &buildIndex, &buildIndexLock, &wg, &errors, &errorsLock, local)
+		buildNextImage(buildConfig, queue, &buildIndex, &buildIndexLock, &wg, &errors, &errorsLock, local, queueTmpDirRemoval)
 	}
 	wg.Wait()
 	if len(errors) > 0 {
