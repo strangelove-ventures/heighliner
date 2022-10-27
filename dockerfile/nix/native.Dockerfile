@@ -1,18 +1,6 @@
 FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.6 AS busybox-min
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
-RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
-
-# Build minimal busybox
-WORKDIR /
-# busybox v1.34.1 stable
-RUN git clone -b 1_34_1 --single-branch https://git.busybox.net/busybox
-WORKDIR /busybox
-ADD busybox.min.config .config
-RUN make
-
-RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
-
 FROM nixos/nix:latest AS build-env
 
 WORKDIR /build
