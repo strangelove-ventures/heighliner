@@ -116,12 +116,11 @@ func dockerfileAndTag(
 				return dockerfile.SDKLocal, "local"
 			}
 			return dockerfile.SDKLocal, tagFromVersion(chainConfig.Version)
-		} else {
-			if buildConfig.UseBuildKit {
-				return getDockerfile("sdk/Dockerfile", dockerfile.SDK), tagFromVersion(chainConfig.Version)
-			}
-			return getDockerfile("sdk/native.Dockerfile", dockerfile.SDKNative), tagFromVersion(chainConfig.Version)
 		}
+		if buildConfig.UseBuildKit {
+			return getDockerfile("sdk/Dockerfile", dockerfile.SDK), tagFromVersion(chainConfig.Version)
+		}
+		return getDockerfile("sdk/native.Dockerfile", dockerfile.SDKNative), tagFromVersion(chainConfig.Version)
 	default:
 		return getDockerfile("none/Dockerfile", dockerfile.None), tagFromVersion(chainConfig.Version)
 	}
