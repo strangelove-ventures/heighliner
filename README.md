@@ -27,6 +27,15 @@ heighliner build -c gaia -v v6.0.0
 
 Docker image `heighliner/gaia:v6.0.0` will now be available in your local docker images
 
+#### Example: Cosmos SDK chain development cycle, build a local repository
+
+```bash
+cd ~/gaia-fork
+heighliner build -c gaia --local
+```
+
+Docker image `gaia:local` will be built and stored in your local docker images.
+
 #### Example: build and push the gaia v6.0.0 docker image to ghcr:
 
 ```bash
