@@ -53,8 +53,6 @@
   github-organization: galacticcouncil
   github-repo: Basilisk-node
   language: rust
-  platforms:
-    - linux/amd64
   build-target: build --release
   pre-build: |
     ./scripts/init.sh
@@ -486,7 +484,7 @@
   github-organization: penumbra-zone
   github-repo: penumbra
   language: rust
-  build-target: build --release
+  build-target: build
   binaries:
     - /build/penumbra/target/release/pd
     - /build/penumbra/target/release/pcli
@@ -505,8 +503,6 @@
   github-organization: paritytech
   github-repo: polkadot
   language: rust
-  platforms:
-    - linux/amd64
   build-target: build --release
   pre-build: |
     ./scripts/init.sh

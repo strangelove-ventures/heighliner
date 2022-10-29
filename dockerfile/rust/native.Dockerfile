@@ -1,37 +1,8 @@
-FROM --platform=$BUILDPLATFORM rust:1-bullseye AS build-env
+FROM rust:1-bullseye AS build-env
 
 RUN rustup component add rustfmt
 
-ARG TARGETARCH
-ARG BUILDARCH
-
-RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-      rustup target add aarch64-unknown-linux-gnu; \
-      if [ "${BUILDARCH}" != "arm64" ]; then \
-        rustup toolchain install stable-$(uname -m)-unknown-linux-gnu; \
-        dpkg --add-architecture arm64; \
-        apt update && apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu; \
-        ln -s /usr/aarch64-linux-gnu/include/bits /usr/include/bits; \
-        ln -s /usr/aarch64-linux-gnu/include/sys /usr/include/sys; \
-        ln -s /usr/aarch64-linux-gnu/include/gnu /usr/include/gnu; \
-      else \
-        apt update; \
-      fi; \
-      apt install -y libssl1.1:arm64 libssl-dev:arm64 openssl:arm64 libclang-dev clang cmake protobuf-compiler; \
-    elif [ "${TARGETARCH}" = "amd64" ]; then \
-      rustup target add x86_64-unknown-linux-gnu; \
-      if [ "${BUILDARCH}" != "amd64" ]; then \
-        rustup toolchain install stable-$(uname -m)-unknown-linux-gnu; \
-        dpkg --add-architecture amd64; apt update; \
-        apt update && apt install -y gcc-x86_64-linux-gnu g++-x86_64-linux-gnu; \
-        ln -s /usr/x86_64-linux-gnu/include/bits /usr/include/bits; \
-        ln -s /usr/x86_64-linux-gnu/include/sys /usr/include/sys; \
-        ln -s /usr/x86_64-linux-gnu/include/gnu /usr/include/gnu; \
-      else \
-        apt update; \
-      fi; \
-      apt install -y libssl1.1:amd64 libssl-dev:amd64 openssl:amd64 libclang-dev clang cmake protobuf-compiler; \
-    fi
+RUN apt install -y libssl1.1:amd64 libssl-dev:amd64 openssl:amd64 libclang-dev clang cmake protobuf-compiler
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
@@ -49,13 +20,7 @@ WORKDIR /build/${GITHUB_REPO}
 ARG BUILD_TARGET
 
 RUN if [ ! -z "$BUILD_TARGET" ]; then \
-      if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
-        cargo fetch --target aarch64-unknown-linux-gnu; \
-      elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
-        cargo fetch --target x86_64-unknown-linux-gnu; \
-      else \
-        cargo fetch; \
-      fi; \
+      cargo fetch; \
     fi
 
 ARG BUILD_ENV
@@ -68,22 +33,8 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     if [ ! -z "$BUILD_TARGET" ]; then \
-      if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
-        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
-          CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc \
-          CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++ \
-          PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target aarch64-unknown-linux-gnu --release; \
-      elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
-        export CARGO_TARGET_x86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-linux-gnu-gcc \
-          CC_x86_64_unknown_linux_gnu=x86_64-linux-gnu-gcc \
-          CXX_x86_64_unknown_linux_gnu=x86_64-linux-gnu-g++ \
-          PKG_CONFIG_SYSROOT_DIR=/usr/x86_64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target x86_64-unknown-linux-gnu --release; \
-      else \
-        cargo ${BUILD_TARGET} --release; \
-      fi; \
-    fi
+      cargo ${BUILD_TARGET} --release; \
+    fi;
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.

@@ -103,7 +103,10 @@ func dockerfileAndTag(
 	case "imported":
 		return getDockerfile("imported/Dockerfile", dockerfile.Imported), tagFromVersion(chainConfig.Version)
 	case "rust":
-		return getDockerfile("rust/Dockerfile", dockerfile.Rust), tagFromVersion(chainConfig.Version)
+		if buildConfig.UseBuildKit {
+			return getDockerfile("rust/Dockerfile", dockerfile.Rust), tagFromVersion(chainConfig.Version)
+		}
+		return getDockerfile("rust/native.Dockerfile", dockerfile.RustNative), tagFromVersion(chainConfig.Version)
 	case "nix":
 		if buildConfig.UseBuildKit {
 			return getDockerfile("nix/Dockerfile", dockerfile.Nix), tagFromVersion(chainConfig.Version)
