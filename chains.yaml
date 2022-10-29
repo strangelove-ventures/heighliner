@@ -484,7 +484,7 @@
   github-organization: penumbra-zone
   github-repo: penumbra
   language: rust
-  build-target: build
+  build-target: build --release
   binaries:
     - /build/penumbra/target/release/pd
     - /build/penumbra/target/release/pcli
