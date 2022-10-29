@@ -450,15 +450,6 @@
   binaries:
     - /build/nomic/target/release/nomic
 
-# #Neutron
-# - name: neutron
-#   github-organization: neutron-org
-#   github-repo: neutron
-#   language: go
-#   build-target: install
-#   binaries:
-#     - /go/bin/neutrond
-
 # Neutron
 - name: neutron
   pre-build: |
@@ -469,8 +460,6 @@
     mv neutrond /usr/bin
   binaries:
     - /usr/bin/neutrond
-  # libraries:
-  #   - /usr/lib/libwasmvm.x86_64.so
   platforms:
     - linux/amd64
 
