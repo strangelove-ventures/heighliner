@@ -27,13 +27,11 @@ ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
 
-RUN ls /usr/bin
-
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     if [ ! -z "$BUILD_TARGET" ]; then \
-      cargo ${BUILD_TARGET} --release; \
+      cargo ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu; \
     fi;
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.

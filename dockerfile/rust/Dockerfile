@@ -8,7 +8,6 @@ ARG BUILDARCH
 RUN if [ "${TARGETARCH}" = "arm64" ]; then \
       rustup target add aarch64-unknown-linux-gnu; \
       if [ "${BUILDARCH}" != "arm64" ]; then \
-        rustup toolchain install stable-$(uname -m)-unknown-linux-gnu; \
         dpkg --add-architecture arm64; \
         apt update && apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu; \
         ln -s /usr/aarch64-linux-gnu/include/bits /usr/include/bits; \
@@ -21,7 +20,6 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
     elif [ "${TARGETARCH}" = "amd64" ]; then \
       rustup target add x86_64-unknown-linux-gnu; \
       if [ "${BUILDARCH}" != "amd64" ]; then \
-        rustup toolchain install stable-$(uname -m)-unknown-linux-gnu; \
         dpkg --add-architecture amd64; apt update; \
         apt update && apt install -y gcc-x86_64-linux-gnu g++-x86_64-linux-gnu; \
         ln -s /usr/x86_64-linux-gnu/include/bits /usr/include/bits; \
@@ -62,8 +60,6 @@ ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
 
-RUN ls /usr/bin
-
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
@@ -73,15 +69,15 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
           CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc \
           CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++ \
           PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target aarch64-unknown-linux-gnu --release; \
+        cargo ${BUILD_TARGET} --target aarch64-unknown-linux-gnu; \
       elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
         export CARGO_TARGET_x86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-linux-gnu-gcc \
           CC_x86_64_unknown_linux_gnu=x86_64-linux-gnu-gcc \
           CXX_x86_64_unknown_linux_gnu=x86_64-linux-gnu-g++ \
           PKG_CONFIG_SYSROOT_DIR=/usr/x86_64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target x86_64-unknown-linux-gnu --release; \
+        cargo ${BUILD_TARGET} --target x86_64-unknown-linux-gnu; \
       else \
-        cargo ${BUILD_TARGET} --release; \
+        cargo ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu;\
       fi; \
     fi
 

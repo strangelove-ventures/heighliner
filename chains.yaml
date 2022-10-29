@@ -444,9 +444,16 @@
   github-organization: nomic-io
   github-repo: nomic
   language: rust
-  build-target: install --locked --path .
+  build-target: install --locked --path . -Zbuild-std
+  pre-build: |
+    TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
+    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
   binaries:
     - /build/nomic/target/release/nomic
+  # TODO remove platforms here so that both linux/amd64 and linux/arm64 are built
+  # once these changes are merged: https://github.com/nomic-io/orga/pull/154
+  platforms:
+    - linux/amd64
 
 #Omniflixhub
 - name: omniflixhub
