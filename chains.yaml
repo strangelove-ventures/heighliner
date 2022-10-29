@@ -450,6 +450,30 @@
   binaries:
     - /build/nomic/target/release/nomic
 
+# #Neutron
+# - name: neutron
+#   github-organization: neutron-org
+#   github-repo: neutron
+#   language: go
+#   build-target: install
+#   binaries:
+#     - /go/bin/neutrond
+
+# Neutron
+- name: neutron
+  pre-build: |
+    apt update
+    apt install unzip
+    wget https://github.com/neutron-org/neutron/raw/feat/interchain-security-with-governance/neutrond
+    chmod 755 neutrond
+    mv neutrond /usr/bin
+  binaries:
+    - /usr/bin/neutrond
+  # libraries:
+  #   - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64
+
 #Omniflixhub
 - name: omniflixhub
   github-organization: OmniFlix
