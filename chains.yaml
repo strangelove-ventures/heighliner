@@ -450,6 +450,17 @@
   binaries:
     - /build/nomic/target/release/nomic
 
+#Neutron
+- name: neutron
+  github-organization: neutron-org
+  github-repo: neutron
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/neutrond
+  build-env:
+    - BUILD_TAGS=muslc
+
 #Omniflixhub
 - name: omniflixhub
   github-organization: OmniFlix
