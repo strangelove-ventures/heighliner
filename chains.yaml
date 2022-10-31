@@ -48,10 +48,11 @@
   github-organization: galacticcouncil
   github-repo: Basilisk-node
   language: rust
-  platforms:
-    - linux/amd64
-  build-target: build --release
+  build-target: build --release -Zbuild-std
   pre-build: |
+    apt install -y zlib1g-dev:${TARGETARCH}
+    TOOLCHAIN=$(cat rust-toolchain | grep channel | awk '{print $3}' | tr -d '"')
+    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
     ./scripts/init.sh
   binaries:
     - /build/Basilisk-node/target/release/basilisk
@@ -441,9 +442,16 @@
   github-organization: nomic-io
   github-repo: nomic
   language: rust
-  build-target: install --locked --path .
+  build-target: install --locked --path . -Zbuild-std
+  pre-build: |
+    TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
+    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
   binaries:
     - /build/nomic/target/release/nomic
+  # TODO remove platforms here so that both linux/amd64 and linux/arm64 are built
+  # once these changes are merged: https://github.com/nomic-io/orga/pull/154
+  platforms:
+    - linux/amd64
 
 #Neutron
 - name: neutron
@@ -511,8 +519,6 @@
   github-organization: paritytech
   github-repo: polkadot
   language: rust
-  platforms:
-    - linux/amd64
   build-target: build --release
   pre-build: |
     ./scripts/init.sh
