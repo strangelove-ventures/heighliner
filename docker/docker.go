@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -31,7 +30,7 @@ type DockerImageBuildLog struct {
 	ErrorDetail *DockerImageBuildErrorDetail `json:"errorDetail"`
 }
 
-func BuildDockerImage(ctx context.Context, dockerfileDir string, tags []string, push bool, args map[string]string, noCache bool) error {
+func BuildDockerImage(ctx context.Context, dockerfile string, tags []string, push bool, args map[string]string, noCache bool) error {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
@@ -42,11 +41,6 @@ func BuildDockerImage(ctx context.Context, dockerfileDir string, tags []string, 
 	for arg, value := range args {
 		thisValue := value
 		buildArgs[arg] = &thisValue
-	}
-
-	dockerfile := fmt.Sprintf("%s/native.Dockerfile", dockerfileDir)
-	if _, err := os.Stat(dockerfile); errors.Is(err, os.ErrNotExist) {
-		dockerfile = fmt.Sprintf("%s/Dockerfile", dockerfileDir)
 	}
 
 	opts := types.ImageBuildOptions{
