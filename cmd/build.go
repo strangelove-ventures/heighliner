@@ -193,7 +193,8 @@ func buildChainNodeDockerImage(
 		}
 	}
 
-	binaries := strings.Join(chainConfig.Build.Binaries, " ")
+	binaries := strings.Join(chainConfig.Build.Binaries, ",")
+
 	libraries := strings.Join(chainConfig.Build.Libraries, " ")
 
 	repoHost := chainConfig.Build.RepoHost

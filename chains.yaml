@@ -55,7 +55,7 @@
     rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
     ./scripts/init.sh
   binaries:
-    - /build/Basilisk-node/target/release/basilisk
+    - /build/Basilisk-node/target/${ARCH}-unknown-linux-gnu/release/basilisk
 
 # Bitcanna
 - name: bitcanna
@@ -447,7 +447,7 @@
     TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
     rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
   binaries:
-    - /build/nomic/target/release/nomic
+    - /build/nomic/target/${ARCH}-unknown-linux-gnu/release/nomic
   # TODO remove platforms here so that both linux/amd64 and linux/arm64 are built
   # once these changes are merged: https://github.com/nomic-io/orga/pull/154
   platforms:
@@ -502,8 +502,8 @@
   language: rust
   build-target: build --release
   binaries:
-    - /build/penumbra/target/release/pd
-    - /build/penumbra/target/release/pcli
+    - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
+    - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pcli
 
 # Persistence
 - name: persistence
@@ -523,7 +523,7 @@
   pre-build: |
     ./scripts/init.sh
   binaries:
-    - /build/polkadot/target/release/polkadot
+    - /build/polkadot/target/${ARCH}-unknown-linux-gnu/release/polkadot
 
 # Provenance
 - name: provenance

@@ -4,6 +4,7 @@ RUN rustup component add rustfmt
 
 ARG TARGETARCH
 ARG BUILDARCH
+ENV TARGETARCH ${TARGETARCH}
 
 RUN if [ "${TARGETARCH}" = "arm64" ]; then \
       rustup target add aarch64-unknown-linux-gnu; \
@@ -90,21 +91,24 @@ RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c \
-  'BINARIES_ARR=($BINARIES_ENV); \
+  'if [ "${TARGETARCH}" = "arm64" ]; then export ARCH=aarch64; \
+  elif [ "${TARGETARCH}" = "amd64" ]; then export ARCH=x86_64; fi; \
+  IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
   for BINARY in "${BINARIES_ARR[@]}"; do \
-    BINSPLIT=(${BINARY//:/ }) ; \
-    BINPATH=${BINSPLIT[1]} ; \
+    IFS=: read -ra BINSPLIT <<< "$BINARY"; \
+    BINPATH=${BINSPLIT[1]} ;\
+    BIN="$(eval "echo "${BINSPLIT[0]}"")"; \
     if [ ! -z "$BINPATH" ]; then \
       if [[ $BINPATH == *"/"* ]]; then \
         mkdir -p "$(dirname "${BINPATH}")" ; \
-        cp ${BINSPLIT[0]} "${BINPATH}"; \
+        cp "$BIN" "${BINPATH}"; \
       else \
-        cp ${BINSPLIT[0]} "/root/bin/${BINPATH}"; \
+        cp "$BIN" "/root/bin/${BINPATH}"; \
       fi;\
     else \
-      cp ${BINSPLIT[0]} /root/bin/ ; \
+      cp "$BIN" /root/bin/ ; \
     fi; \
-    readarray -t LIBS < <(ldd ${BINSPLIT[0]}); \
+    readarray -t LIBS < <(ldd "$BIN"); \
     i=0; for LIB in "${LIBS[@]}"; do \
       PATH1=$(echo $LIB | awk "{print \$1}") ; \
       if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
