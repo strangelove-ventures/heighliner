@@ -2,7 +2,7 @@ FROM rust:1-bullseye AS build-env
 
 RUN rustup component add rustfmt
 
-RUN apt install -y libssl1.1 libssl-dev:amd64 openssl libclang-dev clang cmake protobuf-compiler
+RUN apt update && apt install -y libssl1.1 libssl-dev openssl libclang-dev clang cmake protobuf-compiler
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
