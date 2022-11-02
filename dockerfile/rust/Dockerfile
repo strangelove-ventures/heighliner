@@ -8,6 +8,8 @@ ENV TARGETARCH ${TARGETARCH}
 
 RUN if [ "${TARGETARCH}" = "arm64" ]; then \
       rustup target add aarch64-unknown-linux-gnu; \
+      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-aarch_64.zip; \
+      unzip protoc-21.8-linux-aarch_64.zip -d /usr; \
       if [ "${BUILDARCH}" != "arm64" ]; then \
         dpkg --add-architecture arm64; \
         apt update && apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu; \
@@ -17,9 +19,11 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
       else \
         apt update; \
       fi; \
-      apt install -y libssl1.1:arm64 libssl-dev:arm64 openssl:arm64 libclang-dev clang cmake protobuf-compiler; \
+      apt install -y libssl1.1:arm64 libssl-dev:arm64 openssl:arm64 libclang-dev clang cmake libstdc++6:arm64; \
     elif [ "${TARGETARCH}" = "amd64" ]; then \
       rustup target add x86_64-unknown-linux-gnu; \
+      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-x86_64.zip; \
+      unzip protoc-21.8-linux-x86_64.zip -d /usr; \
       if [ "${BUILDARCH}" != "amd64" ]; then \
         dpkg --add-architecture amd64; apt update; \
         apt update && apt install -y gcc-x86_64-linux-gnu g++-x86_64-linux-gnu; \
@@ -29,7 +33,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
       else \
         apt update; \
       fi; \
-      apt install -y libssl1.1:amd64 libssl-dev:amd64 openssl:amd64 libclang-dev clang cmake protobuf-compiler; \
+      apt install -y libssl1.1:amd64 libssl-dev:amd64 openssl:amd64 libclang-dev clang cmake libstdc++6:amd64; \
     fi
 
 ARG GITHUB_ORGANIZATION
@@ -46,8 +50,10 @@ RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANI
 WORKDIR /build/${GITHUB_REPO}
 
 ARG BUILD_TARGET
+ARG BUILD_DIR
 
 RUN if [ ! -z "$BUILD_TARGET" ]; then \
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
       if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
         cargo fetch --target aarch64-unknown-linux-gnu; \
       elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
@@ -64,6 +70,7 @@ ARG PRE_BUILD
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
+    if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
     if [ ! -z "$BUILD_TARGET" ]; then \
       if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
         export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
@@ -121,13 +128,12 @@ FROM busybox:1.34.1-musl AS busybox-full
 
 # Use TARGETARCH image for determining necessary libs
 FROM rust:1-bullseye as target-arch-libs
-RUN apt update && apt install -y libssl1.1 openssl clang
+RUN apt update && apt install -y libssl1.1 openssl clang libstdc++6
 
 COPY --from=build-env /root/bin /root/bin
 RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 RUN bash -c \
   'ls /root/bin; \
-  echo "BINSSSSS"; \
   for BIN in /root/bin/*; do \
     echo "Getting $(uname -m) libs for bin: $BIN"; \
     readarray -t LIBS < <(ldd "$BIN"); \
