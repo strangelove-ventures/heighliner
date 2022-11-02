@@ -84,10 +84,7 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
-# Copy all linked shared libraries for each binary to an indexed filepath in /root/lib_abs for a single place to copy into final image.
-# Maintain their original filepath in /root/lib_abs.list since they need to be in the same place in the final image.
 RUN mkdir /root/bin
-RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c \
@@ -108,20 +105,6 @@ RUN bash -c \
     else \
       cp "$BIN" /root/bin/ ; \
     fi; \
-    readarray -t LIBS < <(ldd "$BIN"); \
-    i=0; for LIB in "${LIBS[@]}"; do \
-      PATH1=$(echo $LIB | awk "{print \$1}") ; \
-      if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
-      PATH2=$(echo $LIB | awk "{print \$3}") ; \
-      if [ ! -z "$PATH2" ]; then \
-        cp $PATH2 /root/lib_abs/$i ; \
-        echo $PATH2 >> /root/lib_abs.list; \
-      else \
-        cp $PATH1 /root/lib_abs/$i ; \
-        echo $PATH1 >> /root/lib_abs.list; \
-      fi; \
-      ((i = i + 1)) ;\
-    done; \
   done'
 
 RUN mkdir -p /root/lib
@@ -135,6 +118,35 @@ RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G hei
 
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
+
+# Use TARGETARCH image for determining necessary libs
+FROM rust:1-bullseye as target-arch-libs
+RUN apt update && apt install -y libssl1.1 openssl clang
+
+COPY --from=build-env /root/bin /root/bin
+RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
+RUN bash -c \
+  'ls /root/bin; \
+  echo "BINSSSSS"; \
+  for BIN in /root/bin/*; do \
+    echo "Getting $(uname -m) libs for bin: $BIN"; \
+    readarray -t LIBS < <(ldd "$BIN"); \
+    i=0; for LIB in "${LIBS[@]}"; do \
+      PATH1=$(echo $LIB | awk "{print \$1}") ; \
+      if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
+      PATH2=$(echo $LIB | awk "{print \$3}") ; \
+      if [ ! -z "$PATH2" ]; then \
+        echo "Copying $(uname -m) lib2: $PATH2"; \
+        cp $PATH2 /root/lib_abs/$i ; \
+        echo $PATH2 >> /root/lib_abs.list; \
+      else \
+        echo "Copying $(uname -m) lib1: $PATH1"; \
+        cp $PATH1 /root/lib_abs/$i ; \
+        echo $PATH1 >> /root/lib_abs.list; \
+      fi; \
+      ((i = i + 1)) ;\
+    done; \
+  done'
 
 # Build final image from scratch
 FROM scratch
@@ -169,8 +181,8 @@ COPY --from=build-env /root/bin /bin
 COPY --from=build-env /root/lib /lib
 
 # Copy over absolute path libraries
-COPY --from=build-env /root/lib_abs /root/lib_abs
-COPY --from=build-env /root/lib_abs.list /root/lib_abs.list
+COPY --from=target-arch-libs /root/lib_abs /root/lib_abs
+COPY --from=target-arch-libs /root/lib_abs.list /root/lib_abs.list
 
 # Move absolute path libraries to their absolute locations.
 RUN sh -c 'i=0; while read FILE; do \
