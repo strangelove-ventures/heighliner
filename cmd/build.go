@@ -107,11 +107,6 @@ func dockerfileAndTag(
 			return getDockerfile("rust/Dockerfile", dockerfile.Rust), tagFromVersion(chainConfig.Version)
 		}
 		return getDockerfile("rust/native.Dockerfile", dockerfile.RustNative), tagFromVersion(chainConfig.Version)
-	case "nix":
-		if buildConfig.UseBuildKit {
-			return getDockerfile("nix/Dockerfile", dockerfile.Nix), tagFromVersion(chainConfig.Version)
-		}
-		return getDockerfile("nix/native.Dockerfile", dockerfile.NixNative), tagFromVersion(chainConfig.Version)
 	case "go":
 		if local {
 			// local builds always use embedded Dockerfile.
@@ -193,7 +188,8 @@ func buildChainNodeDockerImage(
 		}
 	}
 
-	binaries := strings.Join(chainConfig.Build.Binaries, " ")
+	binaries := strings.Join(chainConfig.Build.Binaries, ",")
+
 	libraries := strings.Join(chainConfig.Build.Libraries, " ")
 
 	repoHost := chainConfig.Build.RepoHost

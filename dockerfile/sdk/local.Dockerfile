@@ -40,19 +40,20 @@ RUN mkdir /root/bin
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c \
-  'BINARIES_ARR=($BINARIES_ENV); \
+  'IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
   for BINARY in "${BINARIES_ARR[@]}"; do \
-    BINSPLIT=(${BINARY//:/ }) ; \
-    BINPATH=${BINSPLIT[1]} ; \
+    IFS=: read -ra BINSPLIT <<< "$BINARY"; \
+    BINPATH=${BINSPLIT[1]} ;\
+    BIN="$(eval "echo "${BINSPLIT[0]}"")"; \
     if [ ! -z "$BINPATH" ]; then \
       if [[ $BINPATH == *"/"* ]]; then \
         mkdir -p "$(dirname "${BINPATH}")" ; \
-        cp ${BINSPLIT[0]} "${BINPATH}"; \
+        cp "$BIN" "${BINPATH}"; \
       else \
-        cp ${BINSPLIT[0]} "/root/bin/${BINPATH}"; \
-      fi ;\
+        cp "$BIN" "/root/bin/${BINPATH}"; \
+      fi;\
     else \
-      cp ${BINSPLIT[0]} /root/bin/ ; \
+      cp "$BIN" /root/bin/ ; \
     fi; \
   done'
 

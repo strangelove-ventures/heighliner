@@ -22,9 +22,3 @@ var Rust []byte
 
 //go:embed rust/native.Dockerfile
 var RustNative []byte
-
-//go:embed nix/Dockerfile
-var Nix []byte
-
-//go:embed nix/native.Dockerfile
-var NixNative []byte

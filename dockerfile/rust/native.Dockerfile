@@ -2,7 +2,14 @@ FROM rust:1-bullseye AS build-env
 
 RUN rustup component add rustfmt
 
-RUN apt install -y libssl1.1:amd64 libssl-dev:amd64 openssl:amd64 libclang-dev clang cmake protobuf-compiler
+RUN apt update && apt install -y libssl1.1 libssl-dev openssl libclang-dev clang cmake libstdc++6
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
+      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-aarch_64.zip; \
+      unzip protoc-21.8-linux-aarch_64.zip -d /usr; \
+    elif [ "${TARGETARCH}" = "amd64" ]; then \
+      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-x86_64.zip; \
+      unzip protoc-21.8-linux-x86_64.zip -d /usr; \
+    fi
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
@@ -18,8 +25,10 @@ RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANI
 WORKDIR /build/${GITHUB_REPO}
 
 ARG BUILD_TARGET
+ARG BUILD_DIR
 
 RUN if [ ! -z "$BUILD_TARGET" ]; then \
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
       cargo fetch; \
     fi
 
@@ -30,6 +39,7 @@ ARG PRE_BUILD
 RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
+    if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
     if [ ! -z "$BUILD_TARGET" ]; then \
       cargo ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu; \
     fi;
@@ -43,21 +53,23 @@ RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c \
-  'BINARIES_ARR=($BINARIES_ENV); \
+  'export ARCH=$(uname -m); \
+  IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
   for BINARY in "${BINARIES_ARR[@]}"; do \
-    BINSPLIT=(${BINARY//:/ }) ; \
-    BINPATH=${BINSPLIT[1]} ; \
+    IFS=: read -ra BINSPLIT <<< "$BINARY"; \
+    BINPATH=${BINSPLIT[1]} ;\
+    BIN="$(eval "echo "${BINSPLIT[0]}"")"; \
     if [ ! -z "$BINPATH" ]; then \
       if [[ $BINPATH == *"/"* ]]; then \
         mkdir -p "$(dirname "${BINPATH}")" ; \
-        cp ${BINSPLIT[0]} "${BINPATH}"; \
+        cp "$BIN" "${BINPATH}"; \
       else \
-        cp ${BINSPLIT[0]} "/root/bin/${BINPATH}"; \
+        cp "$BIN" "/root/bin/${BINPATH}"; \
       fi;\
     else \
-      cp ${BINSPLIT[0]} /root/bin/ ; \
+      cp "$BIN" /root/bin/ ; \
     fi; \
-    readarray -t LIBS < <(ldd ${BINSPLIT[0]}); \
+    readarray -t LIBS < <(ldd "$BIN"); \
     i=0; for LIB in "${LIBS[@]}"; do \
       PATH1=$(echo $LIB | awk "{print \$1}") ; \
       if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
