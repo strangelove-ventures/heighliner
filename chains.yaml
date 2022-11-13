@@ -12,6 +12,15 @@
   binaries:
     - /go/bin/akash
 
+# Assetmantle
+- name: assetmantle
+  github-organization: assetmantle
+  github-repo: node
+  language: go
+  build-target: build-linux
+  binaries:
+    - /go/src/github.com/assetmantle/node/build/mantleNode
+
 # Axelar
 - name: axelar
   github-organization: axelarnetwork
