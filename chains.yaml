@@ -321,6 +321,17 @@
   binaries:
     - module/build/gravity
 
+# ibc-go sim (for testing)
+- name: ibc-go-simd
+  github-organization: cosmos
+  github-repo: ibc-go
+  language: go
+  build-target: build
+  binaries:
+    - build/simd
+  build-env:
+    - BUILD_TAGS=muslc
+
 # ImpactHub
 - name: impacthub
   github-organization: ixofoundation
