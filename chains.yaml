@@ -560,15 +560,6 @@
     - WITH_CLEVELDB=false
     - BUILD_TAGS=muslc musl dynamic
 
-# Regen
-- name: regen
-  github-organization: regen-network
-  github-repo: regen-ledger
-  language: go
-  build-target: install
-  binaries:
-    - /go/bin/regen
-
 # Quicksilver
 - name: quicksilver
   github-organization: ingenuity-build
@@ -577,6 +568,15 @@
   build-target: build
   binaries:
     - build/quicksilverd
+
+# Regen
+- name: regen
+  github-organization: regen-network
+  github-repo: regen-ledger
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/regen
 
 # Rizon
 - name: rizon
