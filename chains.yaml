@@ -20,6 +20,8 @@
   build-target: install
   binaries:
     - /go/bin/mantleNode
+  build-env:
+    - LEDGER_ENABLED=false
 
 # Axelar
 - name: axelar
