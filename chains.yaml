@@ -467,7 +467,7 @@
   platforms:
     - linux/amd64
 
-#Neutron
+# Neutron
 - name: neutron
   github-organization: neutron-org
   github-repo: neutron
@@ -478,7 +478,7 @@
   build-env:
     - BUILD_TAGS=muslc
 
-#Omniflixhub
+# Omniflixhub
 - name: omniflixhub
   github-organization: OmniFlix
   github-repo: omniflixhub
@@ -486,6 +486,15 @@
   build-target: install
   binaries:
     - /go/bin/omniflixhubd
+
+# Onomy
+- name: onomy
+  github-organization: onomyprotocol
+  github-repo: onomy
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/onomyd
 
 # Osmosis
 - name: osmosis
