@@ -242,7 +242,7 @@
   binaries:
     - /go/bin/chain-maind
 
-# Decentr 
+# Decentr
 - name: decentr
   github-organization: Decentr-net
   github-repo: decentr
@@ -274,7 +274,7 @@
     - BUILD_TAGS=muslc
 
 # Emoney
-- name: emoney 
+- name: emoney
   github-organization: e-money
   github-repo: em-ledger
   language: go
@@ -302,7 +302,7 @@
   binaries:
     - /go/bin/fetchd
 
-# FirmaChain 
+# FirmaChain
 - name: firmachain
   github-organization: FirmaChain
   github-repo: firmachain
@@ -311,7 +311,7 @@
   binaries:
     - /go/bin/firmachaind
 
-# Gravity Bridge 
+# Gravity Bridge
 - name: gravitybridge
   github-organization: Gravity-Bridge
   github-repo: Gravity-Bridge
@@ -374,7 +374,7 @@
   github-repo: interchain-query-demo
   language: go
   pre-build: |
-    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod 
+    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
   binaries:
     - build/icq
 
@@ -399,7 +399,7 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
-# Kichain 
+# Kichain
 - name: kichain
   github-organization: KiFoundation
   github-repo: ki-tools
@@ -433,7 +433,7 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
-# Likecoin 
+# Likecoin
 - name: likecoin
   github-organization: likecoin
   github-repo: likecoin-chain
@@ -442,7 +442,7 @@
   binaries:
     - /go/bin/liked
 
-# Lumnetwork 
+# Lumnetwork
 - name: lumnetwork
   github-organization: lum-network
   github-repo: chain
@@ -451,7 +451,7 @@
   binaries:
     - /go/bin/lumd
 
-# Nomic 
+# Nomic
 - name: nomic
   github-organization: nomic-io
   github-repo: nomic
@@ -559,6 +559,15 @@
     - WITH_LEDGER=false
     - WITH_CLEVELDB=false
     - BUILD_TAGS=muslc musl dynamic
+
+# Quicksilver
+- name: quicksilver
+  github-organization: ingenuity-build
+  github-repo: quicksilver
+  language: go
+  build-target: build
+  binaries:
+    - build/quicksilverd
 
 # Regen
 - name: regen
@@ -704,10 +713,10 @@
   github-repo: umee
   language: go
   build-target: install
-  binaries: 
+  binaries:
     - /go/bin/umeed
 
-# Vidulum 
+# Vidulum
 - name: vidulum
   github-organization: vidulum
   github-repo: mainnet
