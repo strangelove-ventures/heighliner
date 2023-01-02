@@ -12,6 +12,17 @@
   binaries:
     - /go/bin/akash
 
+# Assetmantle
+- name: assetmantle
+  github-organization: assetmantle
+  github-repo: node
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/mantleNode
+  build-env:
+    - LEDGER_ENABLED=false
+
 # Axelar
 - name: axelar
   github-organization: axelarnetwork
