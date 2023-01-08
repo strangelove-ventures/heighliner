@@ -59,15 +59,11 @@
   github-organization: axelarnetwork
   github-repo: tofnd
   language: rust
-  pre-build: |
-    apt install -y zlib1g-dev:${TARGETARCH}
-    TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
-    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
-    git clone https://github.com/axelarnetwork/tofnd.git --recursive
-    cd tofnd
-    cargo install --path . && cd ./target/release
+  build-target: build --release
+  pre-build:
+    apt install -y libgmp3-dev:${TARGETARCH}
   binaries:
-    - /build/tofnd/tofnd/target/release/tofnd
+    - /build/tofnd/target/${ARCH}-unknown-linux-gnu/release/tofnd
 
 # Basilisk
 - name: basilisk

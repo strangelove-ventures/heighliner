@@ -20,7 +20,7 @@ ARG GITHUB_REPO
 ARG VERSION
 ARG BUILD_TIMESTAMP
 
-RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git
+RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git --recursive
 
 WORKDIR /build/${GITHUB_REPO}
 
@@ -84,6 +84,8 @@ RUN bash -c \
       ((i = i + 1)) ;\
     done; \
   done'
+
+RUN ls /build/tofnd/target/release
 
 RUN mkdir -p /root/lib
 ARG LIBRARIES
