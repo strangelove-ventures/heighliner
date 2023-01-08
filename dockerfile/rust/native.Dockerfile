@@ -85,8 +85,6 @@ RUN bash -c \
     done; \
   done'
 
-RUN ls /build/tofnd/target/release
-
 RUN mkdir -p /root/lib
 ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
