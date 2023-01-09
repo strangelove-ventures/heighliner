@@ -92,4 +92,6 @@ Docker images for `heighliner/gaia:v7.0.1` will be built on the remote buildkit 
 
 ## Add a new chain
 
-To include a Cosmos based blockchain that does not yet have images, submit a PR adding it to [chains.yaml](./chains.yaml) so it will be included in the daily builds.
+To include a Cosmos based blockchain that does not yet have images, submit a PR adding it to [chains.yaml](./chains.yaml) so it will be included in the daily builds. 
+
+For further instructions see: [addChain.md](./addChain.md)
