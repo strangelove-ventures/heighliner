@@ -54,6 +54,17 @@
   platforms:
     - linux/amd64
 
+# Axelar tofnd
+- name: tofnd
+  github-organization: axelarnetwork
+  github-repo: tofnd
+  language: rust
+  build-target: build --release
+  pre-build:
+    apt install -y libgmp3-dev:${TARGETARCH}
+  binaries:
+    - /build/tofnd/target/${ARCH}-unknown-linux-gnu/release/tofnd
+
 # Basilisk
 - name: basilisk
   github-organization: galacticcouncil
