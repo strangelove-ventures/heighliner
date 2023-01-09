@@ -3,11 +3,6 @@
   language: imported
   base-image: agoric/agoric-sdk
 
-# Ag0
-- name: ag0
-  language: imported
-  base-image: agoric/ag0
-
 # Akash
 - name: akash
   github-organization: ovrclk
@@ -16,6 +11,17 @@
   build-target: install
   binaries:
     - /go/bin/akash
+
+# Assetmantle
+- name: assetmantle
+  github-organization: assetmantle
+  github-repo: node
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/mantleNode
+  build-env:
+    - LEDGER_ENABLED=false
 
 # Axelar
 - name: axelar
@@ -48,18 +54,30 @@
   platforms:
     - linux/amd64
 
+# Axelar tofnd
+- name: tofnd
+  github-organization: axelarnetwork
+  github-repo: tofnd
+  language: rust
+  build-target: build --release
+  pre-build:
+    apt install -y libgmp3-dev:${TARGETARCH}
+  binaries:
+    - /build/tofnd/target/${ARCH}-unknown-linux-gnu/release/tofnd
+
 # Basilisk
 - name: basilisk
   github-organization: galacticcouncil
   github-repo: Basilisk-node
   language: rust
-  platforms:
-    - linux/amd64
-  build-target: build --release
+  build-target: build --release -Zbuild-std
   pre-build: |
+    apt install -y zlib1g-dev:${TARGETARCH}
+    TOOLCHAIN=$(cat rust-toolchain | grep channel | awk '{print $3}' | tr -d '"')
+    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
     ./scripts/init.sh
   binaries:
-    - /build/Basilisk-node/target/release/basilisk
+    - /build/Basilisk-node/target/${ARCH}-unknown-linux-gnu/release/basilisk
 
 # Bitcanna
 - name: bitcanna
@@ -168,25 +186,28 @@
 - name: composable
   github-organization: ComposableFi
   github-repo: composable
-  language: nix
-  platforms:
-    - linux/amd64
-  build-target: build .#composable-node --extra-experimental-features nix-command --extra-experimental-features flakes
+  language: rust
+  pre-build: |
+    apt install -y zlib1g-dev:${TARGETARCH}
+    TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
+    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
+    rustup target add wasm32-unknown-unknown
+    cd code
+    cargo build --release -p wasm-optimizer
+    cargo build --release -p composable-runtime-wasm --target wasm32-unknown-unknown
+    cargo build --release -p picasso-runtime-wasm --target wasm32-unknown-unknown
+    cargo build --release -p dali-runtime-wasm --target wasm32-unknown-unknown
+    ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/dali_runtime.wasm --output ./target/wasm32-unknown-unknown/release/dali_runtime.optimized.wasm
+    ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/picasso_runtime.wasm --output ./target/wasm32-unknown-unknown/release/picasso_runtime.optimized.wasm
+    ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/composable_runtime.wasm --output ./target/wasm32-unknown-unknown/release/composable_runtime.optimized.wasm
+  build-dir: code
+  build-env:
+    - DALI_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/dali_runtime.optimized.wasm
+    - PICASSO_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/picasso_runtime.optimized.wasm
+    - COMPOSABLE_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/composable_runtime.optimized.wasm
+  build-target: build --release -p composable -Zbuild-std --features=builtin-wasm
   binaries:
-    - /nix/store/*-composable-node-*/bin/composable-node
-  libraries:
-    - /nix/store/*-glibc-2.35-163/lib/ld-linux-x86-64.so.2
-    - /nix/store/*-glibc-2.35-163/lib/libgcc_s.so.1
-    - /nix/store/*-glibc-2.35-163/lib/libm.so.6
-    - /nix/store/*-glibc-2.35-163/lib/libc.so.6
-    - /nix/store/*-glibc-2.35-163/lib/libpthread.so.0
-    - /nix/store/*-rocksdb-7.4.4/lib/librocksdb.so.7
-    - /nix/store/*-snappy-1.1.9/lib/libsnappy.so.1
-    - /nix/store/*-zlib-1.2.12/lib/libz.so.1
-    - /nix/store/*-bzip2-1.0.8/lib/libbz2.so.1
-    - /nix/store/*-lz4-1.9.3/lib/liblz4.so.1
-    - /nix/store/*-zstd-1.5.2/lib/libzstd.so.1
-    - /nix/store/*-gcc-11.3.0-lib/lib/libstdc++.so.6
+    - /build/composable/code/target/${ARCH}-unknown-linux-gnu/release/composable
 
 # Cosmos Hub
 - name: gaia
@@ -199,9 +220,6 @@
     - BUILD_TAGS=muslc
   binaries:
     - /go/bin/gaiad
-  # Map from gaia version to rocks db version. Will build -rocks tag for these versions
-  # rocksdb-version:
-  #   v6.0.0: v6.10.2
 
 # Cosmos Hub ICS
 - name: ics
@@ -246,7 +264,7 @@
   binaries:
     - /go/bin/chain-maind
 
-# Decentr 
+# Decentr
 - name: decentr
   github-organization: Decentr-net
   github-repo: decentr
@@ -278,7 +296,7 @@
     - BUILD_TAGS=muslc
 
 # Emoney
-- name: emoney 
+- name: emoney
   github-organization: e-money
   github-repo: em-ledger
   language: go
@@ -306,7 +324,7 @@
   binaries:
     - /go/bin/fetchd
 
-# FirmaChain 
+# FirmaChain
 - name: firmachain
   github-organization: FirmaChain
   github-repo: firmachain
@@ -315,7 +333,7 @@
   binaries:
     - /go/bin/firmachaind
 
-# Gravity Bridge 
+# Gravity Bridge
 - name: gravitybridge
   github-organization: Gravity-Bridge
   github-repo: Gravity-Bridge
@@ -324,6 +342,17 @@
   build-dir: module
   binaries:
     - module/build/gravity
+
+# ibc-go sim (for testing)
+- name: ibc-go-simd
+  github-organization: cosmos
+  github-repo: ibc-go
+  language: go
+  build-target: build
+  binaries:
+    - build/simd
+  build-env:
+    - BUILD_TAGS=muslc
 
 # ImpactHub
 - name: impacthub
@@ -367,7 +396,7 @@
   github-repo: interchain-query-demo
   language: go
   pre-build: |
-    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod 
+    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
   binaries:
     - build/icq
 
@@ -392,7 +421,7 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
-# Kichain 
+# Kichain
 - name: kichain
   github-organization: KiFoundation
   github-repo: ki-tools
@@ -426,7 +455,7 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
-# Likecoin 
+# Likecoin
 - name: likecoin
   github-organization: likecoin
   github-repo: likecoin-chain
@@ -435,8 +464,8 @@
   binaries:
     - /go/bin/liked
 
-# Lum 
-- name: lum
+# Lumnetwork
+- name: lumnetwork
   github-organization: lum-network
   github-repo: chain
   language: go
@@ -444,23 +473,50 @@
   binaries:
     - /go/bin/lumd
 
-# Nomic 
+# Nomic
 - name: nomic
   github-organization: nomic-io
   github-repo: nomic
   language: rust
-  build-target: install --locked --path .
+  build-target: install --locked --path . -Zbuild-std
+  pre-build: |
+    TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
+    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
   binaries:
-    - /build/nomic/target/release/nomic
+    - /build/nomic/target/${ARCH}-unknown-linux-gnu/release/nomic
+  # TODO remove platforms here so that both linux/amd64 and linux/arm64 are built
+  # once these changes are merged: https://github.com/nomic-io/orga/pull/154
+  platforms:
+    - linux/amd64
 
-#Omniflix
-- name: omniflix
+# Neutron
+- name: neutron
+  github-organization: neutron-org
+  github-repo: neutron
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/neutrond
+  build-env:
+    - BUILD_TAGS=muslc
+
+# Omniflixhub
+- name: omniflixhub
   github-organization: OmniFlix
   github-repo: omniflixhub
   language: go
   build-target: install
   binaries:
     - /go/bin/omniflixhubd
+
+# Onomy
+- name: onomy
+  github-organization: onomyprotocol
+  github-repo: onomy
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/onomyd
 
 # Osmosis
 - name: osmosis
@@ -470,13 +526,6 @@
   build-target: build
   binaries:
     - build/osmosisd
-  # Map from osmosis version to rocks db version. Will build -rocks tag for these versions
-  # rocksdb-version:
-  #   v6.0.0: v6.10.2
-  #   v6.1.0: v6.24.2
-  #   v6.2.0: v6.24.2
-  #   v6.4.0: v6.29.3
-  #   v7.0.2: v6.29.3
   build-env:
     - BUILD_TAGS=muslc
 
@@ -498,8 +547,8 @@
   language: rust
   build-target: build --release
   binaries:
-    - /build/penumbra/target/release/pd
-    - /build/penumbra/target/release/pcli
+    - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
+    - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pcli
 
 # Persistence
 - name: persistence
@@ -515,13 +564,11 @@
   github-organization: paritytech
   github-repo: polkadot
   language: rust
-  platforms:
-    - linux/amd64
   build-target: build --release
   pre-build: |
     ./scripts/init.sh
   binaries:
-    - /build/polkadot/target/release/polkadot
+    - /build/polkadot/target/${ARCH}-unknown-linux-gnu/release/polkadot
 
 # Provenance
 - name: provenance
@@ -543,6 +590,15 @@
     - WITH_LEDGER=false
     - WITH_CLEVELDB=false
     - BUILD_TAGS=muslc musl dynamic
+
+# Quicksilver
+- name: quicksilver
+  github-organization: ingenuity-build
+  github-repo: quicksilver
+  language: go
+  build-target: build
+  binaries:
+    - build/quicksilverd
 
 # Regen
 - name: regen
@@ -688,10 +744,10 @@
   github-repo: umee
   language: go
   build-target: install
-  binaries: 
+  binaries:
     - /go/bin/umeed
 
-# Vidulum 
+# Vidulum
 - name: vidulum
   github-organization: vidulum
   github-repo: mainnet

@@ -4,20 +4,15 @@ RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eu
 
 ARG TARGETARCH
 ARG BUILDARCH
-
-
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
-
-WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
-
 ARG GITHUB_REPO
-ARG VERSION
-ARG BUILD_TIMESTAMP
-
-RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git --recursive
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
+
+# This Dockerfile  is the same as native.Dockerfile except that the chain code is sourced from the
+# current working directory instead of a remote git repository.
+ADD . .
 
 ARG BUILD_TARGET
 ARG BUILD_ENV
@@ -44,7 +39,8 @@ RUN set -eux; \
 RUN mkdir /root/bin
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
-RUN bash -c 'IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
+RUN bash -c \
+  'IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
   for BINARY in "${BINARIES_ARR[@]}"; do \
     IFS=: read -ra BINSPLIT <<< "$BINARY"; \
     BINPATH=${BINSPLIT[1]} ;\

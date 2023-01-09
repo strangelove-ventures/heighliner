@@ -1,39 +1,14 @@
-FROM --platform=$BUILDPLATFORM rust:1-bullseye AS build-env
+FROM rust:1-bullseye AS build-env
 
 RUN rustup component add rustfmt
 
-ARG TARGETARCH
-ARG BUILDARCH
-ENV TARGETARCH ${TARGETARCH}
-
-RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-      rustup target add aarch64-unknown-linux-gnu; \
+RUN apt update && apt install -y libssl1.1 libssl-dev openssl libclang-dev clang cmake libstdc++6
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
       wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-aarch_64.zip; \
       unzip protoc-21.8-linux-aarch_64.zip -d /usr; \
-      if [ "${BUILDARCH}" != "arm64" ]; then \
-        dpkg --add-architecture arm64; \
-        apt update && apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu; \
-        ln -s /usr/aarch64-linux-gnu/include/bits /usr/include/bits; \
-        ln -s /usr/aarch64-linux-gnu/include/sys /usr/include/sys; \
-        ln -s /usr/aarch64-linux-gnu/include/gnu /usr/include/gnu; \
-      else \
-        apt update; \
-      fi; \
-      apt install -y libssl1.1:arm64 libssl-dev:arm64 openssl:arm64 libclang-dev clang cmake libstdc++6:arm64; \
     elif [ "${TARGETARCH}" = "amd64" ]; then \
-      rustup target add x86_64-unknown-linux-gnu; \
       wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-x86_64.zip; \
       unzip protoc-21.8-linux-x86_64.zip -d /usr; \
-      if [ "${BUILDARCH}" != "amd64" ]; then \
-        dpkg --add-architecture amd64; apt update; \
-        apt update && apt install -y gcc-x86_64-linux-gnu g++-x86_64-linux-gnu; \
-        ln -s /usr/x86_64-linux-gnu/include/bits /usr/include/bits; \
-        ln -s /usr/x86_64-linux-gnu/include/sys /usr/include/sys; \
-        ln -s /usr/x86_64-linux-gnu/include/gnu /usr/include/gnu; \
-      else \
-        apt update; \
-      fi; \
-      apt install -y libssl1.1:amd64 libssl-dev:amd64 openssl:amd64 libclang-dev clang cmake libstdc++6:amd64; \
     fi
 
 ARG GITHUB_ORGANIZATION
@@ -54,13 +29,7 @@ ARG BUILD_DIR
 
 RUN if [ ! -z "$BUILD_TARGET" ]; then \
       if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
-      if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
-        cargo fetch --target aarch64-unknown-linux-gnu; \
-      elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
-        cargo fetch --target x86_64-unknown-linux-gnu; \
-      else \
-        cargo fetch; \
-      fi; \
+      cargo fetch; \
     fi
 
 ARG BUILD_ENV
@@ -72,31 +41,19 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
     [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
     if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
     if [ ! -z "$BUILD_TARGET" ]; then \
-      if [ "$TARGETARCH" = "arm64" ] && [ "$BUILDARCH" != "arm64" ]; then \
-        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
-          CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc \
-          CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++ \
-          PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target aarch64-unknown-linux-gnu; \
-      elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
-        export CARGO_TARGET_x86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-linux-gnu-gcc \
-          CC_x86_64_unknown_linux_gnu=x86_64-linux-gnu-gcc \
-          CXX_x86_64_unknown_linux_gnu=x86_64-linux-gnu-g++ \
-          PKG_CONFIG_SYSROOT_DIR=/usr/x86_64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target x86_64-unknown-linux-gnu; \
-      else \
-        cargo ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu;\
-      fi; \
-    fi
+      cargo ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu; \
+    fi;
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
+# Copy all linked shared libraries for each binary to an indexed filepath in /root/lib_abs for a single place to copy into final image.
+# Maintain their original filepath in /root/lib_abs.list since they need to be in the same place in the final image.
 RUN mkdir /root/bin
+RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c \
-  'if [ "${TARGETARCH}" = "arm64" ]; then export ARCH=aarch64; \
-  elif [ "${TARGETARCH}" = "amd64" ]; then export ARCH=x86_64; fi; \
+  'export ARCH=$(uname -m); \
   IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
   for BINARY in "${BINARIES_ARR[@]}"; do \
     IFS=: read -ra BINSPLIT <<< "$BINARY"; \
@@ -112,6 +69,20 @@ RUN bash -c \
     else \
       cp "$BIN" /root/bin/ ; \
     fi; \
+    readarray -t LIBS < <(ldd "$BIN"); \
+    i=0; for LIB in "${LIBS[@]}"; do \
+      PATH1=$(echo $LIB | awk "{print \$1}") ; \
+      if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
+      PATH2=$(echo $LIB | awk "{print \$3}") ; \
+      if [ ! -z "$PATH2" ]; then \
+        cp $PATH2 /root/lib_abs/$i ; \
+        echo $PATH2 >> /root/lib_abs.list; \
+      else \
+        cp $PATH1 /root/lib_abs/$i ; \
+        echo $PATH1 >> /root/lib_abs.list; \
+      fi; \
+      ((i = i + 1)) ;\
+    done; \
   done'
 
 RUN mkdir -p /root/lib
@@ -125,34 +96,6 @@ RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G hei
 
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
-
-# Use TARGETARCH image for determining necessary libs
-FROM rust:1-bullseye as target-arch-libs
-RUN apt update && apt install -y libssl1.1 openssl clang libstdc++6
-
-COPY --from=build-env /root/bin /root/bin
-RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
-RUN bash -c \
-  'ls /root/bin; \
-  for BIN in /root/bin/*; do \
-    echo "Getting $(uname -m) libs for bin: $BIN"; \
-    readarray -t LIBS < <(ldd "$BIN"); \
-    i=0; for LIB in "${LIBS[@]}"; do \
-      PATH1=$(echo $LIB | awk "{print \$1}") ; \
-      if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
-      PATH2=$(echo $LIB | awk "{print \$3}") ; \
-      if [ ! -z "$PATH2" ]; then \
-        echo "Copying $(uname -m) lib2: $PATH2"; \
-        cp $PATH2 /root/lib_abs/$i ; \
-        echo $PATH2 >> /root/lib_abs.list; \
-      else \
-        echo "Copying $(uname -m) lib1: $PATH1"; \
-        cp $PATH1 /root/lib_abs/$i ; \
-        echo $PATH1 >> /root/lib_abs.list; \
-      fi; \
-      ((i = i + 1)) ;\
-    done; \
-  done'
 
 # Build final image from scratch
 FROM scratch
@@ -187,8 +130,8 @@ COPY --from=build-env /root/bin /bin
 COPY --from=build-env /root/lib /lib
 
 # Copy over absolute path libraries
-COPY --from=target-arch-libs /root/lib_abs /root/lib_abs
-COPY --from=target-arch-libs /root/lib_abs.list /root/lib_abs.list
+COPY --from=build-env /root/lib_abs /root/lib_abs
+COPY --from=build-env /root/lib_abs.list /root/lib_abs.list
 
 # Move absolute path libraries to their absolute locations.
 RUN sh -c 'i=0; while read FILE; do \
