@@ -47,7 +47,7 @@ RUN set -eux; \
         export CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++; \
       fi; \
     fi; \
-    WASM_VERSION=$(go list -u -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
+    WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
     if [ ! -z "${WASM_VERSION}" ]; then \
       wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$ARCH.a; \
     fi; \
