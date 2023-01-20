@@ -142,13 +142,23 @@ RUN bash -c \
       if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
       PATH2=$(echo $LIB | awk "{print \$3}") ; \
       if [ ! -z "$PATH2" ]; then \
-        echo "Copying $(uname -m) lib2: $PATH2"; \
-        cp $PATH2 /root/lib_abs/$i ; \
-        echo $PATH2 >> /root/lib_abs.list; \
+        if cat /root/lib_abs.list | grep -x "$PATH2"; then \
+          echo "Skipping $PATH2, already accounted for"; \
+          continue; \
+        else \
+          echo "Copying $(uname -m) lib2: $PATH2"; \
+          cp $PATH2 /root/lib_abs/$i ; \
+          echo $PATH2 >> /root/lib_abs.list; \
+        fi; \
       else \
-        echo "Copying $(uname -m) lib1: $PATH1"; \
-        cp $PATH1 /root/lib_abs/$i ; \
-        echo $PATH1 >> /root/lib_abs.list; \
+        if cat /root/lib_abs.list | grep -x "$PATH1"; then \
+          echo "Skipping $PATH1, already accounted for"; \
+          continue; \
+        else \
+          echo "Copying $(uname -m) lib1: $PATH1"; \
+          cp $PATH1 /root/lib_abs/$i ; \
+          echo $PATH1 >> /root/lib_abs.list; \
+        fi; \
       fi; \
       ((i = i + 1)) ;\
     done; \
