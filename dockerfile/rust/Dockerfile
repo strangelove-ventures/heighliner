@@ -133,11 +133,10 @@ RUN apt update && apt install -y libssl1.1 openssl clang libstdc++6
 COPY --from=build-env /root/bin /root/bin
 RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 RUN bash -c \
-  'ls /root/bin; \
-  for BIN in /root/bin/*; do \
+  'i=0; for BIN in /root/bin/*; do \
     echo "Getting $(uname -m) libs for bin: $BIN"; \
     readarray -t LIBS < <(ldd "$BIN"); \
-    i=0; for LIB in "${LIBS[@]}"; do \
+    for LIB in "${LIBS[@]}"; do \
       PATH1=$(echo $LIB | awk "{print \$1}") ; \
       if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
       PATH2=$(echo $LIB | awk "{print \$3}") ; \
@@ -146,8 +145,8 @@ RUN bash -c \
           echo "Skipping $PATH2, already accounted for"; \
           continue; \
         else \
-          echo "Copying $(uname -m) lib2: $PATH2"; \
-          cp $PATH2 /root/lib_abs/$i ; \
+          echo "Copying lib2: $PATH2"; \
+          cp -L $PATH2 /root/lib_abs/$i ; \
           echo $PATH2 >> /root/lib_abs.list; \
         fi; \
       else \
@@ -155,8 +154,8 @@ RUN bash -c \
           echo "Skipping $PATH1, already accounted for"; \
           continue; \
         else \
-          echo "Copying $(uname -m) lib1: $PATH1"; \
-          cp $PATH1 /root/lib_abs/$i ; \
+          echo "Copying lib1: $PATH1"; \
+          cp -L $PATH1 /root/lib_abs/$i ; \
           echo $PATH1 >> /root/lib_abs.list; \
         fi; \
       fi; \

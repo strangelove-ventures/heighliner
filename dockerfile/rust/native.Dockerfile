@@ -55,7 +55,7 @@ ENV BINARIES_ENV ${BINARIES}
 RUN bash -c \
   'export ARCH=$(uname -m); \
   IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
-  for BINARY in "${BINARIES_ARR[@]}"; do \
+  i=0; for BINARY in "${BINARIES_ARR[@]}"; do \
     IFS=: read -ra BINSPLIT <<< "$BINARY"; \
     BINPATH=${BINSPLIT[1]} ;\
     BIN="$(eval "echo "${BINSPLIT[0]}"")"; \
@@ -70,7 +70,7 @@ RUN bash -c \
       cp "$BIN" /root/bin/ ; \
     fi; \
     readarray -t LIBS < <(ldd "$BIN"); \
-    i=0; for LIB in "${LIBS[@]}"; do \
+    for LIB in "${LIBS[@]}"; do \
       PATH1=$(echo $LIB | awk "{print \$1}") ; \
       if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
       PATH2=$(echo $LIB | awk "{print \$3}") ; \
@@ -80,7 +80,7 @@ RUN bash -c \
           continue; \
         else \
           echo "Copying $(uname -m) lib2: $PATH2"; \
-          cp $PATH2 /root/lib_abs/$i ; \
+          cp -L $PATH2 /root/lib_abs/$i ; \
           echo $PATH2 >> /root/lib_abs.list; \
         fi; \
       else \
@@ -89,7 +89,7 @@ RUN bash -c \
           continue; \
         else \
           echo "Copying $(uname -m) lib1: $PATH1"; \
-          cp $PATH1 /root/lib_abs/$i ; \
+          cp -L $PATH1 /root/lib_abs/$i ; \
           echo $PATH1 >> /root/lib_abs.list; \
         fi; \
       fi; \
