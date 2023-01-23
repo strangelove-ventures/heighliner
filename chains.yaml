@@ -500,6 +500,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# nibiru
+- name: nibiru
+  github-organization: NibiruChain
+  github-repo: nibiru
+  language: go
+  build-target: install
+  binaries:
+    - /go/bin/nibid
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Omniflixhub
 - name: omniflixhub
   github-organization: OmniFlix
