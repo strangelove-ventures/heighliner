@@ -30,7 +30,7 @@
   language: go
   binaries:
     - bin/axelard
-  pre-build: |
+  build-target: |
     set -eux
     apk add --update nodejs npm jq py3-pip
     git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
@@ -113,7 +113,6 @@
   github-organization: Switcheo
   github-repo: carbon-bootstrap
   language: rust
-  build-target:
   pre-build: |
     apt update && apt install wget build-essential jq cmake sudo -y
     wget https://github.com/google/leveldb/archive/1.23.tar.gz && \
@@ -226,8 +225,7 @@
   github-organization: cosmos
   github-repo: interchain-security
   language: go
-
-  pre-build: |
+  build-target: |
     export GOFLAGS='-buildmode=pie'
     export CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2"
     export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fstack-protector"
@@ -395,8 +393,7 @@
   github-organization: quasar-finance
   github-repo: interchain-query-demo
   language: go
-  pre-build: |
-    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
+  build-target: go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
   binaries:
     - build/icq
 
@@ -641,8 +638,8 @@
   github-organization: sentinel-official
   github-repo: hub
   language: go
-  # Hack, using pre-build instead of build target to build
-  pre-build: |
+  # Sentinel Makefile does not consume LDFLAGS or BUILD_TAGS env vars.
+  build-target: |
     BUILD_TAGS=netgo,muslc
     LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=sentinel -X github.com/cosmos/cosmos-sdk/version.AppName=sentinelhub -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')"
     go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="$LDFLAGS ${LD_FLAGS}" ./cmd/sentinelhub
