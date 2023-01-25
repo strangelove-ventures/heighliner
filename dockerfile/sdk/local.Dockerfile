@@ -31,7 +31,7 @@ RUN set -eux; \
       if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi; \
       if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi; \
       if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
-      make ${BUILD_TARGET}; \
+      sh -c "${BUILD_TARGET}"; \
     fi
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.

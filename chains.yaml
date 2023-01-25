@@ -8,7 +8,7 @@
   github-organization: ovrclk
   github-repo: akash
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/akash
 
@@ -17,7 +17,7 @@
   github-organization: assetmantle
   github-repo: node
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/mantleNode
   build-env:
@@ -30,7 +30,7 @@
   language: go
   binaries:
     - bin/axelard
-  pre-build: |
+  build-target: |
     set -eux
     apk add --update nodejs npm jq py3-pip
     git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
@@ -84,7 +84,7 @@
   github-organization: BitCannaGlobal
   github-repo: bcna
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/bcnad
 
@@ -93,7 +93,7 @@
   github-organization: bitsongofficial
   github-repo: go-bitsong
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/bitsongd
 
@@ -102,7 +102,7 @@
   github-organization: cybercongress
   github-repo: go-cyber
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/cyber
   build-env:
@@ -113,7 +113,6 @@
   github-organization: Switcheo
   github-repo: carbon-bootstrap
   language: rust
-  build-target:
   pre-build: |
     apt update && apt install wget build-essential jq cmake sudo -y
     wget https://github.com/google/leveldb/archive/1.23.tar.gz && \
@@ -149,7 +148,7 @@
   github-organization: cerberus-zone
   github-repo: cerberus
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/cerberusd
 
@@ -158,7 +157,7 @@
   github-organization: cheqd
   github-repo: cheqd-node
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/cheqd-noded
 
@@ -167,7 +166,7 @@
   github-organization: ChihuahuaChain
   github-repo: chihuahua
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/chihuahuad
 
@@ -176,7 +175,7 @@
   github-organization: comdex-official
   github-repo: comdex
   language: go
-  build-target: install
+  build-target: make install
   build-env:
     - BUILD_TAGS=muslc
   binaries:
@@ -214,7 +213,7 @@
   github-organization: cosmos
   github-repo: gaia
   language: go
-  build-target: install
+  build-target: make install
   build-env:
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
@@ -226,8 +225,7 @@
   github-organization: cosmos
   github-repo: interchain-security
   language: go
-
-  pre-build: |
+  build-target: |
     export GOFLAGS='-buildmode=pie'
     export CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2"
     export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fstack-protector"
@@ -242,7 +240,7 @@
   github-organization: crescent-network
   github-repo: crescent
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/crescentd
 
@@ -251,7 +249,7 @@
   github-organization: crypto-org-chain
   github-repo: cronos
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/cronosd
 
@@ -260,7 +258,7 @@
   github-organization: crypto-org-chain
   github-repo: chain-main
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/chain-maind
 
@@ -269,7 +267,7 @@
   github-organization: Decentr-net
   github-repo: decentr
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/decentrd
 
@@ -278,7 +276,7 @@
   github-organization: desmos-labs
   github-repo: desmos
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/desmos
   build-env:
@@ -289,7 +287,7 @@
   github-organization: notional-labs
   github-repo: dig
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/digd
   build-env:
@@ -312,7 +310,7 @@
   github-organization: e-money
   github-repo: em-ledger
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/emd
 
@@ -321,7 +319,7 @@
   github-organization: tharsis
   github-repo: evmos
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/evmosd
 
@@ -330,7 +328,7 @@
   github-organization: fetchai
   github-repo: fetchd
   language: go
-  build-target: install
+  build-target: make install
   build-env:
     - BUILD_TAGS=muslc
   binaries:
@@ -341,7 +339,7 @@
   github-organization: FirmaChain
   github-repo: firmachain
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/firmachaind
 
@@ -350,7 +348,7 @@
   github-organization: Gravity-Bridge
   github-repo: Gravity-Bridge
   language: go
-  build-target: build
+  build-target: make build
   build-dir: module
   binaries:
     - module/build/gravity
@@ -360,7 +358,7 @@
   github-organization: cosmos
   github-repo: ibc-go
   language: go
-  build-target: build
+  build-target: make build
   binaries:
     - build/simd
   build-env:
@@ -371,7 +369,7 @@
   github-organization: ixofoundation
   github-repo: ixo-blockchain
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/ixod
 
@@ -398,7 +396,7 @@
   github-organization: cosmos
   github-repo: interchain-accounts-demo
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/icad
 
@@ -407,8 +405,7 @@
   github-organization: quasar-finance
   github-repo: interchain-query-demo
   language: go
-  pre-build: |
-    go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
+  build-target: go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
   binaries:
     - build/icq
 
@@ -417,7 +414,7 @@
   github-organization: irisnet
   github-repo: irishub
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/iris
 
@@ -426,7 +423,7 @@
   github-organization: CosmosContracts
   github-repo: juno
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/junod
   build-env:
@@ -438,7 +435,7 @@
   github-organization: KiFoundation
   github-repo: ki-tools
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/kid
   build-env:
@@ -449,7 +446,7 @@
   github-organization: knstl
   github-repo: konstellation
   language: go
-  build-target: install
+  build-target: make install
   build-env:
     - BUILD_TAGS=muslc
   binaries:
@@ -460,7 +457,7 @@
   github-organization: Team-Kujira
   github-repo: core
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/kujirad
   build-env:
@@ -472,7 +469,7 @@
   github-organization: likecoin
   github-repo: likecoin-chain
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/liked
 
@@ -481,7 +478,7 @@
   github-organization: lum-network
   github-repo: chain
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/lumd
 
@@ -506,7 +503,7 @@
   github-organization: neutron-org
   github-repo: neutron
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/neutrond
   build-env:
@@ -517,7 +514,7 @@
   github-organization: NibiruChain
   github-repo: nibiru
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/nibid
   build-env:
@@ -528,7 +525,7 @@
   github-organization: OmniFlix
   github-repo: omniflixhub
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/omniflixhubd
 
@@ -537,7 +534,7 @@
   github-organization: onomyprotocol
   github-repo: onomy
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/onomyd
 
@@ -546,7 +543,7 @@
   github-organization: osmosis-labs
   github-repo: osmosis
   language: go
-  build-target: build
+  build-target: make build
   binaries:
     - build/osmosisd
   build-env:
@@ -557,7 +554,7 @@
   github-organization: medibloc
   github-repo: panacea-core
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/panacead
   build-env:
@@ -578,7 +575,7 @@
   github-organization: persistenceOne
   github-repo: persistenceCore
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/persistenceCore
 
@@ -598,7 +595,7 @@
   github-organization: provenance-io
   github-repo: provenance
   language: go
-  build-target: install
+  build-target: make install
   pre-build: |
     apk add --no-cache g++
     git clone https://github.com/edenhill/librdkafka.git
@@ -619,7 +616,7 @@
   github-organization: ingenuity-build
   github-repo: quicksilver
   language: go
-  build-target: build
+  build-target: make build
   binaries:
     - build/quicksilverd
 
@@ -628,7 +625,7 @@
   github-organization: regen-network
   github-repo: regen-ledger
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/regen
 
@@ -637,7 +634,7 @@
   github-organization: rizon-world
   github-repo: rizon
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/rizond
 
@@ -653,8 +650,8 @@
   github-organization: sentinel-official
   github-repo: hub
   language: go
-  # Hack, using pre-build instead of build target to build
-  pre-build: |
+  # Sentinel Makefile does not consume LDFLAGS or BUILD_TAGS env vars.
+  build-target: |
     BUILD_TAGS=netgo,muslc
     LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=sentinel -X github.com/cosmos/cosmos-sdk/version.AppName=sentinelhub -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')"
     go install -mod=readonly -tags="${BUILD_TAGS}" -ldflags="$LDFLAGS ${LD_FLAGS}" ./cmd/sentinelhub
@@ -666,7 +663,7 @@
   github-organization: ShentuChain
   github-repo: shentu
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/certik
 
@@ -675,7 +672,7 @@
   github-organization: Sifchain
   github-repo: sifnode
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/sifnoded
 
@@ -684,7 +681,7 @@
   github-organization: cosmos
   github-repo: cosmos-sdk
   language: go
-  build-target: build
+  build-target: make build
   binaries:
     - build/simd
 
@@ -693,7 +690,7 @@
   github-organization: peggyjv
   github-repo: sommelier
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/sommelier
 
@@ -702,7 +699,7 @@
   github-organization: public-awesome
   github-repo: stargaze
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/starsd
   build-env:
@@ -713,7 +710,7 @@
   github-organization: iov-one
   github-repo: starnamed
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/starnamed
   build-env:
@@ -724,7 +721,7 @@
   github-organization: Stride-Labs
   github-repo: stride
   language: go
-  build-target: build
+  build-target: make build
   binaries:
     - build/strided
 
@@ -733,7 +730,7 @@
   github-organization: tendermint
   github-repo: tendermint
   language: go
-  build-target: build
+  build-target: make build
   binaries:
     - /go/src/github.com/tendermint/tendermint/build/tendermint
 
@@ -742,7 +739,7 @@
   github-organization: terra-money
   github-repo: core
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/terrad
   build-env:
@@ -754,7 +751,7 @@
   github-organization: thorchain
   github-repo: thornode
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/thornode
   pre-build: |
@@ -766,7 +763,7 @@
   github-organization: umee-network
   github-repo: umee
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/umeed
 
@@ -775,7 +772,7 @@
   github-organization: vidulum
   github-repo: mainnet
   language: go
-  build-target: install
+  build-target: make install
   binaries:
     - /go/bin/vidulumd
 
@@ -784,7 +781,7 @@
   github-organization: CosmWasm
   github-repo: wasmd
   language: go
-  build-target: build
+  build-target: make build
   binaries:
     - build/wasmd
   build-env:
