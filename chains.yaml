@@ -293,6 +293,18 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Duality
+- name: duality
+  github-organization: duality-labs
+  github-repo: duality
+  language: go
+  build-target: make install
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/dualityd
+
 # Emoney
 - name: emoney
   github-organization: e-money
