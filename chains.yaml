@@ -59,7 +59,7 @@
   github-organization: axelarnetwork
   github-repo: tofnd
   language: rust
-  build-target: build --release
+  build-target: cargo build --release
   pre-build:
     apt install -y libgmp3-dev:${TARGETARCH}
   binaries:
@@ -70,7 +70,7 @@
   github-organization: galacticcouncil
   github-repo: Basilisk-node
   language: rust
-  build-target: build --release -Zbuild-std
+  build-target: cargo build --release -Zbuild-std
   pre-build: |
     apt install -y zlib1g-dev:${TARGETARCH}
     TOOLCHAIN=$(cat rust-toolchain | grep channel | awk '{print $3}' | tr -d '"')
@@ -204,7 +204,7 @@
     - DALI_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/dali_runtime.optimized.wasm
     - PICASSO_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/picasso_runtime.optimized.wasm
     - COMPOSABLE_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/composable_runtime.optimized.wasm
-  build-target: build --release -p composable -Zbuild-std --features=builtin-wasm
+  build-target: cargo build --release -p composable -Zbuild-std --features=builtin-wasm
   binaries:
     - /build/composable/code/target/${ARCH}-unknown-linux-gnu/release/composable
 
@@ -487,7 +487,7 @@
   github-organization: nomic-io
   github-repo: nomic
   language: rust
-  build-target: install --locked --path . -Zbuild-std
+  build-target: cargo install --locked --path . -Zbuild-std
   pre-build: |
     TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
     rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
@@ -565,7 +565,7 @@
   github-organization: penumbra-zone
   github-repo: penumbra
   language: rust
-  build-target: build --release
+  build-target: cargo build --release
   binaries:
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pcli
@@ -584,7 +584,7 @@
   github-organization: paritytech
   github-repo: polkadot
   language: rust
-  build-target: build --release
+  build-target: cargo build --release
   pre-build: |
     ./scripts/init.sh
   binaries:

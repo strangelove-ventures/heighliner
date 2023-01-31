@@ -77,15 +77,15 @@ RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
           CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc \
           CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++ \
           PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target aarch64-unknown-linux-gnu; \
+        ${BUILD_TARGET} --target aarch64-unknown-linux-gnu; \
       elif [ "$TARGETARCH" = "amd64" ] && [ "$BUILDARCH" != "amd64" ]; then \
         export CARGO_TARGET_x86_64_UNKNOWN_LINUX_GNU_LINKER=x86_64-linux-gnu-gcc \
           CC_x86_64_unknown_linux_gnu=x86_64-linux-gnu-gcc \
           CXX_x86_64_unknown_linux_gnu=x86_64-linux-gnu-g++ \
           PKG_CONFIG_SYSROOT_DIR=/usr/x86_64-linux-gnu; \
-        cargo ${BUILD_TARGET} --target x86_64-unknown-linux-gnu; \
+        ${BUILD_TARGET} --target x86_64-unknown-linux-gnu; \
       else \
-        cargo ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu;\
+        ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu;\
       fi; \
     fi
 
