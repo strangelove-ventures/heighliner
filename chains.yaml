@@ -107,6 +107,17 @@
     - /go/bin/cyber
   build-env:
     - BUILD_TAGS=muslc
+    
+# Burnt
+- name: burnt
+  github-organization: burnt-labs
+  github-repo: burnt
+  language: go
+  build-target: make install
+  binaries:
+    - /go/bin/burntd
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Carbon
 - name: carbon
