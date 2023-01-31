@@ -538,6 +538,17 @@
   binaries:
     - /go/bin/onomyd
 
+# Onomy gbt: Not a chain, companion process for validator
+- name: onomy-gbt
+  github-organization: onomyprotocol
+  github-repo: arc
+  language: rust
+  build-dir: orchestrator
+  build-target: |-
+    cargo build --release
+  binaries:
+    - /build/arc/orchestrator/target/${ARCH}-unknown-linux-gnu/release/gbt
+
 # Osmosis
 - name: osmosis
   github-organization: osmosis-labs
