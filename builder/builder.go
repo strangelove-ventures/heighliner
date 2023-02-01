@@ -3,7 +3,7 @@ package builder
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -191,7 +191,7 @@ func baseImageForGoVersion(
 		return "", fmt.Errorf("failed to open go.mod file: %w", err)
 	}
 
-	goModBz, err := ioutil.ReadAll(goModFile)
+	goModBz, err := io.ReadAll(goModFile)
 	if err != nil {
 		return "", fmt.Errorf("failed to read go.mod file: %w", err)
 	}
