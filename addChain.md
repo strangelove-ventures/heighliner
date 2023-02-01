@@ -15,13 +15,13 @@ Please keep chains in alphabetical order.
 
 `github-repo` -> The repo name of the location of the chain binary.
 
-`language` -> Used in the Docker `FROM` argument to create a a docker base image. OPTIONS: "go, rust, nix, imported". Use "imported" if you are not able to build the chain binary from source and are importing a pre-made docker container.
+`dockerfile` -> Which dockerfile strategy to use (folder names under dockerfile/). OPTIONS: `cosmos`, `cargo`, `imported`, or `none`. Use `imported` if you are importing an existing public docker image as a base for the heighliner image. Use `none` if you are not able to build the chain binary from source and need to download binaries into the image instead.
 
 `build-env` -> Environment variables to be created during the build.
 
 `pre-build` -> Any extra arguments needed to build the chain binary. 
 
-`build-target` -> The argument to call after `make` (language=golang),  `cargo` (language=rust) or `nix` (language=nix).
+`build-target` -> The build command specific to the chosen `dockerfile`. For `cosmos`, likely `make install`. For `cargo`, likely `build --release`.
 
 `binaries` -> The location of where the the build target places the binarie(s). Adding a ":" after the path allows for the ability to rename the binary.
 
@@ -33,7 +33,7 @@ Please keep chains in alphabetical order.
 
 Please check the image builds successfully before submitting PR:
 
-`./heighliner build -c <CHAIN-NAME> -v <VERSION>
+`./heighliner build -c <CHAIN-NAME> -g <BRANCH OR TAG>`
 
 Ensure binary runs in image:
 
