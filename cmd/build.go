@@ -110,7 +110,7 @@ it will be built and pushed`,
 				ref = version
 			}
 			fmt.Printf(
-				`Warning: --version/-v flag is deprecated. Please update to use --ref/-r instead. 
+				`Warning: --version/-v flag is deprecated. Please update to use --git-ref/-g instead. 
 An optional flag --tag/-t is now available to override the resulting docker image tag if desirable to differ from the derived tag
 `)
 		}
@@ -142,5 +142,5 @@ func init() {
 	buildCmd.PersistentFlags().Bool(flagNoBuildCache, false, "Invalidate caches for clone and build.")
 
 	// DEPRECATED
-	buildCmd.PersistentFlags().StringP(flagVersion, "v", "", "DEPRECATED, use --ref/-r instead")
+	buildCmd.PersistentFlags().StringP(flagVersion, "v", "", "DEPRECATED, use --git-ref/-g instead")
 }
