@@ -318,7 +318,6 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			fmt.Printf("Parsed go version from go.mod, using %s\n", baseVer)
 			baseVersion = baseVer
 		}
 	}
