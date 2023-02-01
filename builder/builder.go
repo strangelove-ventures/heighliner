@@ -160,8 +160,6 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	tag := imageTag(chainConfig.Ref, chainConfig.Tag, h.local)
 
-	fmt.Printf("Building docker image: %s:%s from ref: %s\n", chainConfig.Build.Name, tag, chainConfig.Ref)
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("error getting working directory: %w", err)
@@ -202,7 +200,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
-	fmt.Printf("Image Tags: +%v\n", imageTags)
+	fmt.Printf("Building image from ref: %s, tags: +%v\n", chainConfig.Ref, imageTags)
 
 	buildEnv := ""
 

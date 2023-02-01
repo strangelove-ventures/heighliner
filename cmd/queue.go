@@ -24,6 +24,12 @@ func mostRecentReleasesForChain(
 	}
 	client := http.Client{Timeout: 5 * time.Second}
 
+	if chainNodeConfig.RepoHost != "" && chainNodeConfig.RepoHost != "github.com" {
+		return builder.HeighlinerQueuedChainBuilds{}, nil
+	}
+
+	fmt.Printf("Fetching most recent releases for github.com/%s/%s\n", chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo)
+
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
 		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, number), http.NoBody)
 	if err != nil {
@@ -52,8 +58,9 @@ func mostRecentReleasesForChain(
 	if err != nil {
 		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error parsing github releases response: %s, error: %v", body, err)
 	}
-	chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
+	chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{}
 	for i, release := range releases {
+		fmt.Printf("Adding release tag to build queue: %s\n", release.TagName)
 		chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, builder.ChainNodeDockerBuildConfig{
 			Build:  chainNodeConfig,
 			Ref:    release.TagName,
@@ -105,7 +112,7 @@ func queueAndBuild(
 			fmt.Printf("Error queueing docker image builds for chain %s: %v", chainNodeConfig.Name, err)
 			continue
 		}
-		if len(chainQueuedBuilds.ChainConfigs) > 0 {
+		if len(chainBuilds.ChainConfigs) > 0 {
 			heighlinerBuilder.AddToQueue(chainBuilds)
 		}
 	}
