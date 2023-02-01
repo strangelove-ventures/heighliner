@@ -534,18 +534,8 @@
   github-organization: onomyprotocol
   github-repo: onomy
   language: go
-  # TODO: Onomy's Makefile does not support LDFLAGS env var.
-  # See issue:
+  # TODO: Heighliner will not produce working builds until https://github.com/onomyprotocol/onomy/pull/129 merged
   build-target: make install
-#  build-target: |-
-#    VERSION=$(echo $(git describe --tags) | sed 's/^v//')
-#    COMMIT=$(git log -1 --format='%H')
-#    LDFLAGS="$LDFLAGS -X github.com/cosmos/cosmos-sdk/version.Name=onomy \
-#    -X github.com/cosmos/cosmos-sdk/version.AppName=onomy \
-#    -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
-#    -X github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS \
-#    -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
-#    go build -o ./bin/onomyd -mod=readonly -tags "$BUILD_TAGS" -ldflags "$LDFLAGS" ./cmd/onomyd
   binaries:
     - /go/bin/onomyd
 
@@ -555,8 +545,7 @@
   github-repo: arc
   language: rust
   build-dir: orchestrator
-  build-target: |-
-    cargo build --release
+  build-target: build --release
   binaries:
     - /build/arc/orchestrator/target/${ARCH}-unknown-linux-gnu/release/gbt
 
