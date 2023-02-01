@@ -1,4 +1,5 @@
-FROM --platform=$BUILDPLATFORM golang:1.19-alpine3.16 AS build-env
+ARG BASE_VERSION
+FROM --platform=$BUILDPLATFORM golang:${BASE_VERSION} AS build-env
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
 
