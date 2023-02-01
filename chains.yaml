@@ -1,13 +1,13 @@
 # Agoric-sdk
 - name: agoric
-  language: imported
+  dockerfile: imported
   base-image: agoric/agoric-sdk
 
 # Akash
 - name: akash
   github-organization: ovrclk
   github-repo: akash
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/akash
@@ -16,7 +16,7 @@
 - name: assetmantle
   github-organization: assetmantle
   github-repo: node
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/mantleNode
@@ -27,7 +27,7 @@
 - name: axelar
   github-organization: axelarnetwork
   github-repo: axelar-core
-  language: go
+  dockerfile: cosmos
   binaries:
     - bin/axelard
   build-target: |
@@ -58,7 +58,7 @@
 - name: tofnd
   github-organization: axelarnetwork
   github-repo: tofnd
-  language: rust
+  dockerfile: cargo
   build-target: build --release
   pre-build:
     apt install -y libgmp3-dev:${TARGETARCH}
@@ -69,7 +69,7 @@
 - name: basilisk
   github-organization: galacticcouncil
   github-repo: Basilisk-node
-  language: rust
+  dockerfile: cargo
   build-target: build --release -Zbuild-std
   pre-build: |
     apt install -y zlib1g-dev:${TARGETARCH}
@@ -83,7 +83,7 @@
 - name: bitcanna
   github-organization: BitCannaGlobal
   github-repo: bcna
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/bcnad
@@ -92,7 +92,7 @@
 - name: bitsong
   github-organization: bitsongofficial
   github-repo: go-bitsong
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/bitsongd
@@ -101,10 +101,21 @@
 - name: bostrom
   github-organization: cybercongress
   github-repo: go-cyber
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/cyber
+  build-env:
+    - BUILD_TAGS=muslc
+    
+# Burnt
+- name: burnt
+  github-organization: burnt-labs
+  github-repo: burnt
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/burntd
   build-env:
     - BUILD_TAGS=muslc
 
@@ -112,7 +123,7 @@
 - name: carbon
   github-organization: Switcheo
   github-repo: carbon-bootstrap
-  language: rust
+  dockerfile: cargo
   pre-build: |
     apt update && apt install wget build-essential jq cmake sudo -y
     wget https://github.com/google/leveldb/archive/1.23.tar.gz && \
@@ -147,7 +158,7 @@
 - name: cerberus
   github-organization: cerberus-zone
   github-repo: cerberus
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/cerberusd
@@ -156,7 +167,7 @@
 - name: cheqd
   github-organization: cheqd
   github-repo: cheqd-node
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/cheqd-noded
@@ -165,7 +176,7 @@
 - name: chihuahua
   github-organization: ChihuahuaChain
   github-repo: chihuahua
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/chihuahuad
@@ -174,7 +185,7 @@
 - name: comdex
   github-organization: comdex-official
   github-repo: comdex
-  language: go
+  dockerfile: cosmos
   build-target: make install
   build-env:
     - BUILD_TAGS=muslc
@@ -185,7 +196,7 @@
 - name: composable
   github-organization: ComposableFi
   github-repo: composable
-  language: rust
+  dockerfile: cargo
   pre-build: |
     apt install -y zlib1g-dev:${TARGETARCH}
     TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
@@ -212,7 +223,7 @@
 - name: gaia
   github-organization: cosmos
   github-repo: gaia
-  language: go
+  dockerfile: cosmos
   build-target: make install
   build-env:
     - LEDGER_ENABLED=false
@@ -224,7 +235,7 @@
 - name: ics
   github-organization: cosmos
   github-repo: interchain-security
-  language: go
+  dockerfile: cosmos
   build-target: |
     export GOFLAGS='-buildmode=pie'
     export CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2"
@@ -239,7 +250,7 @@
 - name: crescent
   github-organization: crescent-network
   github-repo: crescent
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/crescentd
@@ -248,7 +259,7 @@
 - name: cronos
   github-organization: crypto-org-chain
   github-repo: cronos
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/cronosd
@@ -257,7 +268,7 @@
 - name: cryptoorgchain
   github-organization: crypto-org-chain
   github-repo: chain-main
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/chain-maind
@@ -266,7 +277,7 @@
 - name: decentr
   github-organization: Decentr-net
   github-repo: decentr
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/decentrd
@@ -275,7 +286,7 @@
 - name: desmos
   github-organization: desmos-labs
   github-repo: desmos
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/desmos
@@ -286,7 +297,7 @@
 - name: dig
   github-organization: notional-labs
   github-repo: dig
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/digd
@@ -297,7 +308,7 @@
 - name: duality
   github-organization: duality-labs
   github-repo: duality
-  language: go
+  dockerfile: cosmos
   build-target: make install
   build-env:
     - LEDGER_ENABLED=false
@@ -309,7 +320,7 @@
 - name: emoney
   github-organization: e-money
   github-repo: em-ledger
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/emd
@@ -318,7 +329,7 @@
 - name: evmos
   github-organization: tharsis
   github-repo: evmos
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/evmosd
@@ -327,7 +338,7 @@
 - name: fetchhub
   github-organization: fetchai
   github-repo: fetchd
-  language: go
+  dockerfile: cosmos
   build-target: make install
   build-env:
     - BUILD_TAGS=muslc
@@ -338,7 +349,7 @@
 - name: firmachain
   github-organization: FirmaChain
   github-repo: firmachain
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/firmachaind
@@ -347,7 +358,7 @@
 - name: gravitybridge
   github-organization: Gravity-Bridge
   github-repo: Gravity-Bridge
-  language: go
+  dockerfile: cosmos
   build-target: make build
   build-dir: module
   binaries:
@@ -357,7 +368,7 @@
 - name: ibc-go-simd
   github-organization: cosmos
   github-repo: ibc-go
-  language: go
+  dockerfile: cosmos
   build-target: make build
   binaries:
     - build/simd
@@ -368,7 +379,7 @@
 - name: impacthub
   github-organization: ixofoundation
   github-repo: ixo-blockchain
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/ixod
@@ -395,7 +406,7 @@
 - name: icad
   github-organization: cosmos
   github-repo: interchain-accounts-demo
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/icad
@@ -404,7 +415,7 @@
 - name: icqd
   github-organization: quasar-finance
   github-repo: interchain-query-demo
-  language: go
+  dockerfile: cosmos
   build-target: go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
   binaries:
     - build/icq
@@ -413,7 +424,7 @@
 - name: irisnet
   github-organization: irisnet
   github-repo: irishub
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/iris
@@ -422,7 +433,7 @@
 - name: juno
   github-organization: CosmosContracts
   github-repo: juno
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/junod
@@ -434,7 +445,7 @@
 - name: kichain
   github-organization: KiFoundation
   github-repo: ki-tools
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/kid
@@ -445,7 +456,7 @@
 - name: konstellation
   github-organization: knstl
   github-repo: konstellation
-  language: go
+  dockerfile: cosmos
   build-target: make install
   build-env:
     - BUILD_TAGS=muslc
@@ -456,7 +467,7 @@
 - name: kujira
   github-organization: Team-Kujira
   github-repo: core
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/kujirad
@@ -468,7 +479,7 @@
 - name: likecoin
   github-organization: likecoin
   github-repo: likecoin-chain
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/liked
@@ -477,7 +488,7 @@
 - name: lumnetwork
   github-organization: lum-network
   github-repo: chain
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/lumd
@@ -486,7 +497,7 @@
 - name: nomic
   github-organization: nomic-io
   github-repo: nomic
-  language: rust
+  dockerfile: cargo
   build-target: install --locked --path . -Zbuild-std
   pre-build: |
     TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
@@ -502,7 +513,7 @@
 - name: neutron
   github-organization: neutron-org
   github-repo: neutron
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/neutrond
@@ -513,7 +524,7 @@
 - name: nibiru
   github-organization: NibiruChain
   github-repo: nibiru
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/nibid
@@ -524,7 +535,7 @@
 - name: omniflixhub
   github-organization: OmniFlix
   github-repo: omniflixhub
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/omniflixhubd
@@ -533,7 +544,7 @@
 - name: onomy
   github-organization: onomyprotocol
   github-repo: onomy
-  language: go
+  dockerfile: cosmos
   # TODO: Heighliner will not produce working builds until https://github.com/onomyprotocol/onomy/pull/129 merged
   build-target: make install
   binaries:
@@ -553,7 +564,7 @@
 - name: osmosis
   github-organization: osmosis-labs
   github-repo: osmosis
-  language: go
+  dockerfile: cosmos
   build-target: make build
   binaries:
     - build/osmosisd
@@ -564,7 +575,7 @@
 - name: panacea
   github-organization: medibloc
   github-repo: panacea-core
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/panacead
@@ -575,7 +586,7 @@
 - name: penumbra
   github-organization: penumbra-zone
   github-repo: penumbra
-  language: rust
+  dockerfile: cargo
   build-target: build --release
   binaries:
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
@@ -585,7 +596,7 @@
 - name: persistence
   github-organization: persistenceOne
   github-repo: persistenceCore
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/persistenceCore
@@ -594,7 +605,7 @@
 - name: polkadot
   github-organization: paritytech
   github-repo: polkadot
-  language: rust
+  dockerfile: cargo
   build-target: build --release
   pre-build: |
     ./scripts/init.sh
@@ -605,7 +616,7 @@
 - name: provenance
   github-organization: provenance-io
   github-repo: provenance
-  language: go
+  dockerfile: cosmos
   build-target: make install
   pre-build: |
     apk add --no-cache g++
@@ -626,7 +637,7 @@
 - name: quicksilver
   github-organization: ingenuity-build
   github-repo: quicksilver
-  language: go
+  dockerfile: cosmos
   build-target: make build
   binaries:
     - build/quicksilverd
@@ -635,7 +646,7 @@
 - name: regen
   github-organization: regen-network
   github-repo: regen-ledger
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/regen
@@ -644,14 +655,14 @@
 - name: rizon
   github-organization: rizon-world
   github-repo: rizon
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/rizond
 
 # Secret Network
 - name: secretnetwork
-  language: imported
+  dockerfile: imported
   base-image: ghcr.io/scrtlabs/secret-network-node
   platforms:
     - linux/amd64
@@ -660,7 +671,7 @@
 - name: sentinel
   github-organization: sentinel-official
   github-repo: hub
-  language: go
+  dockerfile: cosmos
   # Sentinel Makefile does not consume LDFLAGS or BUILD_TAGS env vars.
   build-target: |
     BUILD_TAGS=netgo,muslc
@@ -673,7 +684,7 @@
 - name: shentu
   github-organization: ShentuChain
   github-repo: shentu
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/certik
@@ -682,7 +693,7 @@
 - name: sifchain
   github-organization: Sifchain
   github-repo: sifnode
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/sifnoded
@@ -691,7 +702,7 @@
 - name: sim
   github-organization: cosmos
   github-repo: cosmos-sdk
-  language: go
+  dockerfile: cosmos
   build-target: make build
   binaries:
     - build/simd
@@ -700,7 +711,7 @@
 - name: sommelier
   github-organization: peggyjv
   github-repo: sommelier
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/sommelier
@@ -709,7 +720,7 @@
 - name: stargaze
   github-organization: public-awesome
   github-repo: stargaze
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/starsd
@@ -720,7 +731,7 @@
 - name: starname
   github-organization: iov-one
   github-repo: starnamed
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/starnamed
@@ -731,7 +742,7 @@
 - name: stride
   github-organization: Stride-Labs
   github-repo: stride
-  language: go
+  dockerfile: cosmos
   build-target: make build
   binaries:
     - build/strided
@@ -740,7 +751,7 @@
 - name: tendermint
   github-organization: tendermint
   github-repo: tendermint
-  language: go
+  dockerfile: cosmos
   build-target: make build
   binaries:
     - /go/src/github.com/tendermint/tendermint/build/tendermint
@@ -749,7 +760,7 @@
 - name: terra
   github-organization: terra-money
   github-repo: core
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/terrad
@@ -761,7 +772,7 @@
   repo-host: gitlab.com
   github-organization: thorchain
   github-repo: thornode
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/thornode
@@ -773,7 +784,7 @@
 - name: umee
   github-organization: umee-network
   github-repo: umee
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/umeed
@@ -782,7 +793,7 @@
 - name: vidulum
   github-organization: vidulum
   github-repo: mainnet
-  language: go
+  dockerfile: cosmos
   build-target: make install
   binaries:
     - /go/bin/vidulumd
@@ -791,7 +802,7 @@
 - name: wasm
   github-organization: CosmWasm
   github-repo: wasmd
-  language: go
+  dockerfile: cosmos
   build-target: make build
   binaries:
     - build/wasmd

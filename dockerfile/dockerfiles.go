@@ -2,14 +2,14 @@ package dockerfile
 
 import _ "embed"
 
-//go:embed sdk/Dockerfile
-var SDK []byte
+//go:embed cosmos/Dockerfile
+var Cosmos []byte
 
-//go:embed sdk/native.Dockerfile
-var SDKNative []byte
+//go:embed cosmos/native.Dockerfile
+var CosmosNative []byte
 
-//go:embed sdk/local.Dockerfile
-var SDKLocal []byte
+//go:embed cosmos/local.Dockerfile
+var CosmosLocal []byte
 
 //go:embed imported/Dockerfile
 var Imported []byte
@@ -17,8 +17,8 @@ var Imported []byte
 //go:embed none/Dockerfile
 var None []byte
 
-//go:embed rust/Dockerfile
-var Rust []byte
+//go:embed cargo/Dockerfile
+var Cargo []byte
 
-//go:embed rust/native.Dockerfile
-var RustNative []byte
+//go:embed cargo/native.Dockerfile
+var CargoNative []byte
