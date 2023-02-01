@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/strangelove-ventures/heighliner/builder"
@@ -35,11 +34,6 @@ func mostRecentReleasesForChain(
 	if err != nil {
 		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error building github releases request: %v", err)
 	}
-
-	basicAuthUser := os.Getenv("GITHUB_USER")
-	basicAuthPassword := os.Getenv("GITHUB_PASSWORD")
-
-	req.SetBasicAuth(basicAuthUser, basicAuthPassword)
 
 	res, err := client.Do(req)
 	if err != nil {
