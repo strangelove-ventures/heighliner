@@ -556,7 +556,7 @@
 - name: onomy-gbt
   github-organization: onomyprotocol
   github-repo: arc
-  language: rust
+  dockerfile: rust
   build-dir: orchestrator
   build-target: build --release
   binaries:
