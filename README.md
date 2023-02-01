@@ -22,7 +22,7 @@ go build
 #### Example: build the docker image for gaia v6.0.0:
 
 ```bash
-heighliner build -c gaia -v v6.0.0
+heighliner build --chain gaia --git-ref v6.0.0
 ```
 
 Docker image `heighliner/gaia:v6.0.0` will now be available in your local docker images
@@ -40,7 +40,7 @@ Docker image `gaia:local` will be built and stored in your local docker images.
 
 ```bash
 # docker login ...
-heighliner build -r ghcr.io/strangelove-ventures/heighliner -c gaia -v v6.0.0
+heighliner build -r ghcr.io/strangelove-ventures/heighliner -c gaia -g v6.0.0
 ```
 
 Docker image `ghcr.io/strangelove-ventures/heighliner/gaia:v6.0.0` will be built and pushed to ghcr.io
@@ -77,7 +77,7 @@ Customize the platform(s) to be built with the `--platform` flag.
 #### Example: build x64 and arm64 docker images for gaia v7.0.1:
 
 ```bash
-heighliner build -c gaia -v v7.0.1
+heighliner build -c gaia -g v7.0.1
 ```
 
 Docker images for `heighliner/gaia:v7.0.1` will now be available in your local docker. The manifest for the tag will contain both amd64 and arm64 images.
@@ -85,7 +85,7 @@ Docker images for `heighliner/gaia:v7.0.1` will now be available in your local d
 #### Example: Use custom buildkit server, build x64 and arm64 docker images for gaia v7.0.1, and push:
 
 ```bash
-heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -v v7.0.1 -r ghcr.io/strangelove-ventures/heighliner
+heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -g v7.0.1 -r ghcr.io/strangelove-ventures/heighliner
 ```
 
 Docker images for `heighliner/gaia:v7.0.1` will be built on the remote buildkit server and then pushed to the container repository. The manifest for the tag will contain both amd64 and arm64 images.

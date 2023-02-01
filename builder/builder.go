@@ -102,7 +102,6 @@ func rawDockerfile(
 	useBuildKit bool,
 	local bool,
 ) []byte {
-	fmt.Printf("dockerfileType: %s\n", dockerfileType)
 	switch dockerfileType {
 	case DockerfileTypeImported:
 		return dockerfileEmbeddedOrLocal("imported/Dockerfile", dockerfile.Imported)
