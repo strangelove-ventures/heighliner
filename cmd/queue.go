@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/strangelove-ventures/heighliner/build"
+	"github.com/strangelove-ventures/heighliner/builder"
 )
 
 type GithubRelease struct {
@@ -16,18 +16,18 @@ type GithubRelease struct {
 }
 
 func mostRecentReleasesForChain(
-	chainNodeConfig build.ChainNodeConfig,
+	chainNodeConfig builder.ChainNodeConfig,
 	number int16,
-) (build.HeighlinerQueuedChainBuilds, error) {
+) (builder.HeighlinerQueuedChainBuilds, error) {
 	if chainNodeConfig.GithubOrganization == "" || chainNodeConfig.GithubRepo == "" {
-		return build.HeighlinerQueuedChainBuilds{}, fmt.Errorf("github organization: %s and/or repo: %s not provided for chain: %s\n", chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, chainNodeConfig.Name)
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("github organization: %s and/or repo: %s not provided for chain: %s\n", chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, chainNodeConfig.Name)
 	}
 	client := http.Client{Timeout: 5 * time.Second}
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.github.com/repos/%s/%s/releases?per_page=%d&page=1",
 		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, number), http.NoBody)
 	if err != nil {
-		return build.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error building github releases request: %v", err)
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error building github releases request: %v", err)
 	}
 
 	basicAuthUser := os.Getenv("GITHUB_USER")
@@ -37,24 +37,24 @@ func mostRecentReleasesForChain(
 
 	res, err := client.Do(req)
 	if err != nil {
-		return build.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error performing github releases request: %v", err)
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error performing github releases request: %v", err)
 	}
 
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return build.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error reading body from github releases request: %v", err)
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error reading body from github releases request: %v", err)
 	}
 
 	releases := []GithubRelease{}
 	err = json.Unmarshal(body, &releases)
 	if err != nil {
-		return build.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error parsing github releases response: %s, error: %v", body, err)
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error parsing github releases response: %s, error: %v", body, err)
 	}
-	chainQueuedBuilds := build.HeighlinerQueuedChainBuilds{ChainConfigs: []build.ChainNodeDockerBuildConfig{}}
+	chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
 	for i, release := range releases {
-		chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, build.ChainNodeDockerBuildConfig{
+		chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, builder.ChainNodeDockerBuildConfig{
 			Build:  chainNodeConfig,
 			Ref:    release.TagName,
 			Latest: i == 0,
@@ -65,7 +65,7 @@ func mostRecentReleasesForChain(
 }
 
 func queueAndBuild(
-	buildConfig build.HeighlinerDockerBuildConfig,
+	buildConfig builder.HeighlinerDockerBuildConfig,
 	chain string,
 	org string,
 	ref string,
@@ -75,7 +75,7 @@ func queueAndBuild(
 	number int16,
 	parallel int16,
 ) {
-	heighlinerBuilder := build.NewHeighlinerBuilder(buildConfig, parallel, local)
+	heighlinerBuilder := builder.NewHeighlinerBuilder(buildConfig, parallel, local)
 
 	for _, chainNodeConfig := range chains {
 		// If chain is provided, only build images for that chain
@@ -86,9 +86,9 @@ func queueAndBuild(
 		if org != "" {
 			chainNodeConfig.GithubOrganization = org
 		}
-		chainQueuedBuilds := build.HeighlinerQueuedChainBuilds{ChainConfigs: []build.ChainNodeDockerBuildConfig{}}
+		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
 		if ref != "" || local {
-			chainConfig := build.ChainNodeDockerBuildConfig{
+			chainConfig := builder.ChainNodeDockerBuildConfig{
 				Build:  chainNodeConfig,
 				Ref:    ref,
 				Tag:    tag,

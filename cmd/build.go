@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/heighliner/build"
+	"github.com/strangelove-ventures/heighliner/builder"
 	"github.com/strangelove-ventures/heighliner/docker"
 	"gopkg.in/yaml.v2"
 )
@@ -39,7 +39,7 @@ func loadChainsYaml(configFile string) error {
 	if err != nil {
 		return fmt.Errorf("error reading file: %s: %w", configFile, err)
 	}
-	var newChains []build.ChainNodeConfig
+	var newChains []builder.ChainNodeConfig
 	err = yaml.Unmarshal(bz, &newChains)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling yaml from file: %s: %w", configFile, err)
@@ -94,7 +94,7 @@ it will be built and pushed`,
 		local, _ := cmdFlags.GetBool(flagLocal)
 		parallel, _ := cmdFlags.GetInt16(flagParallel)
 
-		buildConfig := build.HeighlinerDockerBuildConfig{
+		buildConfig := builder.HeighlinerDockerBuildConfig{
 			ContainerRegistry: containerRegistry,
 			SkipPush:          skip,
 			UseBuildKit:       useBuildKit,

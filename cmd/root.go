@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/heighliner/build"
+	"github.com/strangelove-ventures/heighliner/builder"
 	"gopkg.in/yaml.v2"
 )
 
@@ -18,7 +18,7 @@ This tool can generate docker images for all different release versions
 of the configured Cosmos blockchains in chains.yaml`,
 }
 
-var chains []build.ChainNodeConfig
+var chains []builder.ChainNodeConfig
 
 func Execute(chainsYaml []byte) {
 	err := yaml.Unmarshal(chainsYaml, &chains)
