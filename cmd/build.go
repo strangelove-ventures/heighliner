@@ -137,7 +137,7 @@ func init() {
 
 	buildCmd.PersistentFlags().BoolP(flagUseBuildkit, "b", false, "Use buildkit to build multi-arch images")
 	buildCmd.PersistentFlags().String(flagBuildkitAddr, docker.BuildKitSock, "Address of the buildkit socket, can be unix, tcp, ssl")
-	buildCmd.PersistentFlags().StringP(flagPlatform, "p", docker.DefaultPlatforms, "Platforms to build")
+	buildCmd.PersistentFlags().StringP(flagPlatform, "p", docker.DefaultPlatforms, "Platforms to build (only applies to buildkit builds with -b)")
 	buildCmd.PersistentFlags().Bool(flagNoCache, false, "Don't use docker cache for building")
 	buildCmd.PersistentFlags().Bool(flagNoBuildCache, false, "Invalidate caches for clone and build.")
 
