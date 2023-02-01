@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/strangelove-ventures/heighliner/build"
 	"gopkg.in/yaml.v2"
 )
 
@@ -17,12 +18,12 @@ This tool can generate docker images for all different release versions
 of the configured Cosmos blockchains in chains.yaml`,
 }
 
-var chains []ChainNodeConfig
+var chains []build.ChainNodeConfig
 
 func Execute(chainsYaml []byte) {
 	err := yaml.Unmarshal(chainsYaml, &chains)
 	if err != nil {
-		log.Fatalf("Error parsing chains.yaml: %v", err)
+		panic(fmt.Errorf("error parsing chains.yaml: %v", err))
 	}
 
 	err = rootCmd.Execute()

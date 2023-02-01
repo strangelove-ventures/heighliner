@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -54,7 +53,7 @@ func BuildDockerImage(ctx context.Context, dockerfile string, tags []string, pus
 
 	tar, err := archive.TarWithOptions("./", &archive.TarOptions{})
 	if err != nil {
-		log.Fatalf("Error archiving project for docker: %v", err)
+		panic(fmt.Errorf("error archiving project for docker: %v", err))
 	}
 
 	res, err := dockerClient.ImageBuild(ctx, tar, opts)
