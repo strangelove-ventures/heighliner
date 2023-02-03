@@ -150,44 +150,54 @@ func baseImageForGoVersion(
 	repoName string,
 	ref string,
 	buildDir string,
+	local bool,
 ) (string, error) {
-
-	// single branch depth 1 clone to only fetch most recent state of files
-	cloneOpts := &git.CloneOptions{
-		URL:          fmt.Sprintf("https://%s/%s/%s", repoHost, organization, repoName),
-		SingleBranch: true,
-		Depth:        1,
-	}
-	// Try as tag ref first
-	cloneOpts.ReferenceName = plumbing.NewTagReferenceName(ref)
-
-	// Clone into memory
-	fs := memfs.New()
-
-	_, err := git.Clone(memory.NewStorage(), fs, cloneOpts)
-	if err != nil {
-		// In error case, try as branch ref
-		cloneOpts.ReferenceName = plumbing.NewBranchReferenceName(ref)
-
-		_, err := git.Clone(memory.NewStorage(), fs, cloneOpts)
-		if err != nil {
-			return "", fmt.Errorf("failed to clone go.mod file to determine go version: %w", err)
-		}
-	}
+	var goModBz []byte
+	var err error
 
 	goModPath := "go.mod"
 	if buildDir != "" {
-		goModPath = buildDir + "/" + goModPath
+		goModPath = filepath.Join(buildDir, goModPath)
 	}
 
-	goModFile, err := fs.Open(goModPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to open go.mod file: %w", err)
-	}
+	if local {
+		goModBz, err = os.ReadFile(goModPath)
+		if err != nil {
+			return "", fmt.Errorf("failed to read %s for local build: %w", goModPath, err)
+		}
+	} else {
+		// single branch depth 1 clone to only fetch most recent state of files
+		cloneOpts := &git.CloneOptions{
+			URL:          fmt.Sprintf("https://%s/%s/%s", repoHost, organization, repoName),
+			SingleBranch: true,
+			Depth:        1,
+		}
+		// Try as tag ref first
+		cloneOpts.ReferenceName = plumbing.NewTagReferenceName(ref)
 
-	goModBz, err := io.ReadAll(goModFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to read go.mod file: %w", err)
+		// Clone into memory
+		fs := memfs.New()
+
+		_, err = git.Clone(memory.NewStorage(), fs, cloneOpts)
+		if err != nil {
+			// In error case, try as branch ref
+			cloneOpts.ReferenceName = plumbing.NewBranchReferenceName(ref)
+
+			_, err := git.Clone(memory.NewStorage(), fs, cloneOpts)
+			if err != nil {
+				return "", fmt.Errorf("failed to clone go.mod file to determine go version: %w", err)
+			}
+		}
+
+		goModFile, err := fs.Open(goModPath)
+		if err != nil {
+			return "", fmt.Errorf("failed to open go.mod file: %w", err)
+		}
+
+		goModBz, err = io.ReadAll(goModFile)
+		if err != nil {
+			return "", fmt.Errorf("failed to read go.mod file: %w", err)
+		}
 	}
 
 	goMod, err := modfile.Parse("go.mod", goModBz, nil)
@@ -275,7 +285,12 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
-	fmt.Printf("Building image from ref: %s, tags: +%v\n", chainConfig.Ref, imageTags)
+	buildFrom := "ref: " + chainConfig.Ref
+	if h.local {
+		buildFrom = "current working directory source"
+	}
+
+	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
 
 	buildEnv := ""
 
@@ -307,7 +322,10 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 	if dockerfile == DockerfileTypeCosmos {
 		baseVersion = GoDefaultImage // default, and fallback if go.mod parse fails
 
-		baseVer, err := baseImageForGoVersion(repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo, chainConfig.Ref, chainConfig.Build.BuildDir)
+		baseVer, err := baseImageForGoVersion(
+			repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo,
+			chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
+		)
 
 		// In error case, fallback to default image
 		if err != nil {
