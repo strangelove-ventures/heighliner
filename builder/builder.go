@@ -163,7 +163,7 @@ func baseImageForGoVersion(
 
 	goModPath := "go.mod"
 	if buildDir != "" {
-		goModPath = buildDir + "/" + goModPath
+		goModPath = filepath.Join(buildDir, goModPath)
 	}
 
 	if local {
@@ -290,11 +290,9 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		imageTags = append(imageTags, fmt.Sprintf("%s:latest", imageName))
 	}
 
-	var buildFrom string
+	buildFrom := "ref: " + chainConfig.Ref
 	if h.local {
 		buildFrom = "current working directory source"
-	} else {
-		buildFrom = "ref: " + chainConfig.Ref
 	}
 
 	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
