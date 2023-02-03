@@ -122,18 +122,12 @@ func rawDockerfile(
 	case DockerfileTypeImported:
 		return dockerfileEmbeddedOrLocal("imported/Dockerfile", dockerfile.Imported)
 
-	case DockerfileTypeRust:
-		// DEPRECATED
-		fallthrough
 	case DockerfileTypeCargo:
 		if useBuildKit {
 			return dockerfileEmbeddedOrLocal("cargo/Dockerfile", dockerfile.Cargo)
 		}
 		return dockerfileEmbeddedOrLocal("cargo/native.Dockerfile", dockerfile.CargoNative)
 
-	case DockerfileTypeGo:
-		// DEPRECATED
-		fallthrough
 	case DockerfileTypeCosmos:
 		if local {
 			// local builds always use embedded Dockerfile.
@@ -232,6 +226,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 	for _, rep := range deprecationReplacements {
 		if dockerfile == rep[0] {
 			fmt.Printf("'dockerfile' value of '%s' is deprecated, please use '%s' instead\n", rep[0], rep[1])
+			dockerfile = rep[1]
 		}
 	}
 	// END DEPRECATION HANDLING
