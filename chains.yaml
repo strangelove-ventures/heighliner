@@ -1,3 +1,14 @@
+# Acrechain
+- name: acrechain
+  github-organization: ArableProtocol
+  github-repo: acrechain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/acred
+  build-env:
+    - LEDGER_ENABLED=false
+
 # Agoric-sdk
 - name: agoric
   dockerfile: imported
