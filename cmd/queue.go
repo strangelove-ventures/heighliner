@@ -72,8 +72,13 @@ func queueAndBuild(
 	org string,
 	repo string,
 	repoHost string,
+	dockerfile string,
+	buildDir string,
+	preBuild string,
 	buildTarget string,
 	buildEnv string,
+	binaries string,
+	libraries string,
 	ref string,
 	tag string,
 	latest bool,
@@ -104,6 +109,12 @@ func queueAndBuild(
 		if buildEnv != "" {
 			chainNodeConfig.BuildEnv = strings.Split(buildEnv, " ")
 		}
+		if binaries != "" {
+			chainNodeConfig.Binaries = strings.Split(binaries, " ")
+		}
+		if libraries != "" {
+			chainNodeConfig.Libraries = strings.Split(libraries, " ")
+		}
 		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
 		if ref != "" || local {
 			chainConfig := builder.ChainNodeDockerBuildConfig{
@@ -123,9 +134,32 @@ func queueAndBuild(
 			fmt.Printf("Error queueing docker image builds for chain %s: %v", chainNodeConfig.Name, err)
 			continue
 		}
-		if len(chainBuilds.ChainConfigs) > 0 {
-			heighlinerBuilder.AddToQueue(chainBuilds)
-		}
+		heighlinerBuilder.AddToQueue(chainBuilds)
 	}
+
+	if heighlinerBuilder.QueueLen() == 0 {
+		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
+		chainConfig := builder.ChainNodeDockerBuildConfig{
+			Build: builder.ChainNodeConfig{
+				Name:               chain,
+				RepoHost:           repoHost,
+				GithubOrganization: org,
+				GithubRepo:         repo,
+				Dockerfile:         builder.DockerfileType(dockerfile),
+				PreBuild:           preBuild,
+				BuildTarget:        buildTarget,
+				BuildEnv:           strings.Split(buildEnv, " "),
+				BuildDir:           buildDir,
+				Binaries:           strings.Split(binaries, " "),
+				Libraries:          strings.Split(libraries, " "),
+			},
+			Ref:    ref,
+			Tag:    tag,
+			Latest: latest,
+		}
+		chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, chainConfig)
+		heighlinerBuilder.AddToQueue(chainQueuedBuilds)
+	}
+
 	heighlinerBuilder.BuildImages()
 }

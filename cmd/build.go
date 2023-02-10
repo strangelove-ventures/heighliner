@@ -19,8 +19,13 @@ const (
 	flagRepo         = "repo"
 	flagRepoHost     = "repo-host"
 	flagGitRef       = "git-ref"
+	flagDockerfile   = "dockerfile"
+	flagBuildDir     = "build-dir"
+	flagPreBuild     = "pre-build"
 	flagBuildTarget  = "build-target"
 	flagBuildEnv     = "build-env"
+	flagBinaries     = "binaries"
+	flagLibraries    = "libraries"
 	flagTag          = "tag"
 	flagVersion      = "version" // DEPRECATED
 	flagNumber       = "number"
@@ -88,8 +93,13 @@ it will be built and pushed`,
 		org, _ := cmdFlags.GetString(flagOrg)
 		repo, _ := cmdFlags.GetString(flagRepo)
 		repoHost, _ := cmdFlags.GetString(flagRepoHost)
+		dockerfile, _ := cmdFlags.GetString(flagDockerfile)
+		buildDir, _ := cmdFlags.GetString(flagBuildDir)
+		preBuild, _ := cmdFlags.GetString(flagPreBuild)
 		buildTarget, _ := cmdFlags.GetString(flagBuildTarget)
 		buildEnv, _ := cmdFlags.GetString(flagBuildEnv)
+		binaries, _ := cmdFlags.GetString(flagBinaries)
+		libraries, _ := cmdFlags.GetString(flagLibraries)
 		number, _ := cmdFlags.GetInt16(flagNumber)
 		skip, _ := cmdFlags.GetBool(flagSkip)
 
@@ -124,7 +134,9 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 		}
 		// END DEPRECATION HANDLING
 
-		queueAndBuild(buildConfig, chain, org, repo, repoHost, buildTarget, buildEnv, ref, tag, latest, local, number, parallel)
+		queueAndBuild(buildConfig, chain, org, repo, repoHost,
+			dockerfile, buildDir, preBuild, buildTarget, buildEnv,
+			binaries, libraries, ref, tag, latest, local, number, parallel)
 	},
 }
 
@@ -138,8 +150,13 @@ func init() {
 	buildCmd.PersistentFlags().String(flagRepo, "", "Git repo override for building from a fork")
 	buildCmd.PersistentFlags().String(flagRepoHost, "", "Git repository host override for building from a fork")
 	buildCmd.PersistentFlags().StringP(flagGitRef, "g", "", "Github short ref to build (branch, tag)")
+	buildCmd.PersistentFlags().String(flagDockerfile, "", "dockerfile override (cosmos, cargo, imported, none)")
+	buildCmd.PersistentFlags().String(flagBuildDir, "", "build-dir override - repo relative directory to run build target")
+	buildCmd.PersistentFlags().String(flagPreBuild, "", "pre-build override - command(s) to run prior to build-target")
 	buildCmd.PersistentFlags().String(flagBuildTarget, "", "Build target (build-target) override")
-	buildCmd.PersistentFlags().String(flagBuildEnv, "", "Build environment variables (build-env) override")
+	buildCmd.PersistentFlags().String(flagBuildEnv, "", "build-env override - Build environment variables")
+	buildCmd.PersistentFlags().String(flagBinaries, "", "binaries override - Binaries after build phase to package into final image")
+	buildCmd.PersistentFlags().String(flagLibraries, "", "libraries override - Libraries after build phase to package into final image")
 	buildCmd.PersistentFlags().StringP(flagTag, "t", "", "Resulting docker image tag. If not provided, will derive from ref.")
 	buildCmd.PersistentFlags().Int16P(flagNumber, "n", 5, "Number of releases to build per chain")
 	buildCmd.PersistentFlags().Int16(flagParallel, 1, "Number of docker builds to run simultaneously")
