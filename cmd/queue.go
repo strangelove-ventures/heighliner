@@ -69,6 +69,7 @@ func queueAndBuild(
 	buildConfig builder.HeighlinerDockerBuildConfig,
 	chain string,
 	org string,
+	buildTarget string,
 	ref string,
 	tag string,
 	latest bool,
@@ -86,6 +87,9 @@ func queueAndBuild(
 		}
 		if org != "" {
 			chainNodeConfig.GithubOrganization = org
+		}
+		if buildTarget != "" {
+			chainNodeConfig.BuildTarget = buildTarget
 		}
 		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
 		if ref != "" || local {

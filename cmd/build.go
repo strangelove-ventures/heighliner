@@ -17,6 +17,7 @@ const (
 	flagChain        = "chain"
 	flagOrg          = "org"
 	flagGitRef       = "git-ref"
+	flagBuildTarget  = "build-target"
 	flagTag          = "tag"
 	flagVersion      = "version" // DEPRECATED
 	flagNumber       = "number"
@@ -82,6 +83,7 @@ it will be built and pushed`,
 		ref, _ := cmdFlags.GetString(flagGitRef)
 		tag, _ := cmdFlags.GetString(flagTag)
 		org, _ := cmdFlags.GetString(flagOrg)
+		buildTarget, _ := cmdFlags.GetString(flagBuildTarget)
 		number, _ := cmdFlags.GetInt16(flagNumber)
 		skip, _ := cmdFlags.GetBool(flagSkip)
 
@@ -116,7 +118,7 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 		}
 		// END DEPRECATION HANDLING
 
-		queueAndBuild(buildConfig, chain, org, ref, tag, latest, local, number, parallel)
+		queueAndBuild(buildConfig, chain, org, buildTarget, ref, tag, latest, local, number, parallel)
 	},
 }
 
@@ -128,6 +130,7 @@ func init() {
 	buildCmd.PersistentFlags().StringP(flagChain, "c", "", "Cosmos chain to build from chains.yaml")
 	buildCmd.PersistentFlags().StringP(flagOrg, "o", "", "Github organization override for building from a fork")
 	buildCmd.PersistentFlags().StringP(flagGitRef, "g", "", "Github short ref to build (branch, tag)")
+	buildCmd.PersistentFlags().String(flagBuildTarget, "", "Build target override")
 	buildCmd.PersistentFlags().StringP(flagTag, "t", "", "Resulting docker image tag. If not provided, will derive from ref.")
 	buildCmd.PersistentFlags().Int16P(flagNumber, "n", 5, "Number of releases to build per chain")
 	buildCmd.PersistentFlags().Int16(flagParallel, 1, "Number of docker builds to run simultaneously")
