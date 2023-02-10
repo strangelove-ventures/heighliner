@@ -16,8 +16,11 @@ const (
 	flagRegistry     = "registry"
 	flagChain        = "chain"
 	flagOrg          = "org"
+	flagRepo         = "repo"
+	flagRepoHost     = "repo-host"
 	flagGitRef       = "git-ref"
 	flagBuildTarget  = "build-target"
+	flagBuildEnv     = "build-env"
 	flagTag          = "tag"
 	flagVersion      = "version" // DEPRECATED
 	flagNumber       = "number"
@@ -83,7 +86,10 @@ it will be built and pushed`,
 		ref, _ := cmdFlags.GetString(flagGitRef)
 		tag, _ := cmdFlags.GetString(flagTag)
 		org, _ := cmdFlags.GetString(flagOrg)
+		repo, _ := cmdFlags.GetString(flagRepo)
+		repoHost, _ := cmdFlags.GetString(flagRepoHost)
 		buildTarget, _ := cmdFlags.GetString(flagBuildTarget)
+		buildEnv, _ := cmdFlags.GetString(flagBuildEnv)
 		number, _ := cmdFlags.GetInt16(flagNumber)
 		skip, _ := cmdFlags.GetBool(flagSkip)
 
@@ -118,7 +124,7 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 		}
 		// END DEPRECATION HANDLING
 
-		queueAndBuild(buildConfig, chain, org, buildTarget, ref, tag, latest, local, number, parallel)
+		queueAndBuild(buildConfig, chain, org, repo, repoHost, buildTarget, buildEnv, ref, tag, latest, local, number, parallel)
 	},
 }
 
@@ -129,8 +135,11 @@ func init() {
 	buildCmd.PersistentFlags().StringP(flagRegistry, "r", "", "Docker Container Registry for pushing images")
 	buildCmd.PersistentFlags().StringP(flagChain, "c", "", "Cosmos chain to build from chains.yaml")
 	buildCmd.PersistentFlags().StringP(flagOrg, "o", "", "Github organization override for building from a fork")
+	buildCmd.PersistentFlags().String(flagRepo, "", "Git repo override for building from a fork")
+	buildCmd.PersistentFlags().String(flagRepoHost, "", "Git repository host override for building from a fork")
 	buildCmd.PersistentFlags().StringP(flagGitRef, "g", "", "Github short ref to build (branch, tag)")
-	buildCmd.PersistentFlags().String(flagBuildTarget, "", "Build target override")
+	buildCmd.PersistentFlags().String(flagBuildTarget, "", "Build target (build-target) override")
+	buildCmd.PersistentFlags().String(flagBuildEnv, "", "Build environment variables (build-env) override")
 	buildCmd.PersistentFlags().StringP(flagTag, "t", "", "Resulting docker image tag. If not provided, will derive from ref.")
 	buildCmd.PersistentFlags().Int16P(flagNumber, "n", 5, "Number of releases to build per chain")
 	buildCmd.PersistentFlags().Int16(flagParallel, 1, "Number of docker builds to run simultaneously")

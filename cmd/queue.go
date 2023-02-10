@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/strangelove-ventures/heighliner/builder"
@@ -69,7 +70,10 @@ func queueAndBuild(
 	buildConfig builder.HeighlinerDockerBuildConfig,
 	chain string,
 	org string,
+	repo string,
+	repoHost string,
 	buildTarget string,
+	buildEnv string,
 	ref string,
 	tag string,
 	latest bool,
@@ -88,8 +92,17 @@ func queueAndBuild(
 		if org != "" {
 			chainNodeConfig.GithubOrganization = org
 		}
+		if repo != "" {
+			chainNodeConfig.GithubRepo = repo
+		}
+		if repoHost != "" {
+			chainNodeConfig.RepoHost = repoHost
+		}
 		if buildTarget != "" {
 			chainNodeConfig.BuildTarget = buildTarget
+		}
+		if buildEnv != "" {
+			chainNodeConfig.BuildEnv = strings.Split(buildEnv, " ")
 		}
 		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
 		if ref != "" || local {
