@@ -11,6 +11,28 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type chainConfigFlags struct {
+	chain    string
+	ref      string
+	tag      string
+	latest   bool
+	local    bool
+	number   int16
+	parallel int16
+
+	// chains.yaml parameter override flags
+	orgOverride         string
+	repoOverride        string
+	repoHostOverride    string
+	dockerfileOverride  string
+	buildDirOverride    string
+	preBuildOverride    string
+	buildTargetOverride string
+	buildEnvOverride    string
+	binariesOverride    string
+	librariesOverride   string
+}
+
 const (
 	flagFile         = "file"
 	flagRegistry     = "registry"
@@ -57,119 +79,94 @@ func loadChainsYaml(configFile string) error {
 	return nil
 }
 
-var buildCmd = &cobra.Command{
-	Use:   "build",
-	Short: "Build the docker images",
-	Long: `By default, fetch the last 5 releases in the repositories specified in chains.yaml.
+func BuildCmd() *cobra.Command {
+	var chainConfig chainConfigFlags
+	var buildConfig builder.HeighlinerDockerBuildConfig
+
+	var buildCmd = &cobra.Command{
+		Use:   "build",
+		Short: "Build the docker images",
+		Long: `By default, fetch the last 5 releases in the repositories specified in chains.yaml.
 For each tag that doesn't exist in the specified container repository,
 it will be built and pushed`,
-	Run: func(cmd *cobra.Command, args []string) {
-		cmdFlags := cmd.Flags()
+		Run: func(cmd *cobra.Command, args []string) {
+			cmdFlags := cmd.Flags()
 
-		configFile, _ := cmdFlags.GetString(flagFile)
-		if configFile == "" {
-			// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
-			cwd, err := os.Getwd()
-			if err == nil {
-				chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
-				if err := loadChainsYaml(chainsYamlSearchPath); err != nil {
-					fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
-				} else {
-					fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
+			configFile, _ := cmdFlags.GetString(flagFile)
+			if configFile == "" {
+				// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
+				cwd, err := os.Getwd()
+				if err == nil {
+					chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
+					if err := loadChainsYaml(chainsYamlSearchPath); err != nil {
+						fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
+					} else {
+						fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
+					}
+				}
+			} else {
+				// if flag is explicitly provided, panic on error since intent was to override embedded chains.
+				if err := loadChainsYaml(configFile); err != nil {
+					panic(err)
 				}
 			}
-		} else {
-			// if flag is explicitly provided, panic on error since intent was to override embedded chains.
-			if err := loadChainsYaml(configFile); err != nil {
-				panic(err)
-			}
-		}
 
-		containerRegistry, _ := cmdFlags.GetString(flagRegistry)
-		chain, _ := cmdFlags.GetString(flagChain)
-		version, _ := cmdFlags.GetString(flagVersion)
-		ref, _ := cmdFlags.GetString(flagGitRef)
-		tag, _ := cmdFlags.GetString(flagTag)
-		org, _ := cmdFlags.GetString(flagOrg)
-		repo, _ := cmdFlags.GetString(flagRepo)
-		repoHost, _ := cmdFlags.GetString(flagRepoHost)
-		dockerfile, _ := cmdFlags.GetString(flagDockerfile)
-		buildDir, _ := cmdFlags.GetString(flagBuildDir)
-		preBuild, _ := cmdFlags.GetString(flagPreBuild)
-		buildTarget, _ := cmdFlags.GetString(flagBuildTarget)
-		buildEnv, _ := cmdFlags.GetString(flagBuildEnv)
-		binaries, _ := cmdFlags.GetString(flagBinaries)
-		libraries, _ := cmdFlags.GetString(flagLibraries)
-		number, _ := cmdFlags.GetInt16(flagNumber)
-		skip, _ := cmdFlags.GetBool(flagSkip)
+			version, _ := cmdFlags.GetString(flagVersion)
 
-		useBuildKit, _ := cmdFlags.GetBool(flagUseBuildkit)
-		buildKitAddr, _ := cmdFlags.GetString(flagBuildkitAddr)
-		platform, _ := cmdFlags.GetString(flagPlatform)
-		noCache, _ := cmdFlags.GetBool(flagNoCache)
-		noBuildCache, _ := cmdFlags.GetBool(flagNoBuildCache)
-		latest, _ := cmdFlags.GetBool(flagLatest)
-		local, _ := cmdFlags.GetBool(flagLocal)
-		parallel, _ := cmdFlags.GetInt16(flagParallel)
-
-		buildConfig := builder.HeighlinerDockerBuildConfig{
-			ContainerRegistry: containerRegistry,
-			SkipPush:          skip,
-			UseBuildKit:       useBuildKit,
-			BuildKitAddr:      buildKitAddr,
-			Platform:          platform,
-			NoCache:           noCache,
-			NoBuildCache:      noBuildCache,
-		}
-
-		// DEPRECATION HANDLING
-		if version != "" {
-			if ref == "" {
-				ref = version
-			}
-			fmt.Printf(
-				`Warning: --version/-v flag is deprecated. Please update to use --git-ref/-g instead. 
+			// DEPRECATION HANDLING
+			if version != "" {
+				if chainConfig.ref == "" {
+					chainConfig.ref = version
+				}
+				fmt.Printf(
+					`Warning: --version/-v flag is deprecated. Please update to use --git-ref/-g instead. 
 An optional flag --tag/-t is now available to override the resulting docker image tag if desirable to differ from the derived tag
 `)
-		}
-		// END DEPRECATION HANDLING
+			}
+			// END DEPRECATION HANDLING
 
-		queueAndBuild(buildConfig, chain, org, repo, repoHost,
-			dockerfile, buildDir, preBuild, buildTarget, buildEnv,
-			binaries, libraries, ref, tag, latest, local, number, parallel)
-	},
-}
+			queueAndBuild(buildConfig, chainConfig)
+		},
+	}
 
-func init() {
-	rootCmd.AddCommand(buildCmd)
+	buildCmd.PersistentFlags().StringP(flagFile, "f", "", "chains.yaml config file path (searches for chains.yaml in current directory by default)")
 
-	buildCmd.PersistentFlags().StringP(flagFile, "f", "", "chains.yaml config file path")
-	buildCmd.PersistentFlags().StringP(flagRegistry, "r", "", "Docker Container Registry for pushing images")
-	buildCmd.PersistentFlags().StringP(flagChain, "c", "", "Cosmos chain to build from chains.yaml")
-	buildCmd.PersistentFlags().StringP(flagOrg, "o", "", "Github organization override for building from a fork")
-	buildCmd.PersistentFlags().String(flagRepo, "", "Git repo override for building from a fork")
-	buildCmd.PersistentFlags().String(flagRepoHost, "", "Git repository host override for building from a fork")
-	buildCmd.PersistentFlags().StringP(flagGitRef, "g", "", "Github short ref to build (branch, tag)")
-	buildCmd.PersistentFlags().String(flagDockerfile, "", "dockerfile override (cosmos, cargo, imported, none)")
-	buildCmd.PersistentFlags().String(flagBuildDir, "", "build-dir override - repo relative directory to run build target")
-	buildCmd.PersistentFlags().String(flagPreBuild, "", "pre-build override - command(s) to run prior to build-target")
-	buildCmd.PersistentFlags().String(flagBuildTarget, "", "Build target (build-target) override")
-	buildCmd.PersistentFlags().String(flagBuildEnv, "", "build-env override - Build environment variables")
-	buildCmd.PersistentFlags().String(flagBinaries, "", "binaries override - Binaries after build phase to package into final image")
-	buildCmd.PersistentFlags().String(flagLibraries, "", "libraries override - Libraries after build phase to package into final image")
-	buildCmd.PersistentFlags().StringP(flagTag, "t", "", "Resulting docker image tag. If not provided, will derive from ref.")
-	buildCmd.PersistentFlags().Int16P(flagNumber, "n", 5, "Number of releases to build per chain")
-	buildCmd.PersistentFlags().Int16(flagParallel, 1, "Number of docker builds to run simultaneously")
-	buildCmd.PersistentFlags().BoolP(flagSkip, "s", false, "Skip pushing images to registry")
-	buildCmd.PersistentFlags().BoolP(flagLatest, "l", false, "Also push latest tag (for single version build only)")
-	buildCmd.PersistentFlags().Bool(flagLocal, false, "Use local directory (not git repository)")
+	// Chain config options
+	buildCmd.PersistentFlags().StringVarP(&chainConfig.chain, flagChain, "c", "", "Cosmos chain to build from chains.yaml")
+	buildCmd.PersistentFlags().StringVarP(&chainConfig.ref, flagGitRef, "g", "", "Github short ref to build (branch, tag)")
+	buildCmd.PersistentFlags().StringVarP(&chainConfig.tag, flagTag, "t", "", "Resulting docker image tag. If not provided, will derive from ref.")
+	buildCmd.PersistentFlags().Int16VarP(&chainConfig.number, flagNumber, "n", 5, "Number of releases to build per chain")
+	buildCmd.PersistentFlags().Int16Var(&chainConfig.parallel, flagParallel, 1, "Number of docker builds to run simultaneously")
+	buildCmd.PersistentFlags().BoolVarP(&chainConfig.latest, flagLatest, "l", false, "Also push latest tag (for single version build only)")
+	buildCmd.PersistentFlags().BoolVar(&chainConfig.local, flagLocal, false, "Use local directory (not git repository)")
 
-	buildCmd.PersistentFlags().BoolP(flagUseBuildkit, "b", false, "Use buildkit to build multi-arch images")
-	buildCmd.PersistentFlags().String(flagBuildkitAddr, docker.BuildKitSock, "Address of the buildkit socket, can be unix, tcp, ssl")
-	buildCmd.PersistentFlags().StringP(flagPlatform, "p", docker.DefaultPlatforms, "Platforms to build (only applies to buildkit builds with -b)")
-	buildCmd.PersistentFlags().Bool(flagNoCache, false, "Don't use docker cache for building")
-	buildCmd.PersistentFlags().Bool(flagNoBuildCache, false, "Invalidate caches for clone and build.")
+	// Chain config override flags (overwrites chains.yaml params)
+	buildCmd.PersistentFlags().StringVarP(&chainConfig.orgOverride, flagOrg, "o", "", "github-organization override for building from a fork")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.repoOverride, flagRepo, "", "github-repo override for building from a fork")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.repoHostOverride, flagRepoHost, "", "repo-host Git repository host override for building from a fork")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.dockerfileOverride, flagDockerfile, "", "dockerfile override (cosmos, cargo, imported, none)")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.buildDirOverride, flagBuildDir, "", "build-dir override - repo relative directory to run build target")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.preBuildOverride, flagPreBuild, "", "pre-build override - command(s) to run prior to build-target")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.buildTargetOverride, flagBuildTarget, "", "Build target (build-target) override")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.buildEnvOverride, flagBuildEnv, "", "build-env override - Build environment variables")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.binariesOverride, flagBinaries, "", "binaries override - Binaries after build phase to package into final image")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.librariesOverride, flagLibraries, "", "libraries override - Libraries after build phase to package into final image")
+
+	// Docker specific flags
+	buildCmd.PersistentFlags().StringVarP(&buildConfig.ContainerRegistry, flagRegistry, "r", "", "Docker Container Registry for pushing images")
+	buildCmd.PersistentFlags().BoolVarP(&buildConfig.SkipPush, flagSkip, "s", false, "Skip pushing images to registry")
+	buildCmd.PersistentFlags().BoolVarP(&buildConfig.UseBuildKit, flagUseBuildkit, "b", false, "Use buildkit to build multi-arch images")
+	buildCmd.PersistentFlags().StringVar(&buildConfig.BuildKitAddr, flagBuildkitAddr, docker.BuildKitSock, "Address of the buildkit socket, can be unix, tcp, ssl")
+	buildCmd.PersistentFlags().StringVarP(&buildConfig.Platform, flagPlatform, "p", docker.DefaultPlatforms, "Platforms to build (only applies to buildkit builds with -b)")
+	buildCmd.PersistentFlags().BoolVar(&buildConfig.NoCache, flagNoCache, false, "Don't use docker cache for building")
+	buildCmd.PersistentFlags().BoolVar(&buildConfig.NoBuildCache, flagNoBuildCache, false, "Invalidate caches for clone and build.")
 
 	// DEPRECATED
 	buildCmd.PersistentFlags().StringP(flagVersion, "v", "", "DEPRECATED, use --git-ref/-g instead")
+
+	return buildCmd
+}
+
+func init() {
+	rootCmd.AddCommand(BuildCmd())
 }
