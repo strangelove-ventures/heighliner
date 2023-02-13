@@ -36,6 +36,25 @@ heighliner build -c gaia --local
 
 Docker image `gaia:local` will be built and stored in your local docker images.
 
+#### Example: Build from a Github fork
+
+```bash
+cd ~/gaia-fork
+heighliner build -c gaia -o strangelove-ventures -g working_branch -t image_tag
+```
+
+Heighliner will build the `working_branch` branch from the `strangelove-ventures/gaia` github organization/repository. Docker image `gaia:image_tag` will be stored in your local docker images.
+
+#### Example: build with all overrides.
+
+Heighliner can build without a chain present in chains.yaml if the necessary flags are provided.
+
+```bash
+heighliner build -c somegaia -o somefork --repo gaia --dockerfile cosmos --build-target "make install" --build-env "LEDGER_ENABLED=false BUILD_TAGS=muslc" --binaries "/go/bin/gaiad" -g v8.0.0 -t v8.0.0-somefork
+```
+
+Docker image `somegaia:v8.0.0-somefork` will be built and stored in your local docker images.
+
 #### Example: build and push the gaia v6.0.0 docker image to ghcr:
 
 ```bash

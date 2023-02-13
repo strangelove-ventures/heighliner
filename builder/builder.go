@@ -66,6 +66,10 @@ func (h *HeighlinerBuilder) AddToQueue(chainBuilds ...HeighlinerQueuedChainBuild
 	h.queue = append(h.queue, chainBuilds...)
 }
 
+func (h *HeighlinerBuilder) QueueLen() int {
+	return len(h.queue)
+}
+
 // imageTag determines which docker image tag to use based on inputs.
 func imageTag(ref string, tag string, local bool) string {
 	if tag != "" {

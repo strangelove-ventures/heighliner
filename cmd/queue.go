@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/strangelove-ventures/heighliner/builder"
@@ -67,33 +68,44 @@ func mostRecentReleasesForChain(
 
 func queueAndBuild(
 	buildConfig builder.HeighlinerDockerBuildConfig,
-	chain string,
-	org string,
-	ref string,
-	tag string,
-	latest bool,
-	local bool,
-	number int16,
-	parallel int16,
+	chainConfig chainConfigFlags,
 ) {
-	heighlinerBuilder := builder.NewHeighlinerBuilder(buildConfig, parallel, local)
+	heighlinerBuilder := builder.NewHeighlinerBuilder(buildConfig, chainConfig.parallel, chainConfig.local)
 
 	for _, chainNodeConfig := range chains {
 		// If chain is provided, only build images for that chain
 		// Chain must be declared in chains.yaml
-		if chain != "" && chainNodeConfig.Name != chain {
+		if chainConfig.chain != "" && chainNodeConfig.Name != chainConfig.chain {
 			continue
 		}
-		if org != "" {
-			chainNodeConfig.GithubOrganization = org
+		if chainConfig.orgOverride != "" {
+			chainNodeConfig.GithubOrganization = chainConfig.orgOverride
+		}
+		if chainConfig.repoOverride != "" {
+			chainNodeConfig.GithubRepo = chainConfig.repoOverride
+		}
+		if chainConfig.repoHostOverride != "" {
+			chainNodeConfig.RepoHost = chainConfig.repoHostOverride
+		}
+		if chainConfig.buildTargetOverride != "" {
+			chainNodeConfig.BuildTarget = chainConfig.buildTargetOverride
+		}
+		if chainConfig.buildEnvOverride != "" {
+			chainNodeConfig.BuildEnv = strings.Split(chainConfig.buildEnvOverride, " ")
+		}
+		if chainConfig.binariesOverride != "" {
+			chainNodeConfig.Binaries = strings.Split(chainConfig.binariesOverride, " ")
+		}
+		if chainConfig.librariesOverride != "" {
+			chainNodeConfig.Libraries = strings.Split(chainConfig.librariesOverride, " ")
 		}
 		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
-		if ref != "" || local {
+		if chainConfig.ref != "" || chainConfig.local {
 			chainConfig := builder.ChainNodeDockerBuildConfig{
 				Build:  chainNodeConfig,
-				Ref:    ref,
-				Tag:    tag,
-				Latest: latest,
+				Ref:    chainConfig.ref,
+				Tag:    chainConfig.tag,
+				Latest: chainConfig.latest,
 			}
 			chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, chainConfig)
 			heighlinerBuilder.AddToQueue(chainQueuedBuilds)
@@ -101,14 +113,37 @@ func queueAndBuild(
 			return
 		}
 		// If specific version not provided, build images for the last n releases from the chain
-		chainBuilds, err := mostRecentReleasesForChain(chainNodeConfig, number)
+		chainBuilds, err := mostRecentReleasesForChain(chainNodeConfig, chainConfig.number)
 		if err != nil {
 			fmt.Printf("Error queueing docker image builds for chain %s: %v", chainNodeConfig.Name, err)
 			continue
 		}
-		if len(chainBuilds.ChainConfigs) > 0 {
-			heighlinerBuilder.AddToQueue(chainBuilds)
-		}
+		heighlinerBuilder.AddToQueue(chainBuilds)
 	}
+
+	if heighlinerBuilder.QueueLen() == 0 {
+		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
+		chainConfig := builder.ChainNodeDockerBuildConfig{
+			Build: builder.ChainNodeConfig{
+				Name:               chainConfig.chain,
+				RepoHost:           chainConfig.repoHostOverride,
+				GithubOrganization: chainConfig.orgOverride,
+				GithubRepo:         chainConfig.repoOverride,
+				Dockerfile:         builder.DockerfileType(chainConfig.dockerfileOverride),
+				PreBuild:           chainConfig.preBuildOverride,
+				BuildTarget:        chainConfig.buildTargetOverride,
+				BuildEnv:           strings.Split(chainConfig.buildEnvOverride, " "),
+				BuildDir:           chainConfig.buildDirOverride,
+				Binaries:           strings.Split(chainConfig.binariesOverride, " "),
+				Libraries:          strings.Split(chainConfig.librariesOverride, " "),
+			},
+			Ref:    chainConfig.ref,
+			Tag:    chainConfig.tag,
+			Latest: chainConfig.latest,
+		}
+		chainQueuedBuilds.ChainConfigs = append(chainQueuedBuilds.ChainConfigs, chainConfig)
+		heighlinerBuilder.AddToQueue(chainQueuedBuilds)
+	}
+
 	heighlinerBuilder.BuildImages()
 }
