@@ -565,9 +565,6 @@
   github-organization: onomyprotocol
   github-repo: onomy
   dockerfile: cosmos
-  # TODO: Heighliner will not produce working builds until https://github.com/onomyprotocol/onomy/pull/129 merged.
-  # If PR not merged for your git-ref, then update and push to our fork, https://github.com/strangelove-ventures/onomy, with Onomy upstream.
-  # And manually run heighliner command with `-o strangelove-ventures --git-ref main --tag <semver>`.
   build-target: make install
   binaries:
     - /go/bin/onomyd
