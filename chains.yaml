@@ -35,6 +35,8 @@
     - LEDGER_ENABLED=false
 
 # Axelar
+# Axelar may not build without manual intervention for v0.32+.
+# See issue: https://github.com/strangelove-ventures/heighliner/issues/94
 - name: axelar
   github-organization: axelarnetwork
   github-repo: axelar-core
@@ -46,12 +48,19 @@
     apk add --update nodejs npm jq py3-pip
     git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
+    # The npm commands will complain about nodejs versions but will proceed.
+    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92 
     npm ci
     npm run build
     npm run flatten
     mkdir -p ../contract-artifacts/gateway
     mv artifacts/* ../contract-artifacts/
     cd ..
+    # `make generate` installs prereqs. You can ignore messages to install go protoc.
+    # This will fail v0.32+ because of an addition to the Makefile.
+    # See issue: https://github.com/strangelove-ventures/heighliner/issues/94
+    # As a brittle hack/workaround, uncomment the below line to delete golangci-lint prereq:
+    # sed -i '116d' Makefile
     make generate
     VERSION=$(echo $(git describe --tags) | sed 's/^v//')
     COMMIT=$(git log -1 --format='%H')
