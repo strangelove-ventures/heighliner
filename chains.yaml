@@ -697,6 +697,17 @@
   platforms:
     - linux/amd64
 
+# Sei
+- name: sei
+  github-organization: sei-protocol
+  github-repo: sei-chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/seid
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official
