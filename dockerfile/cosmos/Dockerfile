@@ -115,19 +115,36 @@ COPY --from=infra-toolkit /busybox/busybox /bin/sh
 # Install jq
 COPY --from=infra-toolkit /usr/local/bin/jq /bin/
 
-# Add hard links for read-only utils, then remove ln and rm
+# Add hard links for read-only utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
-RUN ln sh pwd && \
-    ln sh ls && \
-    ln sh cat && \
-    ln sh less && \
-    ln sh grep && \
-    ln sh sleep && \
-    ln sh env && \
-    ln sh tar && \
-    ln sh tee && \
-    ln sh du && \
-    rm ln rm
+RUN for b in \
+  cat \
+  date \
+  df \
+  du \
+  env \
+  grep \
+  head \
+  less \
+  ls \
+  md5sum \
+  pwd \
+  sha1sum \
+  sha256sum \
+  sha3sum \
+  sha512sum \
+  sleep \
+  stty \
+  tail \
+  tar \
+  tee \
+  tr \
+  watch \
+  which \
+  ; do ln sh $b; done
+
+#  Remove write utils
+RUN rm ln rm
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
