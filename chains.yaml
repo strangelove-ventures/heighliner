@@ -551,6 +551,17 @@
   binaries:
     - /go/bin/nobled
 
+# Nolus
+- name: nolus
+  github-organization: Nolus-Protocol
+  github-repo: nolus-core
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/nolusd
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Omniflixhub
 - name: omniflixhub
   github-organization: OmniFlix
