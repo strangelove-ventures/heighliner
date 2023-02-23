@@ -93,7 +93,7 @@ ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.6 AS busybox-min
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use ln and rm from full featured busybox for assembling final image
@@ -110,21 +110,41 @@ WORKDIR /bin
 COPY --from=busybox-full /bin/ln /bin/rm ./
 
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
-COPY --from=busybox-min /busybox/busybox /bin/sh
+COPY --from=infra-toolkit /busybox/busybox /bin/sh
 
-# Add hard links for read-only utils, then remove ln and rm
+# Install jq
+COPY --from=infra-toolkit /usr/local/bin/jq /bin/
+
+# Add hard links for read-only utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
-RUN ln sh pwd && \
-    ln sh ls && \
-    ln sh cat && \
-    ln sh less && \
-    ln sh grep && \
-    ln sh sleep && \
-    ln sh env && \
-    ln sh tar && \
-    ln sh tee && \
-    ln sh du && \
-    rm ln rm
+RUN for b in \
+  cat \
+  date \
+  df \
+  du \
+  env \
+  grep \
+  head \
+  less \
+  ls \
+  md5sum \
+  pwd \
+  sha1sum \
+  sha256sum \
+  sha3sum \
+  sha512sum \
+  sleep \
+  stty \
+  tail \
+  tar \
+  tee \
+  tr \
+  watch \
+  which \
+  ; do ln sh $b; done
+
+#  Remove write utils
+RUN rm ln rm
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
@@ -133,11 +153,11 @@ COPY --from=build-env /root/bin /bin
 COPY --from=build-env /root/lib /lib
 
 # Install trusted CA certificates
-COPY --from=busybox-min /etc/ssl/cert.pem /etc/ssl/cert.pem
+COPY --from=infra-toolkit /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install heighliner user
-COPY --from=busybox-min /etc/passwd /etc/passwd
-COPY --from=busybox-min --chown=1025:1025 /home/heighliner /home/heighliner
+COPY --from=infra-toolkit /etc/passwd /etc/passwd
+COPY --from=infra-toolkit --chown=1025:1025 /home/heighliner /home/heighliner
 
 WORKDIR /home/heighliner
 USER heighliner
