@@ -34,14 +34,14 @@ ARG BUILD_DIR
 RUN set -eux; \
     LIBDIR=/lib; \
     if [ "${TARGETARCH}" = "arm64" ]; then \
-      ARCH=aarch64; \
+      export ARCH=aarch64; \
       if [ "${BUILDARCH}" != "arm64" ]; then \
         LIBDIR=/usr/aarch64-linux-musl/lib; \
         mkdir -p $LIBDIR; \
         export CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++;\
       fi;\  
     elif [ "${TARGETARCH}" = "amd64" ]; then \
-      ARCH=x86_64; \
+      export ARCH=x86_64; \
       if [ "${BUILDARCH}" != "amd64" ]; then \
         LIBDIR=/usr/x86_64-linux-musl/lib; \
         mkdir -p $LIBDIR; \
