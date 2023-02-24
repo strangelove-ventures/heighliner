@@ -44,7 +44,7 @@
   build-target: |
     set -eux
     apk add --update nodejs npm jq py3-pip
-    git clone -b v4.5.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
+    git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
     npm ci
     npm run build
