@@ -701,71 +701,52 @@
 - name: sei
   github-organization: sei-protocol
   github-repo: sei-chain
-  dockerfile: cosmos
+  dockerfile: cargo
+  build-dir: nitro-replayer
   pre-build: |
     set -eux
-    # glibc, openssl, and protoc required for nitro build
-    # pkgconfig, perl, zlib-dev, and linux-headers required for openssl build
-    # gcompat, cmake, build-base, and libtool, ninja, and python3 required for libclang static build
-    apk add --update protoc ca-certificates wget pkgconfig perl zlib-dev linux-headers gcompat cmake build-base libtool ninja python3
-
-    # Install openssl
-    RETAINLD="$LDFLAGS"
-    export LDFLAGS=
-    wget https://www.openssl.org/source/openssl-1.1.1t.tar.gz
-    tar -xf openssl-1.1.1t.tar.gz
-    cd openssl-1.1.1t
-    ./Configure no-shared no-async --prefix=/musl --openssldir=/musl/ssl linux-${ARCH}
-    # ./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl shared zlib
-    make depend
-    make -j$(nproc)
+  
+    # Build nitro
+    cd nitro-replayer
+    cargo build --release --target ${ARCH}-unknown-linux-gnu
+    cp target/${ARCH}-unknown-linux-gnu/release/libnitro_replayer.so ../x/nitro/replay/libnitro_replayer.${ARCH}.so
     cd ..
 
-    mkdir -p llvm/src
-    cd llvm
-    wget https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.6/clang-14.0.6.src.tar.xz
-    wget https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.6/llvm-14.0.6.src.tar.xz
-    tar -C src -xaf llvm-14.0.6.src.tar.xz
-    tar -C src/llvm-14.0.6.src/tools -xaf clang-14.0.6.src.tar.xz
-    mv src/llvm-14.0.6.src/tools/clang-14.0.6.src src/llvm-14.0.6.src/tools/clang
-    mkdir build
-    cd build
-    cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_RTTI:BOOLEAN=1 -DLIBCLANG_BUILD_STATIC=ON -DLLVM_INCLUDE_BENCHMARKS=OFF ../src/llvm-14.0.6.src
-    ninja -j$(nproc)
-    ninja install
-    cd ../..
+    # Get go version from go.mod
+    GO_VERSION=$(grep -m 1 go go.mod | cut -d\  -f2)
 
-    # install rust to build nitro
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source ~/.cargo/env
+    case $GO_VERSION in
+      1.18)
+        DL_VERSION=$GO118
+        ;;
+      1.19)
+        DL_VERSION=$GO119
+        ;;
+      1.20)
+        DL_VERSION=$GO120
+        ;;
+      *)
+        echo "Go version not handled"
+        exit 1
+        ;;
+    esac
 
-    # rustup target add ${ARCH}-unknown-linux-gnu
+    # Download and install go
+    wget https://go.dev/dl/go${DL_VERSION}.linux-${BUILDARCH}.tar.gz  -O - | tar -C /usr/local -xz
+    export PATH=$PATH:/usr/local/go/bin
 
-    export PKG_CONFIG_ALLOW_CROSS=1
-    export OPENSSL_STATIC=true
-    export OPENSSL_DIR=/musl
-    export BINDGEN_FEATURES=static BINDGEN_PROFILE=--release BINDGEN_NO_DEFAULT_FEATURES=1
-
-    export LIBCLANG_STATIC_PATH=/usr/local/lib/
-
-    rm -rf /usr/local/lib/libclang.so.14.0.6 /usr/local/lib/libclang.so.13 /usr/local/lib/libclang.so
-
-    cd nitro-replayer
-    RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --target ${ARCH}-unknown-linux-musl
-
-    ls cp target/${ARCH}-unknown-linux-musl/release/
-
-    cp target/${ARCH}-unknown-linux-musl/release/libnitro_replayer.a ../x/nitro/replay/
-
-    # cargo build --release --target ${ARCH}-unknown-linux-gnu
-    # cp target/${ARCH}-unknown-linux-gnu/release/libnitro_replayer.${ARCH}.a ../x/nitro/replay/
-
-    export LDFLAGS="$RETAINLDFLAGS"
-  build-target: LINK_STATICALLY=true make install
+    # Build seid
+    export GOOS=linux GOARCH=${TARGETARCH}
+    make install
   binaries:
-    - /go/bin/seid
+    - /root/go/bin/seid
+  libraries:
+    - /build/sei-chain/x/nitro/replay/libnitro_replayer.${ARCH}.so
+    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm@v*/api/libwasmvm.${ARCH}.so
   build-env:
     - BUILD_TAGS=muslc
+  platforms:
+    - linux/amd64
 
 # Sentinel
 - name: sentinel

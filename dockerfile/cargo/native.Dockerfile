@@ -3,12 +3,12 @@ FROM rust:1-bullseye AS build-env
 RUN rustup component add rustfmt
 
 RUN apt update && apt install -y libssl1.1 libssl-dev openssl libclang-dev clang cmake libstdc++6
-RUN if [ "$(uname -m)" = "aarch64" ]; then \
-      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-aarch_64.zip; \
-      unzip protoc-21.8-linux-aarch_64.zip -d /usr; \
-    elif [ "${TARGETARCH}" = "amd64" ]; then \
-      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-x86_64.zip; \
-      unzip protoc-21.8-linux-x86_64.zip -d /usr; \
+RUN if [ "$(uname -m)" = "aarch64" ]; then\
+      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-aarch_64.zip;\
+      unzip protoc-21.8-linux-aarch_64.zip -d /usr;\
+    elif [ "${TARGETARCH}" = "amd64" ]; then\
+      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-x86_64.zip;\
+      unzip protoc-21.8-linux-x86_64.zip -d /usr;\
     fi
 
 ARG GITHUB_ORGANIZATION
@@ -27,80 +27,101 @@ WORKDIR /build/${GITHUB_REPO}
 ARG BUILD_TARGET
 ARG BUILD_DIR
 
-RUN if [ ! -z "$BUILD_TARGET" ]; then \
-      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
-      cargo fetch; \
+RUN if [ ! -z "$BUILD_TARGET" ]; then\
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+      cargo fetch;\
     fi
 
 ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
 
-RUN [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}"; \
-    [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV}; \
-    [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}"; \
-    if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
-    if [ ! -z "$BUILD_TARGET" ]; then \
-      cargo ${BUILD_TARGET} --target $(uname -m)-unknown-linux-gnu; \
+ARG GO118
+ARG GO119
+ARG GO120
+ENV GO118=$GO118
+ENV GO119=$GO119
+ENV GO120=$GO120
+
+RUN set -eux;\
+    export ARCH=$(uname -m);\
+    if [ "$ARCH" = "x86_64" ]; then export BUILDARCH=amd64 TARGETARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then export BUILDARCH=arm64 TARGETARCH=arm64; fi;\
+    [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}";\
+    [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV};\
+    [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}";\
+    if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+    if [ ! -z "$BUILD_TARGET" ]; then\
+      cargo ${BUILD_TARGET} --target ${ARCH}-unknown-linux-gnu;\
     fi;
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
-# Copy all linked shared libraries for each binary to an indexed filepath in /root/lib_abs for a single place to copy into final image.
-# Maintain their original filepath in /root/lib_abs.list since they need to be in the same place in the final image.
 RUN mkdir /root/bin
-RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
-RUN bash -c \
-  'export ARCH=$(uname -m); \
-  IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
-  i=0; for BINARY in "${BINARIES_ARR[@]}"; do \
-    IFS=: read -ra BINSPLIT <<< "$BINARY"; \
-    BINPATH=${BINSPLIT[1]} ;\
-    BIN="$(eval "echo "${BINSPLIT[0]}"")"; \
-    if [ ! -z "$BINPATH" ]; then \
-      if [[ $BINPATH == *"/"* ]]; then \
-        mkdir -p "$(dirname "${BINPATH}")" ; \
-        cp "$BIN" "${BINPATH}"; \
-      else \
-        cp "$BIN" "/root/bin/${BINPATH}"; \
+RUN bash -c 'set -eux;\
+  export ARCH=$(uname -m);\
+  echo "bins: $BINARIES_ENV";\
+  BINARIES_ARR=();\
+  IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV";\
+  for BINARY in "${BINARIES_ARR[@]}"; do\
+    BINSPLIT=();\
+    IFS=: read -ra BINSPLIT <<< "$BINARY";\
+    BINPATH="${BINSPLIT[1]+"${BINSPLIT[1]}"}";\
+    BIN="$(eval "echo "${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
+    if [ ! -z "$BINPATH" ]; then\
+      if [[ $BINPATH == *"/"* ]]; then\
+        mkdir -p "$(dirname "${BINPATH}")";\
+        cp "$BIN" "${BINPATH}";\
+      else\
+        cp "$BIN" "/root/bin/${BINPATH}";\
       fi;\
-    else \
-      cp "$BIN" /root/bin/ ; \
-    fi; \
-    readarray -t LIBS < <(ldd "$BIN"); \
-    for LIB in "${LIBS[@]}"; do \
-      PATH1=$(echo $LIB | awk "{print \$1}") ; \
-      if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi; \
-      PATH2=$(echo $LIB | awk "{print \$3}") ; \
-      if [ ! -z "$PATH2" ]; then \
-        if cat /root/lib_abs.list | grep -x "$PATH2"; then \
-          echo "Skipping $PATH2, already accounted for"; \
-          continue; \
-        else \
-          echo "Copying $(uname -m) lib2: $PATH2"; \
-          cp -L $PATH2 /root/lib_abs/$i ; \
-          echo $PATH2 >> /root/lib_abs.list; \
-        fi; \
-      else \
-        if cat /root/lib_abs.list | grep -x "$PATH1"; then \
-          echo "Skipping $PATH1, already accounted for"; \
-          continue; \
-        else \
-          echo "Copying $(uname -m) lib1: $PATH1"; \
-          cp -L $PATH1 /root/lib_abs/$i ; \
-          echo $PATH1 >> /root/lib_abs.list; \
-        fi; \
-      fi; \
-      ((i = i + 1)) ;\
-    done; \
+    else\
+      cp "$BIN" /root/bin/;\
+    fi;\
   done'
 
 RUN mkdir -p /root/lib
 ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
-RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
+RUN bash -c 'set -eux;\
+  export ARCH=$(uname -m);\
+  LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do LIB="$(eval "echo "$LIBRARY"")"; cp $LIB /root/lib/; done'
+
+# Determine shared library dependencies for both bins and libs
+RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
+RUN bash -c 'set -eux;\
+    i=0; for BIN in /root/{bin,lib}/*; do\
+    echo "Getting $(uname -m) libs for bin: $BIN";\
+    readarray -t LIBS < <(ldd "$BIN");\
+    for LIB in "${LIBS[@]}"; do\
+      PATH1=$(echo $LIB | awk "{print \$1}");\
+      if [ "$PATH1" = "linux-vdso.so.1" ]; then continue; fi;\
+      PATH2=$(echo $LIB | awk "{print \$3}");\
+      PATH3=$(echo $LIB | awk "{print \$4}");\
+      if [ "$PATH2" == "not" ] && [ "$PATH3" == "found" ]; then continue; fi;\
+      if [ ! -z "$PATH2" ]; then\
+        if cat /root/lib_abs.list | grep -x "$PATH2"; then\
+          echo "Skipping $PATH2, already accounted for";\
+          continue;\
+        else\
+          echo "Copying lib2: $PATH2";\
+          cp -L $PATH2 /root/lib_abs/$i;\
+          echo $PATH2 >> /root/lib_abs.list;\
+        fi;\
+      else\
+        if cat /root/lib_abs.list | grep -x "$PATH1"; then\
+          echo "Skipping $PATH1, already accounted for";\
+          continue;\
+        else\
+          echo "Copying lib1: $PATH1";\
+          cp -L $PATH1 /root/lib_abs/$i;\
+          echo $PATH1 >> /root/lib_abs.list;\
+        fi;\
+      fi;\
+      ((i = i + 1));\
+    done;\
+  done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
 FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
@@ -164,12 +185,12 @@ COPY --from=build-env /root/lib_abs /root/lib_abs
 COPY --from=build-env /root/lib_abs.list /root/lib_abs.list
 
 # Move absolute path libraries to their absolute locations.
-RUN sh -c 'i=0; while read FILE; do \
-      echo "$i: $FILE"; \
-      DIR="$(dirname "$FILE")"; \
-      mkdir -p "$DIR"; \
-      mv /root/lib_abs/$i $FILE; \
-      i=$((i+1)); \
+RUN sh -c 'i=0; while read FILE; do\
+      echo "$i: $FILE";\
+      DIR="$(dirname "$FILE")";\
+      mkdir -p "$DIR";\
+      mv /root/lib_abs/$i $FILE;\
+      i=$((i+1));\
     done < /root/lib_abs.list'
 
 # Remove write utils used to construct image and tmp dir/file for lib copy.

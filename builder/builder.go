@@ -24,14 +24,6 @@ import (
 	"github.com/strangelove-ventures/heighliner/dockerfile"
 )
 
-const (
-	// golang official dockerhub images to use for cosmos builds
-	Go118Image = "1.18.10-alpine3.17"
-	Go119Image = "1.19.5-alpine3.17"
-
-	GoDefaultImage = Go119Image // default image for cosmos go builds if go.mod parse fails
-)
-
 type HeighlinerBuilder struct {
 	buildConfig HeighlinerDockerBuildConfig
 	queue       []HeighlinerQueuedChainBuilds
@@ -210,10 +202,14 @@ func baseImageForGoVersion(
 	}
 
 	var baseImageVersion string
-	if semver.Compare("v"+goMod.Go.Version, "v1.19") >= 0 {
-		baseImageVersion = Go119Image
-	} else {
-		baseImageVersion = Go118Image
+	for goVersion, goImage := range GoVersionsDesc {
+		if semver.Compare("v"+goMod.Go.Version, "v"+goVersion) >= 0 {
+			baseImageVersion = goImage
+			break
+		}
+	}
+	if baseImageVersion == "" {
+		baseImageVersion = GoDefaultImage
 	}
 
 	fmt.Printf("Go version: %s, using image: golang:%s\n", goMod.Go.Version, baseImageVersion)
@@ -355,6 +351,9 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"BUILD_TAGS":          buildTagsEnvVar,
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
 		"BUILD_TIMESTAMP":     buildTimestamp,
+		"GO118":               Go118Version,
+		"GO119":               Go119Version,
+		"GO120":               Go120Version,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
