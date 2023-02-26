@@ -316,6 +316,8 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
 	)
 
+	race := ""
+
 	if dockerfile == DockerfileTypeCosmos {
 		baseVersion = GoDefaultImage // default, and fallback if go.mod parse fails
 
@@ -327,6 +329,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		}
 
 		if h.race {
+			race = "true"
 			buildEnv += " GOFLAGS=-race"
 			for i, imageTag := range imageTags {
 				imageTags[i] = imageTag + "-race"
@@ -353,6 +356,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
 		"BUILD_TIMESTAMP":     buildTimestamp,
 		"GO_VERSION":          baseVer.Version,
+		"RACE":                race,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
