@@ -283,8 +283,6 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		buildFrom = "current working directory source"
 	}
 
-	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
-
 	buildEnv := ""
 
 	buildTagsEnvVar := ""
@@ -330,8 +328,13 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 		if h.race {
 			buildEnv += " GOFLAGS=-race"
+			for i, imageTag := range imageTags {
+				imageTags[i] = imageTag + "-race"
+			}
 		}
 	}
+
+	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
 
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Ref,
