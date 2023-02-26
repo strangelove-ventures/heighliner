@@ -28,6 +28,7 @@ type HeighlinerBuilder struct {
 	queue       []HeighlinerQueuedChainBuilds
 	parallel    int16
 	local       bool
+	race        bool
 
 	buildIndex   int
 	buildIndexMu sync.Mutex
@@ -43,11 +44,13 @@ func NewHeighlinerBuilder(
 	buildConfig HeighlinerDockerBuildConfig,
 	parallel int16,
 	local bool,
+	race bool,
 ) *HeighlinerBuilder {
 	return &HeighlinerBuilder{
 		buildConfig: buildConfig,
 		parallel:    parallel,
 		local:       local,
+		race:        race,
 
 		tmpDirsToRemove: make(map[string]bool),
 	}
@@ -323,6 +326,10 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 			fmt.Println(err)
 		} else {
 			baseVersion = baseVer.Image
+		}
+
+		if h.race {
+			buildEnv += " GOFLAGS=-race"
 		}
 	}
 
