@@ -29,6 +29,7 @@ ARG BUILD_DIR
 
 RUN if [ ! -z "$BUILD_TARGET" ]; then\
       if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+      if [ ! -f "Cargo.toml" ]; then exit 0; fi;\
       cargo fetch;\
     fi
 
@@ -36,14 +37,17 @@ ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
 
-ARG GO118
-ARG GO119
-ARG GO120
-ENV GO118=$GO118
-ENV GO119=$GO119
-ENV GO120=$GO120
+# Install go if necessary for project
+ARG GO_VERSION
+RUN set -eux; \
+    export ARCH=$(uname -m);\
+    if [ "$ARCH" = "x86_64" ]; then BUILDARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then BUILDARCH=arm64; fi;\
+    if [ ! -z "$GO_VERSION" ]; then\
+      wget https://go.dev/dl/go${GO_VERSION}.linux-${BUILDARCH}.tar.gz  -O - | tar -C /usr/local -xz;\
+    fi
 
 RUN set -eux;\
+    if [ ! -z "$GO_VERSION" ]; then export PATH=$PATH:/usr/local/go/bin; fi;\
     export ARCH=$(uname -m);\
     if [ "$ARCH" = "x86_64" ]; then export BUILDARCH=amd64 TARGETARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then export BUILDARCH=arm64 TARGETARCH=arm64; fi;\
     [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}";\

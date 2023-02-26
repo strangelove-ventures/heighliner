@@ -702,7 +702,6 @@
   github-organization: sei-protocol
   github-repo: sei-chain
   dockerfile: cargo
-  build-dir: nitro-replayer
   pre-build: |
     set -eux
   
@@ -711,29 +710,6 @@
     cargo build --release --target ${ARCH}-unknown-linux-gnu
     cp target/${ARCH}-unknown-linux-gnu/release/libnitro_replayer.so ../x/nitro/replay/libnitro_replayer.${ARCH}.so
     cd ..
-
-    # Get go version from go.mod
-    GO_VERSION=$(grep -m 1 go go.mod | cut -d\  -f2)
-
-    case $GO_VERSION in
-      1.18)
-        DL_VERSION=$GO118
-        ;;
-      1.19)
-        DL_VERSION=$GO119
-        ;;
-      1.20)
-        DL_VERSION=$GO120
-        ;;
-      *)
-        echo "Go version not handled"
-        exit 1
-        ;;
-    esac
-
-    # Download and install go
-    wget https://go.dev/dl/go${DL_VERSION}.linux-${BUILDARCH}.tar.gz  -O - | tar -C /usr/local -xz
-    export PATH=$PATH:/usr/local/go/bin
 
     # Build seid
     export GOOS=linux GOARCH=${TARGETARCH}
