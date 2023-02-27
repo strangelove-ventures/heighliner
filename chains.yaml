@@ -46,6 +46,8 @@
     apk add --update nodejs npm jq py3-pip
     git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
+    # The npm commands will complain about nodejs versions but will proceed.
+    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92 
     npm ci
     npm run build
     npm run flatten
