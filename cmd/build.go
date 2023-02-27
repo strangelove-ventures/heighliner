@@ -19,6 +19,7 @@ type chainConfigFlags struct {
 	local    bool
 	number   int16
 	parallel int16
+	race     bool
 
 	// chains.yaml parameter override flags
 	orgOverride         string
@@ -60,6 +61,7 @@ const (
 	flagPlatform     = "platform"
 	flagNoCache      = "no-cache"
 	flagNoBuildCache = "no-build-cache"
+	flagRace         = "race"
 )
 
 func loadChainsYaml(configFile string) error {
@@ -139,6 +141,7 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 	buildCmd.PersistentFlags().Int16Var(&chainConfig.parallel, flagParallel, 1, "Number of docker builds to run simultaneously")
 	buildCmd.PersistentFlags().BoolVarP(&chainConfig.latest, flagLatest, "l", false, "Also push latest tag (for single version build only)")
 	buildCmd.PersistentFlags().BoolVar(&chainConfig.local, flagLocal, false, "Use local directory (not git repository)")
+	buildCmd.PersistentFlags().BoolVar(&chainConfig.race, flagRace, false, "Enable race detector (go builds only)")
 
 	// Chain config override flags (overwrites chains.yaml params)
 	buildCmd.PersistentFlags().StringVarP(&chainConfig.orgOverride, flagOrg, "o", "", "github-organization override for building from a fork")

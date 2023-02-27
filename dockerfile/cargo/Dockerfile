@@ -82,6 +82,7 @@ RUN set -eux;\
     if [ ! -z "$GO_VERSION" ]; then export PATH=$PATH:/usr/local/go/bin; fi;\
     if [ "$TARGETARCH" = "arm64" ]; then export ARCH=aarch64 CAPS=AARCH64;\
     elif [ "$TARGETARCH" = "amd64" ]; then export ARCH=x86_64 CAPS=x86_64; fi;\
+    export CARGO_BUILD_TARGET=${ARCH}-unknown-linux-gnu;\
     if [ "$TARGETARCH" != "$BUILDARCH" ]; then\
       export CARGO_TARGET_${CAPS}_UNKNOWN_LINUX_GNU_LINKER=${ARCH}-linux-gnu-gcc\
         CC_${ARCH}_unknown_linux_gnu=${ARCH}-linux-gnu-gcc\
@@ -89,11 +90,11 @@ RUN set -eux;\
         PKG_CONFIG_SYSROOT_DIR=/usr/${ARCH}-linux-gnu;\
     fi;\
     [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}";\
-    [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV};\
-    [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}";\
-    if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
     if [ ! -z "$BUILD_TARGET" ]; then\
-        cargo ${BUILD_TARGET} --target ${ARCH}-unknown-linux-gnu;\
+      if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi;\
+      if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi;\
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+      sh -c "${BUILD_TARGET}";\
     fi
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.

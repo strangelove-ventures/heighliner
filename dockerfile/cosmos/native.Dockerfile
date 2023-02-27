@@ -44,6 +44,7 @@ RUN set -eux;\
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
 RUN mkdir /root/bin
+ARG RACE
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
 RUN bash -c 'set -eux;\
@@ -54,6 +55,14 @@ RUN bash -c 'set -eux;\
     IFS=: read -ra BINSPLIT <<< "$BINARY";\
     BINPATH=${BINSPLIT[1]+"${BINSPLIT[1]}"};\
     BIN="$(eval "echo "${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
+    if [ ! -z "$RACE" ] && GOVERSIONOUT=$(go version -m $BIN); then\
+      if echo $GOVERSIONOUT | grep build | grep "-race=true"; then\
+        echo "Race detection is enabled in binary";\
+      else\
+        echo "Race detection not enabled in binary!";\
+        exit 1;\
+      fi;\
+    fi;\
     if [ ! -z "$BINPATH" ]; then\
       if [[ $BINPATH == *"/"* ]]; then\
         mkdir -p "$(dirname "${BINPATH}")";\

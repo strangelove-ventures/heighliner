@@ -49,14 +49,15 @@ RUN set -eux; \
 RUN set -eux;\
     if [ ! -z "$GO_VERSION" ]; then export PATH=$PATH:/usr/local/go/bin; fi;\
     export ARCH=$(uname -m);\
+    export CARGO_BUILD_TARGET=${ARCH}-unknown-linux-gnu;\
     if [ "$ARCH" = "x86_64" ]; then export BUILDARCH=amd64 TARGETARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then export BUILDARCH=arm64 TARGETARCH=arm64; fi;\
     [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}";\
-    [ ! -z "$BUILD_ENV" ] && export ${BUILD_ENV};\
-    [ ! -z "$BUILD_TAGS" ] && export "${BUILD_TAGS}";\
-    if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
     if [ ! -z "$BUILD_TARGET" ]; then\
-      cargo ${BUILD_TARGET} --target ${ARCH}-unknown-linux-gnu;\
-    fi;
+      if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi;\
+      if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi;\
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+      sh -c "${BUILD_TARGET}";\
+    fi
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.

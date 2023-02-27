@@ -77,7 +77,7 @@ func queueAndBuild(
 	buildConfig builder.HeighlinerDockerBuildConfig,
 	chainConfig chainConfigFlags,
 ) {
-	heighlinerBuilder := builder.NewHeighlinerBuilder(buildConfig, chainConfig.parallel, chainConfig.local)
+	heighlinerBuilder := builder.NewHeighlinerBuilder(buildConfig, chainConfig.parallel, chainConfig.local, chainConfig.race)
 
 	for _, chainNodeConfig := range chains {
 		// If chain is provided, only build images for that chain
