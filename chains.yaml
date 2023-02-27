@@ -35,8 +35,6 @@
     - LEDGER_ENABLED=false
 
 # Axelar
-# Axelar may not build without manual intervention for v0.32+.
-# See issue: https://github.com/strangelove-ventures/heighliner/issues/94
 - name: axelar
   github-organization: axelarnetwork
   github-repo: axelar-core
