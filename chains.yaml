@@ -56,11 +56,6 @@
     mkdir -p ../contract-artifacts/gateway
     mv artifacts/* ../contract-artifacts/
     cd ..
-    # `make generate` installs prereqs. You can ignore messages to install go protoc.
-    # This will fail v0.32+ because of an addition to the Makefile.
-    # See issue: https://github.com/strangelove-ventures/heighliner/issues/94
-    # As a brittle hack/workaround, uncomment the below line to delete golangci-lint prereq:
-    # sed -i '116d' Makefile
     make generate
     VERSION=$(echo $(git describe --tags) | sed 's/^v//')
     COMMIT=$(git log -1 --format='%H')
