@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -34,6 +36,11 @@ func mostRecentReleasesForChain(
 		chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, number), http.NoBody)
 	if err != nil {
 		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error building github releases request: %v", err)
+	}
+
+	githubUser, githubPAT := os.Getenv("GH_USER"), os.Getenv("GH_PAT")
+	if githubUser != "" && githubPAT != "" {
+		req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(githubUser+":"+githubPAT)))
 	}
 
 	res, err := client.Do(req)
