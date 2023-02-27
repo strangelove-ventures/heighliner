@@ -71,7 +71,7 @@
   github-organization: axelarnetwork
   github-repo: tofnd
   dockerfile: cargo
-  build-target: build --release
+  build-target: cargo build --release
   pre-build:
     apt install -y libgmp3-dev:${TARGETARCH}
   binaries:
@@ -82,7 +82,7 @@
   github-organization: galacticcouncil
   github-repo: Basilisk-node
   dockerfile: cargo
-  build-target: build --release -Zbuild-std
+  build-target: cargo build --release -Zbuild-std
   pre-build: |
     apt install -y zlib1g-dev:${TARGETARCH}
     TOOLCHAIN=$(cat rust-toolchain | grep channel | awk '{print $3}' | tr -d '"')
@@ -136,7 +136,7 @@
   github-organization: Switcheo
   github-repo: carbon-bootstrap
   dockerfile: cargo
-  pre-build: |
+  build-target: |
     apt update && apt install wget build-essential jq cmake sudo -y
     wget https://github.com/google/leveldb/archive/1.23.tar.gz && \
       tar -zxvf 1.23.tar.gz && \
@@ -209,7 +209,7 @@
   github-organization: ComposableFi
   github-repo: composable
   dockerfile: cargo
-  pre-build: |
+  build-target: |
     apt install -y zlib1g-dev:${TARGETARCH}
     TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
     rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
@@ -222,12 +222,12 @@
     ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/dali_runtime.wasm --output ./target/wasm32-unknown-unknown/release/dali_runtime.optimized.wasm
     ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/picasso_runtime.wasm --output ./target/wasm32-unknown-unknown/release/picasso_runtime.optimized.wasm
     ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/composable_runtime.wasm --output ./target/wasm32-unknown-unknown/release/composable_runtime.optimized.wasm
+    cargo build --release -p composable -Zbuild-std --features=builtin-wasm
   build-dir: code
   build-env:
     - DALI_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/dali_runtime.optimized.wasm
     - PICASSO_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/picasso_runtime.optimized.wasm
     - COMPOSABLE_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/composable_runtime.optimized.wasm
-  build-target: build --release -p composable -Zbuild-std --features=builtin-wasm
   binaries:
     - /build/composable/code/target/${ARCH}-unknown-linux-gnu/release/composable
 
@@ -510,10 +510,10 @@
   github-organization: nomic-io
   github-repo: nomic
   dockerfile: cargo
-  build-target: install --locked --path . -Zbuild-std
-  pre-build: |
+  build-target: |
     TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
     rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
+    cargo install --locked --path . -Zbuild-std
   binaries:
     - /build/nomic/target/${ARCH}-unknown-linux-gnu/release/nomic
   # TODO remove platforms here so that both linux/amd64 and linux/arm64 are built
@@ -587,7 +587,7 @@
   github-repo: arc
   dockerfile: cargo
   build-dir: orchestrator
-  build-target: build --release
+  build-target: cargo build --release
   binaries:
     - /build/arc/orchestrator/target/${ARCH}-unknown-linux-gnu/release/gbt
 
@@ -618,7 +618,7 @@
   github-organization: penumbra-zone
   github-repo: penumbra
   dockerfile: cargo
-  build-target: build --release
+  build-target: cargo build --release
   binaries:
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pcli
@@ -637,7 +637,7 @@
   github-organization: paritytech
   github-repo: polkadot
   dockerfile: cargo
-  build-target: build --release
+  build-target: cargo build --release
   pre-build: |
     ./scripts/init.sh
   binaries:
@@ -703,12 +703,12 @@
   github-organization: sei-protocol
   github-repo: sei-chain
   dockerfile: cargo
-  pre-build: |
+  build-target: |
     set -eux
   
     # Build nitro
     cd nitro-replayer
-    cargo build --release --target ${ARCH}-unknown-linux-gnu
+    cargo build --release
     cp target/${ARCH}-unknown-linux-gnu/release/libnitro_replayer.so ../x/nitro/replay/libnitro_replayer.${ARCH}.so
     cd ..
 
@@ -720,8 +720,6 @@
   libraries:
     - /build/sei-chain/x/nitro/replay/libnitro_replayer.${ARCH}.so
     - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm@v*/api/libwasmvm.${ARCH}.so
-  build-env:
-    - BUILD_TAGS=muslc
   platforms:
     - linux/amd64
 
