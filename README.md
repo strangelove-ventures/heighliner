@@ -78,8 +78,11 @@ heighliner will fetch the last 3 osmosis release tags from github, build docker 
 
 #### Example: build and push last n releases of all chains
 
+This will make a request to each chain's Github repository to fetch all recent releases. Github rate-limits unauthenticated requests to 60 requests per hour. Authenticated requests have either 1000 (personal) or 15000 (enterprise) per hour. To add Github API authentication, set the `GH_USER` and `GH_PAT` environment variables with your Github username and Github Personal Access Token (PAT), respectively.
+
 ```bash
 # docker login ...
+export GH_USER=github_username GH_PAT=github_personal_access_token
 heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 3
 ```
 
