@@ -28,6 +28,7 @@ type HeighlinerBuilder struct {
 	queue       []HeighlinerQueuedChainBuilds
 	parallel    int16
 	local       bool
+	race        bool
 
 	buildIndex   int
 	buildIndexMu sync.Mutex
@@ -43,11 +44,13 @@ func NewHeighlinerBuilder(
 	buildConfig HeighlinerDockerBuildConfig,
 	parallel int16,
 	local bool,
+	race bool,
 ) *HeighlinerBuilder {
 	return &HeighlinerBuilder{
 		buildConfig: buildConfig,
 		parallel:    parallel,
 		local:       local,
+		race:        race,
 
 		tmpDirsToRemove: make(map[string]bool),
 	}
@@ -280,8 +283,6 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		buildFrom = "current working directory source"
 	}
 
-	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
-
 	buildEnv := ""
 
 	buildTagsEnvVar := ""
@@ -315,6 +316,8 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
 	)
 
+	race := ""
+
 	if dockerfile == DockerfileTypeCosmos {
 		baseVersion = GoDefaultImage // default, and fallback if go.mod parse fails
 
@@ -324,7 +327,17 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		} else {
 			baseVersion = baseVer.Image
 		}
+
+		if h.race {
+			race = "true"
+			buildEnv += " GOFLAGS=-race"
+			for i, imageTag := range imageTags {
+				imageTags[i] = imageTag + "-race"
+			}
+		}
 	}
+
+	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
 
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Ref,
@@ -343,6 +356,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
 		"BUILD_TIMESTAMP":     buildTimestamp,
 		"GO_VERSION":          baseVer.Version,
+		"RACE":                race,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
