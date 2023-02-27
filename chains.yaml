@@ -699,6 +699,33 @@
   platforms:
     - linux/amd64
 
+# Sei
+- name: sei
+  github-organization: sei-protocol
+  github-repo: sei-chain
+  dockerfile: cargo
+  pre-build: |
+    set -eux
+  
+    # Build nitro
+    cd nitro-replayer
+    cargo build --release --target ${ARCH}-unknown-linux-gnu
+    cp target/${ARCH}-unknown-linux-gnu/release/libnitro_replayer.so ../x/nitro/replay/libnitro_replayer.${ARCH}.so
+    cd ..
+
+    # Build seid
+    export GOOS=linux GOARCH=${TARGETARCH}
+    make install
+  binaries:
+    - /root/go/bin/seid
+  libraries:
+    - /build/sei-chain/x/nitro/replay/libnitro_replayer.${ARCH}.so
+    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm@v*/api/libwasmvm.${ARCH}.so
+  build-env:
+    - BUILD_TAGS=muslc
+  platforms:
+    - linux/amd64
+
 # Sentinel
 - name: sentinel
   github-organization: sentinel-official

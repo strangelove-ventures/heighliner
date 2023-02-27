@@ -22,6 +22,7 @@ ARG PRE_BUILD
 ARG BUILD_DIR
 
 RUN set -eux; \
+    export ARCH=$(uname -m); \
     WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
     if [ ! -z "${WASM_VERSION}" ]; then \
       wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
@@ -40,28 +41,31 @@ RUN set -eux; \
 RUN mkdir /root/bin
 ARG BINARIES
 ENV BINARIES_ENV ${BINARIES}
-RUN bash -c \
-  'IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV"; \
-  for BINARY in "${BINARIES_ARR[@]}"; do \
-    IFS=: read -ra BINSPLIT <<< "$BINARY"; \
-    BINPATH=${BINSPLIT[1]} ;\
-    BIN="$(eval "echo "${BINSPLIT[0]}"")"; \
-    if [ ! -z "$BINPATH" ]; then \
-      if [[ $BINPATH == *"/"* ]]; then \
-        mkdir -p "$(dirname "${BINPATH}")" ; \
-        cp "$BIN" "${BINPATH}"; \
-      else \
-        cp "$BIN" "/root/bin/${BINPATH}"; \
+RUN bash -c 'set -eux;\
+  BINARIES_ARR=();\
+  IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV";\
+  for BINARY in "${BINARIES_ARR[@]}"; do\
+    BINSPLIT=();\
+    IFS=: read -ra BINSPLIT <<< "$BINARY";\
+    BINPATH=${BINSPLIT[1]+"${BINSPLIT[1]}"};\
+    BIN="$(eval "echo "${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
+    if [ ! -z "$BINPATH" ]; then\
+      if [[ $BINPATH == *"/"* ]]; then\
+        mkdir -p "$(dirname "${BINPATH}")";\
+        cp "$BIN" "${BINPATH}";\
+      else\
+        cp "$BIN" "/root/bin/${BINPATH}";\
       fi;\
-    else \
-      cp "$BIN" /root/bin/ ; \
-    fi; \
+    else\
+      cp "$BIN" /root/bin/;\
+    fi;\
   done'
 
 RUN mkdir -p /root/lib
 ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
-RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
+RUN bash -c 'set -eux;\
+  LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
 FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
