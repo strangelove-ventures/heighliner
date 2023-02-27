@@ -54,7 +54,6 @@
     mkdir -p ../contract-artifacts/gateway
     mv artifacts/* ../contract-artifacts/
     cd ..
-    make generate
     VERSION=$(echo $(git describe --tags) | sed 's/^v//')
     COMMIT=$(git log -1 --format='%H')
     BUILD_TAGS=muslc
