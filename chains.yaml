@@ -33,6 +33,7 @@
     - /go/bin/mantleNode
   build-env:
     - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
 
 # Axelar
 - name: axelar
