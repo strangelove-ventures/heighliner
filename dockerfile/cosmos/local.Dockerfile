@@ -80,6 +80,13 @@ RUN bash -c 'set -eux;\
     fi;\
   done'
 
+# Use minimal busybox from infra-toolkit image for final scratch image
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
+RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
+
+# Use ln and rm from full featured busybox for assembling final image
+FROM busybox:1.34.1-musl AS busybox-full
+
 # Build final image from scratch
 FROM scratch
 
