@@ -11,9 +11,14 @@ ARG GITHUB_REPO
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-# This Dockerfile  is the same as native.Dockerfile except that the chain code is sourced from the
-# current working directory instead of a remote git repository.
-ADD . .
+ADD go.mod go.sum ./
+RUN set -eux; \
+    export ARCH=$(uname -m); \
+    WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
+    if [ ! -z "${WASM_VERSION}" ]; then \
+      wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
+    fi; \
+    go mod download;
 
 ARG BUILD_TARGET
 ARG BUILD_ENV
@@ -21,12 +26,17 @@ ARG BUILD_TAGS
 ARG PRE_BUILD
 ARG BUILD_DIR
 
+RUN mkdir -p /root/lib
+ARG LIBRARIES
+ENV LIBRARIES_ENV ${LIBRARIES}
+RUN bash -c 'set -eux;\
+  LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
+
+# This Dockerfile  is the same as native.Dockerfile except that the chain code is sourced from the
+# current working directory instead of a remote git repository.
+ADD . .
+
 RUN set -eux; \
-    export ARCH=$(uname -m); \
-    WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
-    if [ ! -z "${WASM_VERSION}" ]; then \
-      wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
-    fi; \
     export CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"'; \
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi; \
     if [ ! -z "$BUILD_TARGET" ]; then \
@@ -69,19 +79,6 @@ RUN bash -c 'set -eux;\
       cp "$BIN" /root/bin/;\
     fi;\
   done'
-
-RUN mkdir -p /root/lib
-ARG LIBRARIES
-ENV LIBRARIES_ENV ${LIBRARIES}
-RUN bash -c 'set -eux;\
-  LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
-
-# Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
-RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
-
-# Use ln and rm from full featured busybox for assembling final image
-FROM busybox:1.34.1-musl AS busybox-full
 
 # Build final image from scratch
 FROM scratch
