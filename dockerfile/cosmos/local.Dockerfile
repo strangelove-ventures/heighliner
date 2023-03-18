@@ -11,6 +11,7 @@ ARG GITHUB_REPO
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
+# Download dependencies and CosmWasm libwasmvm if found.
 ADD go.mod go.sum ./
 RUN set -eux; \
     export ARCH=$(uname -m); \
@@ -33,12 +34,15 @@ RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G hei
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
 
-# Build final image from scratch
-FROM scratch AS final
+# Build part 1 of the final image
+FROM scratch AS final-part1
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
 WORKDIR /bin
+
+# Install libraries
+COPY --from=build-env /root/lib /lib
 
 # Install ln (for making hard links) and rm (for cleanup) from full busybox image (will be deleted, only needed for image assembly)
 COPY --from=busybox-full /bin/ln /bin/rm ./
@@ -77,7 +81,7 @@ RUN for b in \
   which \
   ; do ln sh $b; done
 
-#  Remove write utils
+# Remove write utils
 RUN rm ln rm
 
 # Install trusted CA certificates
@@ -145,14 +149,12 @@ RUN bash -c 'set -eux;\
     fi;\
   done'
 
-FROM final as final2
+# Move final binary to the final image
+FROM final-part1 as final
 WORKDIR /bin
 
 # Install chain binaries
 COPY --from=build-env2 /root/bin /bin
-
-# Install libraries
-COPY --from=build-env2 /root/lib /lib
 
 WORKDIR /home/heighliner
 USER heighliner
