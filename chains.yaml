@@ -682,6 +682,7 @@
     apt update
     wget "https://github.com/quasar-finance/binary-release/blob/main/$VERSION/quasarnoded-linux-amd64?raw=true" -O quasarnoded
     mv quasarnoded /usr/bin
+    chmod 555 /usr/bin/quasarnoded
   binaries:
     - /usr/bin/quasarnoded
   platforms:
