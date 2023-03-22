@@ -676,6 +676,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Quasar testnet
+- name: quasartestnet
+  pre-build: |
+    apt update
+    wget "https://github.com/quasar-finance/binary-release/blob/main/$VERSION/quasarnoded-linux-amd64?raw=true" -O quasarnoded
+    mv quasarnoded /usr/bin
+  binaries:
+    - /usr/bin/quasarnoded
+  platforms:
+    - linux/amd64
+
 # Quicksilver
 - name: quicksilver
   github-organization: ingenuity-build
