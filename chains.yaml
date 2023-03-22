@@ -665,6 +665,21 @@
     - WITH_CLEVELDB=false
     - BUILD_TAGS=muslc musl dynamic
 
+# Quasar
+- name: quasar
+  pre-build: |
+    apt update
+    apt install unzip
+    wget https://raw.githubusercontent.com/quasar-finance/binary-release/main/v0.0.2-alpha-11/quasarnoded-linux-amd64
+    mv quasarnoded-linux-amd64 /usr/bin/quasarnoded
+    chmod 755 /usr/bin/quasarnoded
+
+  binaries:
+    - /usr/bin/quasarnoded
+  libraries:
+  platforms:
+    - linux/amd64
+
 # Quicksilver
 - name: quicksilver
   github-organization: ingenuity-build
