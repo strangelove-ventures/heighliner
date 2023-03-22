@@ -667,18 +667,14 @@
 
 # Quasar
 - name: quasar
-  pre-build: |
-    apt update
-    apt install unzip
-    wget https://raw.githubusercontent.com/quasar-finance/binary-release/main/v0.0.2-alpha-11/quasarnoded-linux-amd64
-    mv quasarnoded-linux-amd64 /usr/bin/quasarnoded
-    chmod 755 /usr/bin/quasarnoded
-
+  github-organization: quasar-finance
+  github-repo: quasar-preview
+  dockerfile: cosmos
+  build-target: make install
   binaries:
-    - /usr/bin/quasarnoded
-  libraries:
-  platforms:
-    - linux/amd64
+    - /go/bin/quasarnoded
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Quicksilver
 - name: quicksilver
