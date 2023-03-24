@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"crypto/tls"
 	"fmt"
+	"github.com/hashicorp/go-version"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -64,6 +68,11 @@ func list() {
 		"cosmos-sdk",
 		"ibc-go",
 	}
+	stats := map[string]map[string]int{}
+	for _, r := range requires {
+		stats[r] = map[string]int{}
+	}
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	for _, chain := range chains {
 		fmt.Printf("\n%s:\n", chain.Name)
 		if chain.GithubOrganization == "" || chain.GithubRepo == "" {
@@ -92,17 +101,44 @@ func list() {
 			printError(fmt.Errorf("parsing go.mod: %w", err))
 			continue
 		}
-		found := 0
+		newStats := 0
 		for _, require := range mod.Require {
 			for _, r := range requires {
 				if strings.Contains(require.Mod.Path, r) {
 					fmt.Printf("  %s@%s\n", r, require.Mod.Version)
-					found += 1
+					v, err := version.NewVersion(require.Mod.Version)
+					if err != nil {
+						printError(fmt.Errorf("parsing module version: %w", err))
+						continue
+					}
+					segments := v.Segments()
+					majorVersion := strconv.Itoa(segments[0]) + "." + strconv.Itoa(segments[1])
+					if _, found := stats[r][majorVersion]; !found {
+						stats[r][majorVersion] = 0
+					}
+					stats[r][majorVersion]++
+					newStats++
 				}
 			}
 		}
-		if found == 0 {
+		if newStats == 0 {
 			printError(fmt.Errorf("no versions found"))
 		}
+	}
+	fmt.Printf("\nSummary:\n")
+	for _, r := range requires {
+		fmt.Printf("\n  %s versions:\n", r)
+		total := 0
+		versions := make([]string, 0, len(stats[r]))
+		for v := range stats[r] {
+			versions = append(versions, v)
+		}
+		sort.Strings(versions)
+		for _, version := range versions {
+			count := stats[r][version]
+			fmt.Printf("    %s (%d)\n", version, count)
+			total += count
+		}
+		fmt.Printf("    total: %d chains\n", total)
 	}
 }
