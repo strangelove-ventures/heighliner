@@ -66,15 +66,19 @@ func list() {
 		if err != nil {
 			continue
 		}
-		fmt.Printf("%s/%s:", chain.GithubOrganization, chain.GithubRepo)
+		fmt.Printf("\n%s/%s:\n", chain.GithubOrganization, chain.GithubRepo)
+		found := 0
 		for _, require := range mod.Require {
 			for _, r := range requires {
 				if strings.Contains(require.Mod.Path, r) {
-					fmt.Printf("\n\t%s@%s", r, require.Mod.Version)
+					fmt.Printf("  %s@%s\n", r, require.Mod.Version)
+					found += 1
 				}
 			}
 		}
-		fmt.Printf("\n\n")
+		if found == 0 {
+			fmt.Printf("  no versions found\n")
+		}
 	}
 }
 
