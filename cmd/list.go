@@ -19,23 +19,26 @@ func ListCmd() *cobra.Command {
 			cmdFlags := cmd.Flags()
 
 			configFile, _ := cmdFlags.GetString(flagFile)
-			if configFile == "" {
-				// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
-				cwd, err := os.Getwd()
-				if err == nil {
-					chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
-					if err := loadChainsYaml(chainsYamlSearchPath); err != nil {
-						fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
-					} else {
-						fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
-					}
-				}
-			} else {
-				// if flag is explicitly provided, panic on error since intent was to override embedded chains.
-				if err := loadChainsYaml(configFile); err != nil {
-					panic(err)
-				}
-			}
+# Refactor this into a private function. 
+	if configFile == "" {
+		// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
+		err = loadChainsYaml(chainsYamlSearchPath)
+		if err != nil {
+			fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
+			return
+		}
+		fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
+		return
+	}
+	// if flag is explicitly provided, panic on error since intent was to override embedded chains.
+	if err := loadChainsYaml(configFile); err != nil {
+		panic(err)
+	}
 			list()
 		},
 	}
