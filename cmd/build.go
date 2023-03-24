@@ -169,7 +169,3 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 
 	return buildCmd
 }
-
-func init() {
-	rootCmd.AddCommand(BuildCmd())
-}

@@ -9,15 +9,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "heighliner",
-	Short: "Generate docker images for Cosmos chains",
-	Long: `Welcome to Heighliner, provided by Strangelove Ventures.
-
-This tool can generate docker images for all different release versions
-of the configured Cosmos blockchains in chains.yaml`,
-}
-
 var chains []builder.ChainNodeConfig
 
 func Execute(chainsYaml []byte) {
@@ -26,10 +17,20 @@ func Execute(chainsYaml []byte) {
 		panic(fmt.Errorf("error parsing chains.yaml: %v", err))
 	}
 
+	var rootCmd = &cobra.Command{
+		Use:   "heighliner",
+		Short: "Generate docker images for Cosmos chains",
+		Long: `Welcome to Heighliner, provided by Strangelove Ventures.
+
+This tool can generate docker images for all different release versions
+of the configured Cosmos blockchains in chains.yaml`,
+	}
+
+	rootCmd.AddCommand(BuildCmd())
+	rootCmd.AddCommand(ListCmd())
+
 	err = rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
-
-func init() {}
