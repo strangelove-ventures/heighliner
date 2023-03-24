@@ -11,6 +11,21 @@ import (
 	"strings"
 )
 
+func loadLocalChainsYaml() error {
+	// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
+	err = loadChainsYaml(chainsYamlSearchPath)
+	if err != nil {
+		return fmt.Errorf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
+	}
+	fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
+	return nil
+}
+
 func ListCmd() *cobra.Command {
 	var listCmd = &cobra.Command{
 		Use:   "list",
@@ -19,26 +34,16 @@ func ListCmd() *cobra.Command {
 			cmdFlags := cmd.Flags()
 
 			configFile, _ := cmdFlags.GetString(flagFile)
-# Refactor this into a private function. 
-	if configFile == "" {
-		// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
-		cwd, err := os.Getwd()
-		if err != nil {
-			panic(err)
-		}
-		chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
-		err = loadChainsYaml(chainsYamlSearchPath)
-		if err != nil {
-			fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
-			return
-		}
-		fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
-		return
-	}
-	// if flag is explicitly provided, panic on error since intent was to override embedded chains.
-	if err := loadChainsYaml(configFile); err != nil {
-		panic(err)
-	}
+			if configFile == "" {
+				if err := loadLocalChainsYaml(); err != nil {
+					fmt.Println(err)
+				}
+			} else {
+				// if flag is explicitly provided, panic on error since intent was to override embedded chains.
+				if err := loadChainsYaml(configFile); err != nil {
+					panic(err)
+				}
+			}
 			list()
 		},
 	}
@@ -48,28 +53,43 @@ func ListCmd() *cobra.Command {
 	return listCmd
 }
 
+func printError(err error) {
+	fmt.Printf("  error: %s\n", err)
+}
+
 func list() {
 	requires := []string{
 		"cosmos-sdk",
 		"ibc-go",
 	}
 	for _, chain := range chains {
+		fmt.Printf("\n%s:\n", chain.Name)
+		if chain.GithubOrganization == "" || chain.GithubRepo == "" {
+			printError(fmt.Errorf("not enough repo info"))
+			continue
+		}
 		url := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/go.mod",
 			chain.GithubOrganization, chain.GithubRepo)
 		resp, err := http.Get(url)
 		if err != nil {
+			printError(err)
+			continue
+		}
+		if resp.StatusCode != http.StatusOK {
+			printError(fmt.Errorf(resp.Status))
 			continue
 		}
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
+			printError(err)
 			continue
 		}
 		mod, err := modfile.Parse("", body, nil)
 		if err != nil {
+			printError(err)
 			continue
 		}
-		fmt.Printf("\n%s/%s:\n", chain.GithubOrganization, chain.GithubRepo)
 		found := 0
 		for _, require := range mod.Require {
 			for _, r := range requires {
@@ -80,7 +100,7 @@ func list() {
 			}
 		}
 		if found == 0 {
-			fmt.Printf("  no versions found\n")
+			printError(fmt.Errorf("no versions found"))
 		}
 	}
 }
