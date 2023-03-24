@@ -21,7 +21,8 @@ func loadLocalChainsYaml() error {
 	chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
 	err = loadChainsYaml(chainsYamlSearchPath)
 	if err != nil {
-		return fmt.Errorf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
+		fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
+		return nil
 	}
 	fmt.Printf("Loaded chains from %s\n", chainsYamlSearchPath)
 	return nil
@@ -30,7 +31,7 @@ func loadLocalChainsYaml() error {
 func ListCmd() *cobra.Command {
 	var listCmd = &cobra.Command{
 		Use:   "list",
-		Short: "List the docker images",
+		Short: "List the docker images. Currently only supports cosmos-based images.",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdFlags := cmd.Flags()
 
@@ -66,18 +67,18 @@ func list() {
 	for _, chain := range chains {
 		fmt.Printf("\n%s:\n", chain.Name)
 		if chain.GithubOrganization == "" || chain.GithubRepo == "" {
-			printError(fmt.Errorf("not enough repo info"))
+			printError(fmt.Errorf("not enough repo info; missing organization or repo"))
 			continue
 		}
 		url := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/main/go.mod",
 			chain.GithubOrganization, chain.GithubRepo)
 		resp, err := http.Get(url)
 		if err != nil {
-			printError(err)
+			printError(fmt.Errorf("GET %s: %w", url, err))
 			continue
 		}
 		if resp.StatusCode != http.StatusOK {
-			printError(fmt.Errorf(resp.Status))
+			printError(fmt.Errorf("GET %s: %s", url, resp.Status))
 			continue
 		}
 		defer resp.Body.Close()
@@ -88,7 +89,7 @@ func list() {
 		}
 		mod, err := modfile.Parse("", body, nil)
 		if err != nil {
-			printError(err)
+			printError(fmt.Errorf("parsing go.mod: %w", err))
 			continue
 		}
 		found := 0
