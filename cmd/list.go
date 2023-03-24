@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"golang.org/x/mod/modfile"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cobra"
+	"golang.org/x/mod/modfile"
 )
 
 func loadLocalChainsYaml() error {
@@ -103,8 +104,4 @@ func list() {
 			printError(fmt.Errorf("no versions found"))
 		}
 	}
-}
-
-func init() {
-	rootCmd.AddCommand(ListCmd())
 }
