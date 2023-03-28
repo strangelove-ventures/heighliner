@@ -120,17 +120,6 @@
   build-env:
     - BUILD_TAGS=muslc
     
-# Burnt
-- name: burnt
-  github-organization: burnt-labs
-  github-repo: burnt
-  dockerfile: cosmos
-  build-target: make install
-  binaries:
-    - /go/bin/burntd
-  build-env:
-    - BUILD_TAGS=muslc
-
 # Carbon
 - name: carbon
   github-organization: Switcheo
