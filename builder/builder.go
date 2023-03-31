@@ -135,7 +135,9 @@ func rawDockerfile(
 			return dockerfileEmbeddedOrLocal("cosmos/Dockerfile", dockerfile.Cosmos)
 		}
 		return dockerfileEmbeddedOrLocal("cosmos/native.Dockerfile", dockerfile.CosmosNative)
-
+	
+	case DockerfileTypeAvalanche:
+		return dockerfileEmbeddedOrLocal("avalanche/Dockerfile", dockerfile.Avalanche)
 	default:
 		return dockerfileEmbeddedOrLocal("none/Dockerfile", dockerfile.None)
 	}

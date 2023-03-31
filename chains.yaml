@@ -888,3 +888,12 @@
     - build/wasmd
   build-env:
     - BUILD_TAGS=muslc
+
+# Avalanche
+- name: avalanche
+  github-organization: ava-labs
+  github-repo: avalanchego
+  dockerfile: avalanche
+  build-target: bash scripts/build.sh
+  binaries:
+    - build/avalanchego
