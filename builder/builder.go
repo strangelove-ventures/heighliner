@@ -135,9 +135,11 @@ func rawDockerfile(
 			return dockerfileEmbeddedOrLocal("cosmos/Dockerfile", dockerfile.Cosmos)
 		}
 		return dockerfileEmbeddedOrLocal("cosmos/native.Dockerfile", dockerfile.CosmosNative)
-	
 	case DockerfileTypeAvalanche:
-		return dockerfileEmbeddedOrLocal("avalanche/Dockerfile", dockerfile.Avalanche)
+		if useBuildKit {
+			return dockerfileEmbeddedOrLocal("avalanche/Dockerfile", dockerfile.Avalanche)
+		}
+		return dockerfileEmbeddedOrLocal("avalanche/native.Dockerfile", dockerfile.AvalancheNative)
 	default:
 		return dockerfileEmbeddedOrLocal("none/Dockerfile", dockerfile.None)
 	}
@@ -320,7 +322,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	race := ""
 
-	if dockerfile == DockerfileTypeCosmos {
+	if dockerfile == DockerfileTypeCosmos || dockerfile == DockerfileTypeAvalanche {
 		baseVersion = GoDefaultImage // default, and fallback if go.mod parse fails
 
 		// In error case, fallback to default image
