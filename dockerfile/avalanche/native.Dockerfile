@@ -1,11 +1,17 @@
 ARG BASE_VERSION
 FROM golang:${BASE_VERSION} AS build-env
 
-RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev gcompat
+RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev
 
 ARG TARGETARCH
 ARG BUILDARCH
 
+RUN export ARCH=$(uname -m);\
+    if [ "${ARCH}" = "aarch64" ]; then\
+        wget -c https://musl.cc/aarch64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
+    elif [ "${ARCH}" = "x86_64" ]; then\
+        wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
+    fi
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
@@ -26,15 +32,19 @@ ARG BUILD_TAGS
 ARG PRE_BUILD
 ARG BUILD_DIR
 
-RUN echo $(uname -m)
-RUN export ARCH=$(uname -m);\
-    if [ "${ARCH}" = "aarch64" ]; then\
-        wget -c https://musl.cc/aarch64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
-    elif [ "${ARCH}" = "x86_64" ]; then\
-        wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
-    fi
 
 RUN set -eux;\
+    LIBDIR=/lib;\
+    export ARCH=$(uname -m);\
+    if [ "${ARCH}" = "aarch64" ]; then\
+      LIBDIR=/usr/aarch64-linux-musl/lib;\
+      mkdir -p $LIBDIR;\
+      export CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++;\
+    elif [ "${ARCH}" = "x86_64" ]; then\
+      LIBDIR=/usr/x86_64-linux-musl/lib;\
+      mkdir -p $LIBDIR;\
+      export CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++;\
+    fi;\
     export CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"';\
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi;\
     if [ ! -z "$BUILD_TARGET" ]; then\

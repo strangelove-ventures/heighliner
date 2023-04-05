@@ -894,8 +894,6 @@
   github-organization: ava-labs
   github-repo: avalanchego
   dockerfile: avalanche
-  build-env:
-   - CGO_ENABLED=0
   build-target: 
     bash scripts/build.sh
   binaries:
