@@ -27,7 +27,7 @@ Please keep chains in alphabetical order.
 
 `libraries` -> Any extra libraries from the build environment needed in the final image.
 
-`target-libraries` -> Any extra libraries from the target image needed in the final image.
+`target-libraries` -> Any extra libraries from the target image needed in the final image (cargo Dockerfiles only).
 
 
 ## Verify Build:
