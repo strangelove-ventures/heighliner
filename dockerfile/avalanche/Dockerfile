@@ -51,7 +51,6 @@ RUN set -eux;\
         export CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++;\
       fi;\
     fi;\
-
     export GOOS=linux GOARCH=$TARGETARCH CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"';\
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi;\
     if [ ! -z "$BUILD_TARGET" ]; then\
@@ -161,7 +160,7 @@ RUN rm ln rm
 COPY --from=build-env /root/bin /bin
 
 # Install libraries
-COPY --from=build-env /root/lib /lib
+COPY --from=build-env /lib /lib
 
 # Install trusted CA certificates
 COPY --from=infra-toolkit /etc/ssl/cert.pem /etc/ssl/cert.pem
