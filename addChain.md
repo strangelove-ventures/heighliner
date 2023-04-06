@@ -23,9 +23,11 @@ Please keep chains in alphabetical order.
 
 `build-target` -> The build command specific to the chosen `dockerfile`. For `cosmos`, likely `make install`. For `cargo`, likely `build --release`.
 
-`binaries` -> The location of where the the build target places the binarie(s). Adding a ":" after the path allows for the ability to rename the binary.
+`binaries` -> The location of the binary(ies) in the build environment after the build is complete. Adding a ":" after the path allows for the ability to rename the binary.
 
-`libraries` -> Any extra libraries need to run the binary. In additon to the binary itself, these will be copied over to the final image
+`libraries` -> Any extra libraries from the build environment needed in the final image.
+
+`target-libraries` -> Any extra libraries from the target image needed in the final image (cargo Dockerfiles only).
 
 
 ## Verify Build:
