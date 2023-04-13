@@ -30,6 +30,7 @@ type ChainNodeConfig struct {
 	BuildDir           string         `yaml:"build-dir"`
 	Binaries           []string       `yaml:"binaries"`
 	Libraries          []string       `yaml:"libraries"`
+	TargetLibraries    []string       `yaml:"target-libraries"`
 	PreBuild           string         `yaml:"pre-build"`
 	Platforms          []string       `yaml:"platforms"`
 	BuildEnv           []string       `yaml:"build-env"`

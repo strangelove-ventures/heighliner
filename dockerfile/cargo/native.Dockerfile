@@ -96,6 +96,7 @@ RUN bash -c 'set -eux;\
 # Determine shared library dependencies for both bins and libs
 RUN mkdir -p /root/lib_abs && touch /root/lib_abs.list
 RUN bash -c 'set -eux;\
+    export ARCH=$(uname -m);\
     i=0; for BIN in /root/{bin,lib}/*; do\
     echo "Getting $(uname -m) libs for bin: $BIN";\
     readarray -t LIBS < <(ldd "$BIN");\
@@ -126,6 +127,23 @@ RUN bash -c 'set -eux;\
       fi;\
       ((i = i + 1));\
     done;\
+  done'
+
+ARG TARGET_LIBRARIES
+ENV TARGET_LIBRARIES_ENV ${TARGET_LIBRARIES}
+RUN bash -c 'set -eux;\
+  export ARCH=$(uname -m);\
+  i=$(wc -l < /root/lib_abs.list);\
+  LIBRARIES_ARR=($TARGET_LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do LIB="$(eval "echo "$LIBRARY"")";\
+    if cat /root/lib_abs.list | grep -x "$LIB"; then\
+      echo "Skipping $LIB, already accounted for";\
+      continue;\
+    else\
+      echo "Copying lib2: $LIB";\
+      cp -L $LIB /root/lib_abs/$i;\
+      echo $LIB >> /root/lib_abs.list;\
+      ((i = i + 1));\
+    fi;\
   done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
