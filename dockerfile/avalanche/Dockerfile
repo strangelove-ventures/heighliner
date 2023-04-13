@@ -32,8 +32,6 @@ ARG BUILD_TAGS
 ARG PRE_BUILD
 ARG BUILD_DIR
 
-RUN pwd
-
 RUN set -eux;\
     LIBDIR=/lib;\
     if [ "${TARGETARCH}" = "arm64" ]; then\

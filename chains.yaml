@@ -34,6 +34,16 @@
   build-env:
     - LEDGER_ENABLED=false
 
+# Avalanche
+- name: avalanche
+  github-organization: ava-labs
+  github-repo: avalanchego
+  dockerfile: avalanche
+  build-target: 
+    bash scripts/build.sh
+  binaries:
+    - build/avalanchego
+
 # Axelar
 - name: axelar
   github-organization: axelarnetwork
@@ -888,15 +898,3 @@
     - build/wasmd
   build-env:
     - BUILD_TAGS=muslc
-
-# Avalanche
-- name: avalanche
-  github-organization: ava-labs
-  github-repo: avalanchego
-  dockerfile: avalanche
-  build-target: 
-    bash scripts/build.sh
-  binaries:
-    - build/avalanchego
-  platforms:
-    - linux/amd64
