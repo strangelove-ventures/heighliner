@@ -3,9 +3,10 @@ package builder
 type DockerfileType string
 
 const (
-	DockerfileTypeCosmos   DockerfileType = "cosmos"
-	DockerfileTypeCargo    DockerfileType = "cargo"
-	DockerfileTypeImported DockerfileType = "imported"
+	DockerfileTypeCosmos    DockerfileType = "cosmos"
+	DockerfileTypeAvalanche DockerfileType = "avalanche"
+	DockerfileTypeCargo     DockerfileType = "cargo"
+	DockerfileTypeImported  DockerfileType = "imported"
 
 	DockerfileTypeGo   DockerfileType = "go"   // DEPRECATED, use "cosmos" instead
 	DockerfileTypeRust DockerfileType = "rust" // DEPRECATED, use "cargo" instead
@@ -14,6 +15,7 @@ const (
 // The first values for `dockerfile` are deprecated. Their recommended replacement is the second value.
 var deprecationReplacements = [][2]DockerfileType{
 	{DockerfileTypeGo, DockerfileTypeCosmos},
+	{DockerfileTypeGo, DockerfileTypeAvalanche},
 	{DockerfileTypeRust, DockerfileTypeCargo},
 }
 
