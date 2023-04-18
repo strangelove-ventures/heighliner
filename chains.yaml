@@ -828,6 +828,17 @@
   binaries:
     - /go/src/github.com/tendermint/tendermint/build/tendermint
 
+# Terp Network
+- name: terpnetwork
+  github-organization: terpnetwork
+  github-repo: terp-core
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/terpd
+  build-env:
+    - BUILD_TAGS=muslc    
+
 # Terra
 - name: terra
   github-organization: terra-money
