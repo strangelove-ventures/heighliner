@@ -5,6 +5,12 @@ import _ "embed"
 //go:embed cosmos/Dockerfile
 var Cosmos []byte
 
+//go:embed avalanche/Dockerfile
+var Avalanche []byte
+
+//go:embed avalanche/native.Dockerfile
+var AvalancheNative []byte
+
 //go:embed cosmos/native.Dockerfile
 var CosmosNative []byte
 
