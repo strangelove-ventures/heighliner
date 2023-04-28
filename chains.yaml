@@ -860,6 +860,18 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# testnetx
+- name: testnetx
+  pre-build: |
+    apt update
+    wget https://storage.googleapis.com/strangelove-public/testnetx/testnetx-${VERSION}-linux-amd64
+    mv testnetx-${VERSION}-linux-amd64 /usr/bin/testnetx
+    chmod 755 /usr/bin/testnetx
+  binaries:
+    - /usr/bin/testnetx
+  platforms:
+    - linux/amd64
+
 # Thorchain
 - name: thorchain
   repo-host: gitlab.com
