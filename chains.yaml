@@ -452,6 +452,17 @@
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
 
+# Kaon
+- name: kaon
+  github-organization: KYVENetwork
+  github-repo: chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/kyved
+  build-env:
+    - ENV=kaon
+
 # Kichain
 - name: kichain
   github-organization: KiFoundation
@@ -485,6 +496,17 @@
   build-env:
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
+
+# KYVE
+- name: kyve
+  github-organization: KYVENetwork
+  github-repo: chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/kyved
+  build-env:
+    - ENV=mainnet
 
 # Likecoin
 - name: likecoin
