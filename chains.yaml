@@ -640,6 +640,10 @@
   github-repo: penumbra
   dockerfile: cargo
   build-target: cargo build --release
+  pre-build: |
+    apt install -y git-lfs
+    git lfs fetch
+    git lfs checkout
   binaries:
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pcli
