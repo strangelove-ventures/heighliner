@@ -386,6 +386,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# hyperlane sim (for testing)
+- name: hyperlane-simd
+  github-organization: strangelove-ventures
+  github-repo: hyperlane-cosmos
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/simd
+  build-env:
+    - BUILD_TAGS=muslc
+
 # ImpactHub
 - name: impacthub
   github-organization: ixofoundation
