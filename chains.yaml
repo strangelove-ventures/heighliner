@@ -23,6 +23,17 @@
   binaries:
     - /go/bin/akash
 
+# Arkeo
+- name: arkeo
+  github-organization: arkeonetwork
+  github-repo: arkeo
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/arkeod
+  build-env:
+    - CGO_ENABLED=0
+
 # Assetmantle
 - name: assetmantle
   github-organization: assetmantle
