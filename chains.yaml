@@ -12,7 +12,7 @@
 # Agoric-sdk
 - name: agoric
   dockerfile: imported
-  base-image: agoric/agoric-sdk
+  base-image: ghcr.io/agoric/agoric-sdk
 
 # Akash
 - name: akash
