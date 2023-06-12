@@ -84,13 +84,14 @@
     ln -s  /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /build/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
     ln -s /root/.nvm/versions/node/*/bin/node /bin/node
 
-
 # Akash
 - name: akash
-  github-organization: ovrclk
-  github-repo: akash
+  github-organization: akash-network
+  github-repo: node
   dockerfile: cosmos
   build-target: make install
+  pre-build:
+    apk add --no-cache jq direnv
   binaries:
     - /go/bin/akash
 
