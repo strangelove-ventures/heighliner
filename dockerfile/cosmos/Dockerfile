@@ -48,6 +48,9 @@ RUN set -eux;\
         export CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++;\
       fi;\
     fi;\
+    if [ ! -z "$BUILD_TARGET" ]; then\
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+    fi;\
     WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}');\
     if [ ! -z "${WASM_VERSION}" ]; then\
       wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$ARCH.a;\
@@ -57,7 +60,6 @@ RUN set -eux;\
     if [ ! -z "$BUILD_TARGET" ]; then\
       if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi;\
       if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi;\
-      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
       sh -c "${BUILD_TARGET}";\
     fi
 

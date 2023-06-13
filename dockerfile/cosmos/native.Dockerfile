@@ -5,8 +5,6 @@ RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eu
 
 ARG TARGETARCH
 ARG BUILDARCH
-
-
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 
@@ -28,6 +26,9 @@ ARG BUILD_DIR
 
 RUN set -eux;\
     export ARCH=$(uname -m);\
+    if [ ! -z "$BUILD_TARGET" ]; then\
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+    fi;\
     WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}');\
     if [ ! -z "${WASM_VERSION}" ]; then\
       wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$(uname -m).a;\
@@ -37,7 +38,6 @@ RUN set -eux;\
     if [ ! -z "$BUILD_TARGET" ]; then\
       if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi;\
       if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi;\
-      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
       sh -c "${BUILD_TARGET}";\
     fi
 

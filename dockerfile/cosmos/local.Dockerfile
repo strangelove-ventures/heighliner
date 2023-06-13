@@ -8,12 +8,18 @@ ARG BUILDARCH
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 ARG GITHUB_REPO
+ARG BUILD_DIR
+ARG BUILD_TARGET
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
+ADD . .
+
 # Download dependencies and CosmWasm libwasmvm if found.
-ADD go.mod go.sum ./
 RUN set -eux; \
+    if [ ! -z "$BUILD_TARGET" ]; then \
+      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi; \
+    fi; \
     export ARCH=$(uname -m); \
     WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $2}'); \
     if [ ! -z "${WASM_VERSION}" ]; then \
@@ -103,7 +109,6 @@ ARG BUILD_DIR
 
 # This Dockerfile  is the same as native.Dockerfile except that the chain code is sourced from the
 # current working directory instead of a remote git repository.
-ADD . .
 
 RUN set -eux; \
     export CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"'; \
