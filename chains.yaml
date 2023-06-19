@@ -16,8 +16,7 @@
   github-repo: agoric-sdk
   build-env:
     - LEDGER_ENABLED=false
-    - BUILD_TAGS=muslc
-  pre-build: |
+  build-target: |
     apt update && apt install -y python3 g++
 
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
@@ -28,12 +27,8 @@
 
     set -eux
     cd golang/cosmos
-    export GOOS=linux GOARCH=${TARGETARCH}
-    npm install node-addon-api --legacy-peer-deps
-    # make -j$(nproc)
-
-     COMMIT=$(git log -1 --format='%H')
-
+    export CGO_ENABLED=1 GOOS=linux GOARCH=${TARGETARCH} CC=${ARCH}-linux-gnu-gcc CXX=${ARCH}-linux-gnu-g++
+    COMMIT=$(git log -1 --format='%H')
     COMMON_LDFLAGS="-X github.com/cosmos/cosmos-sdk/version.Name=agoric \
       -X github.com/cosmos/cosmos-sdk/version.AppName=agd \
       -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
@@ -49,15 +44,18 @@
 
     # Build agd
     go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -o ../../bin/agd ./cmd/agd
-
-    # Build node deps
-    make node-compile-gyp
+  
+    # Build nodejs swingset kernel
+    npm install node-addon-api --legacy-peer-deps
+    export CC_host=gcc CXX_host=g++
+    GYP_DEBUG="--arch=${TARGETARCH}" make node-compile-gyp
+    # cp binding.gyp.in binding.gyp
+    # /root/.nvm/versions/node/*/lib/node_modules/npm/bin/node-gyp-bin/node-gyp configure build --arch=${TARGETARCH}
     cd ../../packages
     rm -rf ui-components web-components wallet-connection wallet web-components
     cd ..
-    npm i -g yarn
-    yarn
-    yarn build
+    npm_config_arch=${TARGETARCH} yarn
+    npm_config_arch=${TARGETARCH} yarn build
 
     # Move to final location
     mkdir /agoric-sdk
