@@ -40,6 +40,8 @@
       -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
       -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
 
+    export CGO_ENABLED=1
+
     # Build daemon lib
     go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -buildmode=c-shared -o build/libagcosmosdaemon.so ./cmd/libdaemon/main.go
 
