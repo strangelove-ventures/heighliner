@@ -17,6 +17,7 @@
   build-env:
     - LEDGER_ENABLED=false
     - BUILD_TAGS=muslc
+  # using pre-build so that cargo fetch does not run
   pre-build: |
     apt update && apt install -y python3 g++
 
@@ -28,19 +29,16 @@
 
     set -eux
     cd golang/cosmos
-    export GOOS=linux GOARCH=${TARGETARCH}
-    npm install node-addon-api --legacy-peer-deps
-    # make -j$(nproc)
 
-     COMMIT=$(git log -1 --format='%H')
+    export CGO_ENABLED=1 GOOS=linux GOARCH=${TARGETARCH} CC=${ARCH}-linux-gnu-gcc CXX=${ARCH}-linux-gnu-g++
+
+    COMMIT=$(git log -1 --format='%H')
 
     COMMON_LDFLAGS="-X github.com/cosmos/cosmos-sdk/version.Name=agoric \
       -X github.com/cosmos/cosmos-sdk/version.AppName=agd \
       -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
       -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
       -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
-
-    export CGO_ENABLED=1
 
     # Build daemon lib
     go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -buildmode=c-shared -o build/libagcosmosdaemon.so ./cmd/libdaemon/main.go
@@ -53,6 +51,8 @@
     go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -o ../../bin/agd ./cmd/agd
 
     # Build node deps
+    export CC=${ARCH}-linux-gnu-gcc CXX=${ARCH}-linux-gnu-g++ CC_host=gcc CXX_host=g++
+    npm install node-addon-api --legacy-peer-deps
     make node-compile-gyp
     cd ../../packages
     rm -rf ui-components web-components wallet-connection wallet web-components
