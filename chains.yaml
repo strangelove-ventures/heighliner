@@ -14,6 +14,9 @@
   dockerfile: cargo
   github-organization: Agoric
   github-repo: agoric-sdk
+  # Agoric fails to build on arm64. TODO: Debug and fix for arm64.
+  platforms:
+    - linux/amd64
   build-env:
     - LEDGER_ENABLED=false
   build-target: |
