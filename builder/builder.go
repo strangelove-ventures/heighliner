@@ -398,7 +398,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 			buildKitOptions.Platform = buildCfg.Platform
 		}
 		buildKitOptions.NoCache = buildCfg.NoCache
-		if err := docker.BuildDockerImageWithBuildKit(ctx, reldir, imageTags, push, buildArgs, buildKitOptions); err != nil {
+		if err := docker.BuildDockerImageWithBuildKit(ctx, reldir, imageTags, push, buildCfg.TarExportPath, buildArgs, buildKitOptions); err != nil {
 			return err
 		}
 	} else {
