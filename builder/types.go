@@ -49,6 +49,7 @@ type ChainNodeDockerBuildConfig struct {
 type HeighlinerDockerBuildConfig struct {
 	ContainerRegistry string
 	SkipPush          bool
+	TarExportPath     string
 	UseBuildKit       bool
 	BuildKitAddr      string
 	Platform          string

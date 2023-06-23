@@ -1,8 +1,10 @@
 package docker
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -37,11 +39,24 @@ func GetDefaultBuildKitOptions() BuildKitOptions {
 	}
 }
 
+type WriteCloser struct {
+	f *os.File
+	*bufio.Writer
+}
+
+func (wc *WriteCloser) Close() error {
+	if err := wc.Flush(); err != nil {
+		return err
+	}
+	return wc.f.Close()
+}
+
 func BuildDockerImageWithBuildKit(
 	ctx context.Context,
 	dockerfileDir string,
 	tags []string,
 	push bool,
+	tarExport string,
 	args map[string]string,
 	buildKitOptions BuildKitOptions,
 ) error {
@@ -54,16 +69,32 @@ func BuildDockerImageWithBuildKit(
 
 	eg, ctx := errgroup.WithContext(ctx)
 
-	export := client.ExportEntry{
-		Type: "image",
-		Attrs: map[string]string{
-			"name": strings.Join(tags, ","),
-		},
+	exports := make([]client.ExportEntry, 1)
+
+	if tarExport != "" {
+		exports[0] = client.ExportEntry{
+			Type: "docker",
+			Output: func(m map[string]string) (io.WriteCloser, error) {
+				f, err := os.Create(tarExport)
+				if err != nil {
+					return nil, err
+				}
+
+				return &WriteCloser{f, bufio.NewWriter(f)}, nil
+			},
+		}
+	} else {
+		export := client.ExportEntry{
+			Type: "image",
+			Attrs: map[string]string{
+				"name": strings.Join(tags, ","),
+			},
+		}
+		if push {
+			export.Attrs["push"] = "true"
+		}
+		exports[0] = export
 	}
-	if push {
-		export.Attrs["push"] = "true"
-	}
-	exports := []client.ExportEntry{export}
 
 	opts := map[string]string{
 		"platform": buildKitOptions.Platform,
