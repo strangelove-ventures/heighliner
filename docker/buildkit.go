@@ -72,6 +72,10 @@ func BuildDockerImageWithBuildKit(
 	exports := make([]client.ExportEntry, 1)
 
 	if tarExport != "" {
+		if len(strings.Split(buildKitOptions.Platform, ",")) > 1 {
+			return fmt.Errorf("when using tar-export-path, only one platform is supported")
+		}
+
 		exports[0] = client.ExportEntry{
 			Type: "docker",
 			Output: func(m map[string]string) (io.WriteCloser, error) {
