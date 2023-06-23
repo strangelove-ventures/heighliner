@@ -69,6 +69,10 @@ func BuildDockerImageWithBuildKit(
 
 	eg, ctx := errgroup.WithContext(ctx)
 
+	attrs := map[string]string{
+		"name": strings.Join(tags, ","),
+	}
+
 	exports := make([]client.ExportEntry, 1)
 
 	if tarExport != "" {
@@ -77,7 +81,8 @@ func BuildDockerImageWithBuildKit(
 		}
 
 		exports[0] = client.ExportEntry{
-			Type: "docker",
+			Type:  "docker",
+			Attrs: attrs,
 			Output: func(m map[string]string) (io.WriteCloser, error) {
 				f, err := os.Create(tarExport)
 				if err != nil {
@@ -89,10 +94,8 @@ func BuildDockerImageWithBuildKit(
 		}
 	} else {
 		export := client.ExportEntry{
-			Type: "image",
-			Attrs: map[string]string{
-				"name": strings.Join(tags, ","),
-			},
+			Type:  "image",
+			Attrs: attrs,
 		}
 		if push {
 			export.Attrs["push"] = "true"
