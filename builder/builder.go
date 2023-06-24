@@ -464,7 +464,7 @@ func (h *HeighlinerBuilder) queueTmpDirRemoval(tmpDir string, start bool) {
 // registerSigIntHandler will delete tmp dirs on ctrl+c
 func (h *HeighlinerBuilder) registerSigIntHandler() {
 	c := make(chan os.Signal)
-	//nolint:govet
+	//nolint:govet,staticcheck
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
