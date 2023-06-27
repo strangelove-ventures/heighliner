@@ -2,7 +2,7 @@
 
 Heighliner is a utility for building production-grade container images for blockchain node software, Cosmos and beyond. 
 
-Heighliner images are minimally constructed from scratch images, packaging only the chain binary and a useful minimal set of busybox utilities.
+Heighliner images are minimally constructed from scratch images, packaging only the chain binary and a useful reduced set of busybox utilities.
 
 These container images can be used for infrastructure deployments (validator + [horcrux](https://github.com/strangelove-ventures/horcrux), full node, archive node, etc.), end-to-end testing ([interchaintest](https://github.com/strangelove-ventures/interchaintest)), and more.
 
