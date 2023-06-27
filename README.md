@@ -1,14 +1,24 @@
 # Heighliner
 
-Heighliner is a repository of docker images for the node software of Cosmos chains
+Heighliner is a utility for building production-grade container images for blockchain node software, Cosmos and beyond. 
+
+Heighliner images are minimally constructed from scratch images, packaging only the chain binary and a useful minimal set of busybox utilities.
+
+These container images can be used for infrastructure deployments (validator + [horcrux](https://github.com/strangelove-ventures/horcrux), full node, archive node, etc.), end-to-end testing ([interchaintest](https://github.com/strangelove-ventures/interchaintest)), and more.
+
+This repository has a CI/CD pipeline to automatically build images when new git tags are detected on the chain repos in [chains.yaml](./chains.yaml). These images are hosted as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner)
 
 ![Heighliner photo](https://static.wikia.nocookie.net/dune/images/7/72/51mMK0akBOL._AC_SY400_-1.jpg/revision/latest)
 
-## Docker Images
+## Add a New Chain
 
-The images are available as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner)
+To add a chain to the heighliner built-in configuration and have your chain images available on our repository's [ghcr](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner), submit a PR adding it to [chains.yaml](./chains.yaml) so it will be included in the automatic builds.
 
-This repository checks for new tags in the chains in [chains.yaml](./chains.yaml) daily and builds new images if necessary.
+For further instructions see: [addChain.md](./addChain.md)
+
+## Add Heighliner Images to your Chain Repo
+
+To publish heighliner images on your chain repository and/or incorporate heighliner images into your chain repo's CI/CD flow, see [heighliner-build-action](https://github.com/strangelove-ventures/heighliner-build-action)
 
 ## Build Your Own
 
@@ -99,7 +109,7 @@ Customize the platform(s) to be built with the `--platform` flag.
 #### Example: build x64 and arm64 docker images for gaia v7.0.1:
 
 ```bash
-heighliner build -c gaia -g v7.0.1
+heighliner build -b -c gaia -g v7.0.1
 ```
 
 Docker images for `heighliner/gaia:v7.0.1` will now be available in your local docker. The manifest for the tag will contain both amd64 and arm64 images.
@@ -112,8 +122,3 @@ heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -g v7.0.1 -r 
 
 Docker images for `heighliner/gaia:v7.0.1` will be built on the remote buildkit server and then pushed to the container repository. The manifest for the tag will contain both amd64 and arm64 images.
 
-## Add a new chain
-
-To include a Cosmos based blockchain that does not yet have images, submit a PR adding it to [chains.yaml](./chains.yaml) so it will be included in the daily builds. 
-
-For further instructions see: [addChain.md](./addChain.md)
