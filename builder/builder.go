@@ -305,6 +305,8 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	targetLibraries := strings.Join(chainConfig.Build.TargetLibraries, " ")
 
+	directories := strings.Join(chainConfig.Build.Directories, " ")
+
 	repoHost := chainConfig.Build.RepoHost
 	if repoHost == "" {
 		repoHost = "github.com"
@@ -357,7 +359,9 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"BINARIES":            binaries,
 		"LIBRARIES":           libraries,
 		"TARGET_LIBRARIES":    targetLibraries,
+		"DIRECTORIES":         directories,
 		"PRE_BUILD":           chainConfig.Build.PreBuild,
+		"FINAL_IMAGE":         chainConfig.Build.FinalImage,
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
@@ -394,7 +398,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 			buildKitOptions.Platform = buildCfg.Platform
 		}
 		buildKitOptions.NoCache = buildCfg.NoCache
-		if err := docker.BuildDockerImageWithBuildKit(ctx, reldir, imageTags, push, buildArgs, buildKitOptions); err != nil {
+		if err := docker.BuildDockerImageWithBuildKit(ctx, reldir, imageTags, push, buildCfg.TarExportPath, buildArgs, buildKitOptions); err != nil {
 			return err
 		}
 	} else {

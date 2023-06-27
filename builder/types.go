@@ -27,10 +27,12 @@ type ChainNodeConfig struct {
 	Language           DockerfileType `yaml:"language"` // DEPRECATED, use "dockerfile" instead
 	Dockerfile         DockerfileType `yaml:"dockerfile"`
 	BuildTarget        string         `yaml:"build-target"`
+	FinalImage         string         `yaml:"final-image"`
 	BuildDir           string         `yaml:"build-dir"`
 	Binaries           []string       `yaml:"binaries"`
 	Libraries          []string       `yaml:"libraries"`
 	TargetLibraries    []string       `yaml:"target-libraries"`
+	Directories        []string       `yaml:"directories"`
 	PreBuild           string         `yaml:"pre-build"`
 	Platforms          []string       `yaml:"platforms"`
 	BuildEnv           []string       `yaml:"build-env"`
@@ -47,6 +49,7 @@ type ChainNodeDockerBuildConfig struct {
 type HeighlinerDockerBuildConfig struct {
 	ContainerRegistry string
 	SkipPush          bool
+	TarExportPath     string
 	UseBuildKit       bool
 	BuildKitAddr      string
 	Platform          string
