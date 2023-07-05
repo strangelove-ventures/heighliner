@@ -430,7 +430,6 @@
   platforms:
     - linux/amd64
 
-
 # Emoney
 - name: emoney
   github-organization: e-money
