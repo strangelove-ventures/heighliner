@@ -418,6 +418,19 @@
   binaries:
     - /go/bin/dualityd
 
+# dydx
+- name: dydx
+  pre-build: |
+    apt update
+    wget https://storage.googleapis.com/strangelove-public/dydx/dydxprotocold-${VERSION}-linux-amd64
+    mv dydxprotocold-${VERSION}-linux-amd64 /usr/bin/dydxprotocold
+    chmod 755 /usr/bin/dydxprotocold
+  binaries:
+    - /usr/bin/dydxprotocold
+  platforms:
+    - linux/amd64
+
+
 # Emoney
 - name: emoney
   github-organization: e-money
@@ -987,18 +1000,6 @@
     - /go/bin/terrad
   build-env:
     - BUILD_TAGS=muslc
-
-# testnetx
-- name: testnetx
-  pre-build: |
-    apt update
-    wget https://storage.googleapis.com/strangelove-public/testnetx/testnetx-${VERSION}-linux-amd64
-    mv testnetx-${VERSION}-linux-amd64 /usr/bin/testnetx
-    chmod 755 /usr/bin/testnetx
-  binaries:
-    - /usr/bin/testnetx
-  platforms:
-    - linux/amd64
 
 # Thorchain
 - name: thorchain
