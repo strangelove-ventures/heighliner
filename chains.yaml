@@ -44,7 +44,7 @@
 
     # Build agd
     go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -o ../../bin/agd ./cmd/agd
-  
+
     # Build nodejs swingset kernel
     npm install node-addon-api --legacy-peer-deps
     export CC_host=gcc CXX_host=g++
@@ -130,7 +130,7 @@
   github-organization: ava-labs
   github-repo: avalanchego
   dockerfile: avalanche
-  build-target: 
+  build-target:
     bash scripts/build.sh
   binaries:
     - build/avalanchego
@@ -148,7 +148,7 @@
     git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
     # The npm commands will complain about nodejs versions but will proceed.
-    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92 
+    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92
     npm ci
     npm run build
     npm run flatten
@@ -220,7 +220,7 @@
     - /go/bin/cyber
   build-env:
     - BUILD_TAGS=muslc
-    
+
 # Carbon
 - name: carbon
   github-organization: Switcheo
@@ -871,20 +871,12 @@
   dockerfile: cargo
   build-target: |
     set -eux
-  
-    # Build nitro
-    cd nitro-replayer
-    cargo build --release
-    cp target/${ARCH}-unknown-linux-gnu/release/libnitro_replayer.so ../x/nitro/replay/libnitro_replayer.${ARCH}.so
-    cd ..
-
     # Build seid
     export GOOS=linux GOARCH=${TARGETARCH}
     make install
   binaries:
     - /root/go/bin/seid
   libraries:
-    - /build/sei-chain/x/nitro/replay/libnitro_replayer.${ARCH}.so
     - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm@v*/api/libwasmvm.${ARCH}.so
   platforms:
     - linux/amd64
@@ -987,7 +979,7 @@
   binaries:
     - /go/bin/terpd
   build-env:
-    - BUILD_TAGS=muslc    
+    - BUILD_TAGS=muslc
 
 # Terra
 - name: terra
