@@ -868,18 +868,13 @@
 - name: sei
   github-organization: sei-protocol
   github-repo: sei-chain
-  dockerfile: cargo
+  dockerfile: cosmos
   build-target: |
-    set -eux
-    # Build seid
-    export GOOS=linux GOARCH=${TARGETARCH}
     make install
   binaries:
-    - /root/go/bin/seid
-  libraries:
-    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm@v*/api/libwasmvm.${ARCH}.so
-  platforms:
-    - linux/amd64
+    - /go/bin/seid
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Sentinel
 - name: sentinel
