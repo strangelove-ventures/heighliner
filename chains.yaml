@@ -256,6 +256,17 @@
   binaries:
     - /usr/local/bin/carbond
 
+# Celestia
+- name: celestia
+  github-organization: celestiaorg
+  github-repo: celestia-core
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc,cometbft
+  binaries: 
+    - /go/bin/cometbft
+
 # Cerberus
 - name: cerberus
   github-organization: cerberus-zone
