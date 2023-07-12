@@ -259,13 +259,11 @@
 # Celestia
 - name: celestia
   github-organization: celestiaorg
-  github-repo: celestia-core
+  github-repo: celestia-app
   dockerfile: cosmos
   build-target: make install
-  build-env:
-    - BUILD_TAGS=muslc,cometbft
   binaries: 
-    - /go/bin/cometbft
+    - /go/bin/celestia-appd
 
 # Cerberus
 - name: cerberus
