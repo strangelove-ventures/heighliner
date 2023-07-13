@@ -9,22 +9,12 @@ on:
   push:
     branches:
       - main
-env:
-  GO_VERSION: '^1.20'
-
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3.3.1
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - run: go version
-      - run: go install golang.org/x/tools/cmd/goimports@latest
-      - run: go install golang.org/x/lint/golint@latest
-      - run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -  -b $(go env GOPATH)/bin v1.51.2
-      - run: echo "PATH=$PATH:/home/runner/go/bin" >> $GITHUB_ENV
       - uses: pre-commit/action@v3.0.0
       - uses: pre-commit-ci/lite-action@v1.0.1
-        if: always()
+        # This will tell git to always run the pre-commit hook, even if the commit is a fast-forward
+        if: always() 
