@@ -45,7 +45,7 @@ func mostRecentReleasesForChain(
 
 	res, err := client.Do(req)
 	if err != nil || res.StatusCode != http.StatusOK {
-		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error performing github releases request: %v", err)
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error performing github releases request: %v:%v", res.StatusCode, err)
 	}
 
 	defer res.Body.Close()
