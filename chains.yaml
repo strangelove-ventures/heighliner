@@ -819,7 +819,7 @@
 # Quasar
 - name: quasar
   github-organization: quasar-finance
-  github-repo: quasar-preview
+  github-repo: quasar
   dockerfile: cosmos
   build-target: make install
   binaries:
