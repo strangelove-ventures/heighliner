@@ -385,6 +385,11 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
 
+	// If build dir is empty, add a "." for dockerfile compatibility
+	if chainConfig.Build.BuildDir == "" {
+		chainConfig.Build.BuildDir = "."
+	}
+
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Ref,
 		"BASE_VERSION":        baseVersion,

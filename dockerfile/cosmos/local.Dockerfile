@@ -12,11 +12,22 @@ ARG WASMVM_VERSION
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-# Download CosmWasm libwasmvm if found.
+# Download CosmWasm libwasmvm if found
 RUN set -eux; \
     export ARCH=$(uname -m); \
     if [ ! -z "${WASMVM_VERSION}" ]; then \
       wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
+    fi;
+
+ARG BUILD_DIR
+
+ADD ${BUILD_DIR}/go.mod ${BUILD_DIR}/go.sum ./
+
+# Download go mod dependencies, if there is no custom build directory
+# Note: a custom build dir indicates a monorepo with potential dependencies we can't anticipate atm
+RUN set -eux; \
+    if [[ "${BUILD_DIR}" == "." ]]; then \
+      go mod download; \
     fi;
 
 # Use minimal busybox from infra-toolkit image for final scratch image
