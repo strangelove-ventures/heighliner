@@ -14,7 +14,7 @@ ARG WASMVM_VERSION
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-# Download dependencies and CosmWasm libwasmvm if found.
+# Download CosmWasm libwasmvm if found.
 RUN set -eux; \
     export ARCH=$(uname -m); \
     if [ ! -z "${WASMVM_VERSION}" ]; then \
