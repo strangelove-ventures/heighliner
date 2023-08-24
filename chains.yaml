@@ -11,15 +11,85 @@
 
 # Agoric-sdk
 - name: agoric
-  dockerfile: imported
-  base-image: ghcr.io/agoric/agoric-sdk
+  dockerfile: cargo
+  github-organization: Agoric
+  github-repo: agoric-sdk
+  build-env:
+    - LEDGER_ENABLED=false
+  build-target: |
+    apt update && apt install -y python3 g++
+
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+    nvm install 18
+    npm i -g yarn
+
+    set -eux
+    cd golang/cosmos
+    export CGO_ENABLED=1 GOOS=linux GOARCH=${TARGETARCH} CC=${ARCH}-linux-gnu-gcc CXX=${ARCH}-linux-gnu-g++
+    COMMIT=$(git log -1 --format='%H')
+    COMMON_LDFLAGS="-X github.com/cosmos/cosmos-sdk/version.Name=agoric \
+      -X github.com/cosmos/cosmos-sdk/version.AppName=agd \
+      -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
+      -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
+      -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
+
+    # Build daemon lib
+    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -buildmode=c-shared -o build/libagcosmosdaemon.so ./cmd/libdaemon/main.go
+
+    # Build helper
+    LDFLAGS_HELPER="$COMMON_LDFLAGS -X github.com/cosmos/cosmos-sdk/version.AppName=ag-cosmos-helper"
+    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$LDFLAGS_HELPER" -o ../../bin/ag-cosmos-helper ./cmd/helper
+
+    # Build agd
+    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -o ../../bin/agd ./cmd/agd
+
+    # Build nodejs swingset kernel
+    npm install node-addon-api --legacy-peer-deps
+    export CC_host=gcc CXX_host=g++
+    GYP_DEBUG="--arch=${TARGETARCH}" make node-compile-gyp
+    # cp binding.gyp.in binding.gyp
+    # /root/.nvm/versions/node/*/lib/node_modules/npm/bin/node-gyp-bin/node-gyp configure build --arch=${TARGETARCH}
+    cd ../../packages
+    rm -rf ui-components web-components wallet-connection wallet web-components
+    cd ..
+    npm_config_arch=${TARGETARCH} yarn
+    npm_config_arch=${TARGETARCH} yarn build
+
+    # Move to final location
+    mkdir /agoric-sdk
+    mv packages node_modules bin golang /agoric-sdk
+  directories:
+    - /agoric-sdk
+    - /root/.nvm/versions/node
+  libraries:
+    - /agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
+  target-libraries:
+    - /lib/${ARCH}-linux-gnu/libdl.so.2
+    - /lib/${ARCH}-linux-gnu/libm.so.6
+    - /usr/lib/${ARCH}-linux-gnu/libstdc++.so.6
+    - /usr/lib/gcc/${ARCH}-linux-gnu/10/libgcc_s.so
+    - /lib/${ARCH}-linux-gnu/libgcc_s.so.1
+  final-image: |
+    set -eux
+    ln -s /agoric-sdk/bin/agd /bin/agd
+    ln -s /agoric-sdk/bin/ag-cosmos-helper /bin/ag-cosmos-helper
+    ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-chain-cosmos /bin/ag-chain-cosmos
+    ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-nchainz /bin/ag-nchainz
+    mkdir -p /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build /build/agoric-sdk/golang/cosmos/build
+    mv /agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build/
+    ln -s  /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /build/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
+    ln -s /root/.nvm/versions/node/*/bin/node /bin/node
 
 # Akash
 - name: akash
-  github-organization: ovrclk
-  github-repo: akash
+  github-organization: akash-network
+  github-repo: node
   dockerfile: cosmos
   build-target: make install
+  pre-build:
+    apk add --no-cache jq direnv
   binaries:
     - /go/bin/akash
 
@@ -60,7 +130,7 @@
   github-organization: ava-labs
   github-repo: avalanchego
   dockerfile: avalanche
-  build-target: 
+  build-target:
     bash scripts/build.sh
   binaries:
     - build/avalanchego
@@ -78,7 +148,7 @@
     git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
     # The npm commands will complain about nodejs versions but will proceed.
-    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92 
+    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92
     npm ci
     npm run build
     npm run flatten
@@ -150,7 +220,7 @@
     - /go/bin/cyber
   build-env:
     - BUILD_TAGS=muslc
-    
+
 # Carbon
 - name: carbon
   github-organization: Switcheo
@@ -185,6 +255,15 @@
     - /usr/local/lib/libleveldb.so.*
   binaries:
     - /usr/local/bin/carbond
+
+# Celestia
+- name: celestia
+  github-organization: celestiaorg
+  github-repo: celestia-app
+  dockerfile: cosmos
+  build-target: make install
+  binaries: 
+    - /go/bin/celestia-appd
 
 # Cerberus
 - name: cerberus
@@ -347,6 +426,18 @@
     - BUILD_TAGS=muslc
   binaries:
     - /go/bin/dualityd
+
+# dydx
+- name: dydx
+  pre-build: |
+    apt update
+    wget https://storage.googleapis.com/strangelove-public/dydx/dydxprotocold-${VERSION}-linux-amd64
+    mv dydxprotocold-${VERSION}-linux-amd64 /usr/bin/dydxprotocold
+    chmod 755 /usr/bin/dydxprotocold
+  binaries:
+    - /usr/bin/dydxprotocold
+  platforms:
+    - linux/amd64
 
 # Emoney
 - name: emoney
@@ -710,14 +801,6 @@
   github-repo: provenance
   dockerfile: cosmos
   build-target: make install
-  pre-build: |
-    apk add --no-cache g++
-    git clone https://github.com/edenhill/librdkafka.git
-    cd librdkafka
-    git checkout v1.8.2
-    ./configure
-    make
-    make install
   binaries:
     - /go/bin/provenanced
   build-env:
@@ -728,7 +811,7 @@
 # Quasar
 - name: quasar
   github-organization: quasar-finance
-  github-repo: quasar-preview
+  github-repo: quasar
   dockerfile: cosmos
   build-target: make install
   binaries:
@@ -786,26 +869,13 @@
 - name: sei
   github-organization: sei-protocol
   github-repo: sei-chain
-  dockerfile: cargo
+  dockerfile: cosmos
   build-target: |
-    set -eux
-  
-    # Build nitro
-    cd nitro-replayer
-    cargo build --release
-    cp target/${ARCH}-unknown-linux-gnu/release/libnitro_replayer.so ../x/nitro/replay/libnitro_replayer.${ARCH}.so
-    cd ..
-
-    # Build seid
-    export GOOS=linux GOARCH=${TARGETARCH}
     make install
   binaries:
-    - /root/go/bin/seid
-  libraries:
-    - /build/sei-chain/x/nitro/replay/libnitro_replayer.${ARCH}.so
-    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm@v*/api/libwasmvm.${ARCH}.so
-  platforms:
-    - linux/amd64
+    - /go/bin/seid
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Sentinel
 - name: sentinel
@@ -905,7 +975,7 @@
   binaries:
     - /go/bin/terpd
   build-env:
-    - BUILD_TAGS=muslc    
+    - BUILD_TAGS=muslc
 
 # Terra
 - name: terra
@@ -917,18 +987,6 @@
     - /go/bin/terrad
   build-env:
     - BUILD_TAGS=muslc
-
-# testnetx
-- name: testnetx
-  pre-build: |
-    apt update
-    wget https://storage.googleapis.com/strangelove-public/testnetx/testnetx-${VERSION}-linux-amd64
-    mv testnetx-${VERSION}-linux-amd64 /usr/bin/testnetx
-    chmod 755 /usr/bin/testnetx
-  binaries:
-    - /usr/bin/testnetx
-  platforms:
-    - linux/amd64
 
 # Thorchain
 - name: thorchain

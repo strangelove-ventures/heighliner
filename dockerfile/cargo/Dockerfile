@@ -132,6 +132,19 @@ RUN bash -c 'set -eux;\
   elif [ "${TARGETARCH}" = "amd64" ]; then export ARCH=x86_64; fi;\
   LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do LIB="$(eval "echo "$LIBRARY"")"; cp $LIB /root/lib/; done'
 
+# Copy over directories
+RUN mkdir -p /root/dir_abs && touch /root/dir_abs.list
+ARG DIRECTORIES
+ENV DIRECTORIES_ENV ${DIRECTORIES}
+RUN bash -c 'set -eux;\
+  DIRECTORIES_ARR=($DIRECTORIES_ENV);\
+  i=0;\
+  for DIRECTORY in "${DIRECTORIES_ARR[@]}"; do \
+    cp -R $DIRECTORY /root/dir_abs/$i;\
+    echo $DIRECTORY >> /root/dir_abs.list;\
+    ((i = i + 1));\
+  done'
+
 # Use minimal busybox from infra-toolkit image for final scratch image
 FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
@@ -265,6 +278,24 @@ RUN sh -c 'i=0; while read FILE; do\
       mv /root/lib_abs/$i $FILE;\
       i=$((i+1));\
     done < /root/lib_abs.list'
+
+# Copy over absolute path directories
+COPY --from=build-env /root/dir_abs /root/dir_abs
+COPY --from=build-env /root/dir_abs.list /root/dir_abs.list
+
+# Move absolute path directories to their absolute locations.
+RUN sh -c 'i=0; while read DIR; do\
+      echo "$i: $DIR";\
+      PLACEDIR="$(dirname "$DIR")";\
+      mkdir -p "$PLACEDIR";\
+      mv /root/dir_abs/$i $DIR;\
+      i=$((i+1));\
+    done < /root/dir_abs.list'
+
+RUN mkdir -p /usr/bin && ln -s /bin/env /usr/bin/env
+
+ARG FINAL_IMAGE
+RUN if [ ! -z "$FINAL_IMAGE" ]; then sh -c "$FINAL_IMAGE"; fi
 
 # Remove write utils used to construct image and tmp dir/file for lib copy.
 RUN rm -rf ln rm mv mkdir dirname /root/lib_abs /root/lib_abs.list

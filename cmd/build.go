@@ -54,6 +54,7 @@ const (
 	flagNumber       = "number"
 	flagParallel     = "parallel"
 	flagSkip         = "skip"
+	flagTarExport    = "tar-export-path"
 	flagLatest       = "latest"
 	flagLocal        = "local"
 	flagUseBuildkit  = "use-buildkit"
@@ -158,6 +159,7 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 	// Docker specific flags
 	buildCmd.PersistentFlags().StringVarP(&buildConfig.ContainerRegistry, flagRegistry, "r", "", "Docker Container Registry for pushing images")
 	buildCmd.PersistentFlags().BoolVarP(&buildConfig.SkipPush, flagSkip, "s", false, "Skip pushing images to registry")
+	buildCmd.PersistentFlags().StringVar(&buildConfig.TarExportPath, flagTarExport, "", "File path to export built image as docker tarball")
 	buildCmd.PersistentFlags().BoolVarP(&buildConfig.UseBuildKit, flagUseBuildkit, "b", false, "Use buildkit to build multi-arch images")
 	buildCmd.PersistentFlags().StringVar(&buildConfig.BuildKitAddr, flagBuildkitAddr, docker.BuildKitSock, "Address of the buildkit socket, can be unix, tcp, ssl")
 	buildCmd.PersistentFlags().StringVarP(&buildConfig.Platform, flagPlatform, "p", docker.DefaultPlatforms, "Platforms to build (only applies to buildkit builds with -b)")

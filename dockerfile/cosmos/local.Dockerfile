@@ -1,5 +1,5 @@
 ARG BASE_VERSION
-FROM golang:${BASE_VERSION} AS build-env
+FROM golang:${BASE_VERSION} AS init-env
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev
 
@@ -21,12 +21,6 @@ RUN set -eux; \
       wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
     fi;
 
-RUN mkdir -p /root/lib
-ARG LIBRARIES
-ENV LIBRARIES_ENV ${LIBRARIES}
-RUN bash -c 'set -eux;\
-  LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
-
 # Use minimal busybox from infra-toolkit image for final scratch image
 FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
@@ -40,9 +34,6 @@ FROM scratch AS final-part1
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
 WORKDIR /bin
-
-# Install libraries
-COPY --from=build-env /root/lib /lib
 
 # Install ln (for making hard links) and rm (for cleanup) from full busybox image (will be deleted, only needed for image assembly)
 COPY --from=busybox-full /bin/ln /bin/rm ./
@@ -93,7 +84,7 @@ COPY --from=infra-toolkit --chown=1025:1025 /home/heighliner /home/heighliner
 
 
 # Install chain binary
-FROM build-env AS build-env2
+FROM init-env AS build-env
 
 ARG BUILD_TARGET
 ARG BUILD_ENV
@@ -149,12 +140,21 @@ RUN bash -c 'set -eux;\
     fi;\
   done'
 
+RUN mkdir -p /root/lib
+ARG LIBRARIES
+ENV LIBRARIES_ENV ${LIBRARIES}
+RUN bash -c 'set -eux;\
+  LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
+
 # Move final binary to the final image
 FROM final-part1 as final
 WORKDIR /bin
 
 # Install chain binaries
-COPY --from=build-env2 /root/bin /bin
+COPY --from=build-env /root/bin /bin
+
+# Install libraries
+COPY --from=build-env /root/lib /lib
 
 WORKDIR /home/heighliner
 USER heighliner
