@@ -231,7 +231,6 @@ func getWasmvmVersion(modFile *modfile.File) string {
 			wasmvmVersion = item.Syntax.Token[1]
 		}
 	}
-	fmt.Println("WasmvmVersion after requires: ", wasmvmVersion)
 
 	// Then, check all the "replaces"
 	for _, item := range modFile.Replace {
@@ -240,7 +239,8 @@ func getWasmvmVersion(modFile *modfile.File) string {
 			wasmvmVersion = item.Syntax.Token[len(item.Syntax.Token)-1]
 		}
 	}
-	fmt.Println("WasmvmVersion after replaces: ", wasmvmVersion)
+	
+	fmt.Println("WasmVM version from go.mod: ", wasmvmVersion)
 
 	return wasmvmVersion
 }
