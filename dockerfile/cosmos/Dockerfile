@@ -30,6 +30,7 @@ ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
 ARG BUILD_DIR
+ARG WASMVM_VERSION
 
 RUN set -eux;\
     LIBDIR=/lib;\
@@ -48,9 +49,8 @@ RUN set -eux;\
         export CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++;\
       fi;\
     fi;\
-    WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $NF}');\
-    if [ ! -z "${WASM_VERSION}" ]; then\
-      wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$ARCH.a;\
+    if [ ! -z "${WASMVM_VERSION}" ]; then\
+      wget -O $LIBDIR/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.$ARCH.a;\
     fi;\
     export GOOS=linux GOARCH=$TARGETARCH CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"';\
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi;\
