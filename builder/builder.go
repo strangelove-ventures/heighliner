@@ -128,7 +128,9 @@ func rawDockerfile(
 
 	case DockerfileTypeCosmos:
 		if local {
-			// local builds always use embedded Dockerfile.
+			if useBuildKit {
+				return dockerfileEmbeddedOrLocal("cosmos/localcross.Dockerfile", dockerfile.CosmosLocalCross)
+			}
 			return dockerfile.CosmosLocal
 		}
 		if useBuildKit {
