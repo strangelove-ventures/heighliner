@@ -10,7 +10,7 @@ import (
 
 const (
 	Go118Version = "1.18.10"
-	Go119Version = "1.19.7"
+	Go119Version = "1.19.12"
 	Go120Version = "1.20.4"
 	Go121Version = "1.21.0"
 	// ADD NEW GO VERSION [1] - latest patch release for each major/minor
