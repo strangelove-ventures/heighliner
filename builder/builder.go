@@ -128,7 +128,9 @@ func rawDockerfile(
 
 	case DockerfileTypeCosmos:
 		if local {
-			// local builds always use embedded Dockerfile.
+			if useBuildKit {
+				return dockerfileEmbeddedOrLocal("cosmos/localcross.Dockerfile", dockerfile.CosmosLocalCross)
+			}
 			return dockerfile.CosmosLocal
 		}
 		if useBuildKit {
@@ -146,14 +148,22 @@ func rawDockerfile(
 }
 
 // baseImageForGoVersion will determine the go version in go.mod and return the base image
-func baseImageForGoVersion(
+func baseImageForGoVersion(modFile *modfile.File) GoVersion {
+	goVersion := modFile.Go.Version
+	baseImageVersion := GetImageAndVersionForGoVersion(goVersion)
+	fmt.Printf("Go version from go.mod: %s, will build with version: %s image: %s\n", goVersion, baseImageVersion.Version, baseImageVersion.Image)
+
+	return baseImageVersion
+}
+
+func getModFile(
 	repoHost string,
 	organization string,
 	repoName string,
 	ref string,
 	buildDir string,
 	local bool,
-) (GoVersion, error) {
+) (*modfile.File, error) {
 	var goModBz []byte
 	var err error
 
@@ -165,7 +175,7 @@ func baseImageForGoVersion(
 	if local {
 		goModBz, err = os.ReadFile(goModPath)
 		if err != nil {
-			return GoVersion{}, fmt.Errorf("failed to read %s for local build: %w", goModPath, err)
+			return nil, fmt.Errorf("failed to read %s for local build: %w", goModPath, err)
 		}
 	} else {
 		// single branch depth 1 clone to only fetch most recent state of files
@@ -187,32 +197,56 @@ func baseImageForGoVersion(
 
 			_, err := git.Clone(memory.NewStorage(), fs, cloneOpts)
 			if err != nil {
-				return GoVersion{}, fmt.Errorf("failed to clone go.mod file to determine go version: %w", err)
+				return nil, fmt.Errorf("failed to clone go.mod file to determine go version: %w", err)
 			}
 		}
 
 		goModFile, err := fs.Open(goModPath)
 		if err != nil {
-			return GoVersion{}, fmt.Errorf("failed to open go.mod file: %w", err)
+			return nil, fmt.Errorf("failed to open go.mod file: %w", err)
 		}
 
 		goModBz, err = io.ReadAll(goModFile)
 		if err != nil {
-			return GoVersion{}, fmt.Errorf("failed to read go.mod file: %w", err)
+			return nil, fmt.Errorf("failed to read go.mod file: %w", err)
 		}
 	}
 
 	goMod, err := modfile.Parse("go.mod", goModBz, nil)
 	if err != nil {
-		return GoVersion{}, fmt.Errorf("failed to parse go.mod file: %w", err)
+		return nil, fmt.Errorf("failed to parse go.mod file: %w", err)
 	}
 
-	goVersion := goMod.Go.Version
-	baseImageVersion := GetImageAndVersionForGoVersion(goVersion)
-	fmt.Printf("Go version from go.mod: %s, will build with version: %s image: %s\n", goVersion, baseImageVersion.Version, baseImageVersion.Image)
-
-	return baseImageVersion, nil
+	return goMod, nil
 }
+
+
+// getWasmvmVersion will get the wasmvm version from the mod file
+func getWasmvmVersion(modFile *modfile.File) string {
+	wasmvmRepo := "github.com/CosmWasm/wasmvm"
+	wasmvmVersion := ""
+	
+	// First check all the "requires"
+	for _, item := range modFile.Require {
+		// Must have 2 tokens, repo & version
+		if (len(item.Syntax.Token) == 2) && (strings.Contains(item.Syntax.Token[0], wasmvmRepo)) {
+			wasmvmVersion = item.Syntax.Token[1]
+		}
+	}
+
+	// Then, check all the "replaces"
+	for _, item := range modFile.Replace {
+		// Must have 3 or more tokens
+		if (len(item.Syntax.Token) > 2) && (strings.Contains(item.Syntax.Token[0], wasmvmRepo)) {
+			wasmvmVersion = item.Syntax.Token[len(item.Syntax.Token)-1]
+		}
+	}
+	
+	fmt.Println("WasmVM version from go.mod: ", wasmvmVersion)
+
+	return wasmvmVersion
+}
+
 
 // buildChainNodeDockerImage builds the requested chain node docker image
 // based on the input configuration.
@@ -319,10 +353,16 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	var baseVersion string
 
-	baseVer, err := baseImageForGoVersion(
+	modFile, err := getModFile(
 		repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo,
 		chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
 	)
+	if err != nil {
+		return fmt.Errorf("error getting mod file: %w", err)
+	}
+
+	baseVer := baseImageForGoVersion(modFile)
+	wasmvmVersion := getWasmvmVersion(modFile)
 
 	race := ""
 
@@ -347,6 +387,11 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
 
+	// If build dir is empty, add a "." for dockerfile compatibility
+	if chainConfig.Build.BuildDir == "" {
+		chainConfig.Build.BuildDir = "."
+	}
+
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Ref,
 		"BASE_VERSION":        baseVersion,
@@ -367,6 +412,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
 		"BUILD_TIMESTAMP":     buildTimestamp,
 		"GO_VERSION":          baseVer.Version,
+		"WASMVM_VERSION":      wasmvmVersion,
 		"RACE":                race,
 	}
 
