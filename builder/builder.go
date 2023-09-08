@@ -128,7 +128,9 @@ func rawDockerfile(
 
 	case DockerfileTypeCosmos:
 		if local {
-			// local builds always use embedded Dockerfile.
+			if useBuildKit {
+				return dockerfileEmbeddedOrLocal("cosmos/localcross.Dockerfile", dockerfile.CosmosLocalCross)
+			}
 			return dockerfile.CosmosLocal
 		}
 		if useBuildKit {
@@ -350,21 +352,22 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 	}
 
 	var baseVersion string
-
-	modFile, err := getModFile(
-		repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo,
-		chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
-	)
-	if err != nil {
-		return fmt.Errorf("error getting mod file: %w", err)
-	}
-
-	baseVer := baseImageForGoVersion(modFile)
-	wasmvmVersion := getWasmvmVersion(modFile)
-
+	var baseVer GoVersion
+	var wasmvmVersion string
 	race := ""
 
 	if dockerfile == DockerfileTypeCosmos || dockerfile == DockerfileTypeAvalanche {
+		modFile, err := getModFile(
+			repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo,
+			chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
+		)
+		if err != nil {
+			return fmt.Errorf("error getting mod file: %w", err)
+		}
+
+		baseVer = baseImageForGoVersion(modFile)
+		wasmvmVersion = getWasmvmVersion(modFile)
+
 		baseVersion = GoDefaultImage // default, and fallback if go.mod parse fails
 
 		// In error case, fallback to default image
@@ -381,6 +384,18 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 				imageTags[i] = imageTag + "-race"
 			}
 		}
+	} else {
+		// Try to get mod file for non-cosmos/non-avax dockerfile types.
+		// If no error, get go version, if error, continue on without go version.
+		// Agoric looks to be the only chain needing this.
+		modFile, err := getModFile(
+			repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo,
+			chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
+		)
+		if err == nil {
+			baseVer = baseImageForGoVersion(modFile)
+		}
+
 	}
 
 	fmt.Printf("Building image from %s, resulting docker image tags: +%v\n", buildFrom, imageTags)
