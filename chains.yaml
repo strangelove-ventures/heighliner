@@ -509,6 +509,21 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# hyperlane agents
+- name: hyperlane-agents
+  github-organization: hyperlane-xyz
+  github-repo: hyperlane-monorepo
+  dockerfile: cargo
+  build-dir: rust
+  build-target: |
+    sed -i '/channel/c\channel = "nightly"' ../rust-toolchain
+    rustup toolchain install nightly
+    rustup component add rust-src --toolchain nightly-$(uname -m)-unknown-linux-gnu
+    cargo build --release --bin validator --bin relayer -Zbuild-std
+  binaries:
+    - /build/hyperlane-monorepo/rust/target/${ARCH}-unknown-linux-gnu/release/validator
+    - /build/hyperlane-monorepo/rust/target/${ARCH}-unknown-linux-gnu/release/relayer
+
 # hyperlane sim (for testing)
 - name: hyperlane-simd
   github-organization: strangelove-ventures
