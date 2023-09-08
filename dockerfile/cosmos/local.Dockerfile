@@ -8,18 +8,27 @@ ARG BUILDARCH
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 ARG GITHUB_REPO
+ARG WASMVM_VERSION
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
-# Download dependencies and CosmWasm libwasmvm if found.
-ADD go.mod go.sum ./
+# Download CosmWasm libwasmvm if found
 RUN set -eux; \
     export ARCH=$(uname -m); \
-    WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm | awk '{print $NF}'); \
-    if [ ! -z "${WASM_VERSION}" ]; then \
-      wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
-    fi; \
-    go mod download;
+    if [ ! -z "${WASMVM_VERSION}" ]; then \
+      wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
+    fi;
+
+ARG BUILD_DIR
+
+ADD ${BUILD_DIR}/go.mod ${BUILD_DIR}/go.sum ./
+
+# Download go mod dependencies, if there is no custom build directory
+# Note: a custom build dir indicates a monorepo with potential dependencies we can't anticipate atm
+RUN set -eux; \
+    if [[ "${BUILD_DIR}" == "." ]]; then \
+      go mod download; \
+    fi;
 
 # Use minimal busybox from infra-toolkit image for final scratch image
 FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit

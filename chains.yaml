@@ -93,6 +93,17 @@
   binaries:
     - /go/bin/akash
 
+# Archway
+- name: archway
+  github-organization: archway-network
+  github-repo: archway
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/archwayd  
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Arkeo
 - name: arkeo
   github-organization: arkeonetwork
@@ -498,6 +509,21 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# hyperlane agents
+- name: hyperlane-agents
+  github-organization: hyperlane-xyz
+  github-repo: hyperlane-monorepo
+  dockerfile: cargo
+  build-dir: rust
+  build-target: |
+    sed -i '/channel/c\channel = "nightly"' ../rust-toolchain
+    rustup toolchain install nightly
+    rustup component add rust-src --toolchain nightly-$(uname -m)-unknown-linux-gnu
+    cargo build --release --bin validator --bin relayer -Zbuild-std
+  binaries:
+    - /build/hyperlane-monorepo/rust/target/${ARCH}-unknown-linux-gnu/release/validator
+    - /build/hyperlane-monorepo/rust/target/${ARCH}-unknown-linux-gnu/release/relayer
+
 # hyperlane sim (for testing)
 - name: hyperlane-simd
   github-organization: strangelove-ventures
@@ -648,6 +674,15 @@
   build-target: make install
   binaries:
     - /go/bin/lumd
+
+# Migaloo
+- name: migaloo
+  github-organization: White-Whale-Defi-Platform
+  github-repo: migaloo-chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/migalood
 
 # Nomic
 - name: nomic
@@ -801,14 +836,6 @@
   github-repo: provenance
   dockerfile: cosmos
   build-target: make install
-  pre-build: |
-    apk add --no-cache g++
-    git clone https://github.com/edenhill/librdkafka.git
-    cd librdkafka
-    git checkout v1.8.2
-    ./configure
-    make
-    make install
   binaries:
     - /go/bin/provenanced
   build-env:
@@ -819,7 +846,7 @@
 # Quasar
 - name: quasar
   github-organization: quasar-finance
-  github-repo: quasar-preview
+  github-repo: quasar
   dockerfile: cosmos
   build-target: make install
   binaries:
@@ -1037,6 +1064,19 @@
     - build/wasmd
   build-env:
     - BUILD_TAGS=muslc
+
+# Wormchain (Wormhole Gateway)
+- name: wormchain
+  github-organization: wormhole-foundation
+  github-repo: wormhole
+  dockerfile: cosmos
+  build-target: |
+    BUILD_TAGS=netgo,muslc
+    LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=wormchain -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/cosmos/cosmos-sdk/version.ServerName=wormchaind"
+    go build -mod=readonly -tags="${BUILD_TAGS}" -ldflags="$LDFLAGS ${LD_FLAGS}" -o build/wormchaind cmd/wormchaind/main.go 
+  build-dir: wormchain
+  binaries:
+    - wormchain/build/wormchaind
 
 # Xion
 - name: xion

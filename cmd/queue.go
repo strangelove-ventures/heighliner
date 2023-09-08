@@ -22,7 +22,7 @@ func mostRecentReleasesForChain(
 	number int16,
 ) (builder.HeighlinerQueuedChainBuilds, error) {
 	if chainNodeConfig.GithubOrganization == "" || chainNodeConfig.GithubRepo == "" {
-		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("github organization: %s and/or repo: %s not provided for chain: %s\n", chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, chainNodeConfig.Name)
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("github organization: %s and/or repo: %s not provided for chain: %s", chainNodeConfig.GithubOrganization, chainNodeConfig.GithubRepo, chainNodeConfig.Name)
 	}
 	client := http.Client{Timeout: 5 * time.Second}
 
@@ -46,6 +46,9 @@ func mostRecentReleasesForChain(
 	res, err := client.Do(req)
 	if err != nil {
 		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("error performing github releases request: %v", err)
+	}
+	if res.StatusCode != http.StatusOK {
+		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("status code: %v", res.StatusCode)
 	}
 
 	defer res.Body.Close()
