@@ -93,6 +93,17 @@
   binaries:
     - /go/bin/akash
 
+# Andromeda
+- name: andromeda
+  github-organization: andromedaprotocol
+  github-repo: andromedad
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/andromedad
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Archway
 - name: archway
   github-organization: archway-network
@@ -100,7 +111,7 @@
   dockerfile: cosmos
   build-target: make build
   binaries:
-    - build/archwayd  
+    - build/archwayd
   build-env:
     - BUILD_TAGS=muslc
 
@@ -232,6 +243,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Canto
+- name: canto
+  github-organization: Canto-Network
+  github-repo: Canto
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/cantod
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Carbon
 - name: carbon
   github-organization: Switcheo
@@ -300,6 +322,8 @@
   github-repo: chihuahua
   dockerfile: cosmos
   build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
   binaries:
     - /go/bin/chihuahuad
 
@@ -675,6 +699,17 @@
   binaries:
     - /go/bin/lumd
 
+# Mars
+- name: mars
+  github-organization: mars-protocol
+  github-repo: hub
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/marsd
+
 # Migaloo
 - name: migaloo
   github-organization: White-Whale-Defi-Platform
@@ -699,6 +734,17 @@
   # once these changes are merged: https://github.com/nomic-io/orga/pull/154
   platforms:
     - linux/amd64
+
+# Noria
+- name: noria
+  github-organization: noria-net
+  github-repo: noria
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/noriad
 
 # Neutron
 - name: neutron
