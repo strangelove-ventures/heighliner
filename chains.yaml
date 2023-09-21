@@ -1044,6 +1044,8 @@
   build-target: make install
   binaries:
     - /go/bin/umeed
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Vidulum
 - name: vidulum
