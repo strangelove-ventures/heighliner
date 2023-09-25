@@ -3,7 +3,7 @@ module github.com/strangelove-ventures/heighliner
 go 1.21
 
 require (
-	github.com/docker/docker v20.10.12+incompatible
+	github.com/docker/docker v20.10.24+incompatible
 	github.com/go-git/go-billy/v5 v5.4.0
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/hashicorp/go-version v1.6.0
