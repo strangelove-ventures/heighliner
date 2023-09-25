@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/docker/cli/cli/config"
 	"github.com/moby/buildkit/client"
 	"github.com/moby/buildkit/client/llb"
 	"github.com/moby/buildkit/session"
@@ -65,7 +66,8 @@ func BuildDockerImageWithBuildKit(
 		return fmt.Errorf("error getting buildkit client: %v", err)
 	}
 
-	attachable := []session.Attachable{authprovider.NewDockerAuthProvider(os.Stderr)}
+	dockerConfig := config.LoadDefaultConfigFile(os.Stderr)
+	attachable := []session.Attachable{authprovider.NewDockerAuthProvider(dockerConfig)}
 
 	eg, ctx := errgroup.WithContext(ctx)
 
