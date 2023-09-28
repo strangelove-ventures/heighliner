@@ -246,6 +246,18 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Notional Labs Composable
+- name: composable-cosmos
+  github-organization: notional-labs
+  github-repo: composable-centauri
+  dockerfile: cosmos
+  build-env:
+    - BUILD_TAGS=muslc
+  build-target: make build
+  binaries:
+    - /go/src/github.com/notional-labs/composable-centauri/bin/centaurid
+
+
 # Canto
 - name: canto
   github-organization: Canto-Network
