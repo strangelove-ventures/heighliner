@@ -2,34 +2,40 @@ package builder
 
 import (
 	"sort"
+	"strings"
 
 	"golang.org/x/mod/semver"
 )
 
 // To add a new go version, add to `ADD NEW GO VERSION` [1], [2], [3], and [4]
-
 const (
 	Go118Version = "1.18.10"
-	Go119Version = "1.19.12"
-	Go120Version = "1.20.7"
-	Go121Version = "1.21.0"
+	Go119Version = "1.19.13"
+	Go120Version = "1.20.10"
+	Go121Version = "1.21.3"
 	// ADD NEW GO VERSION [1] - latest patch release for each major/minor
 
 	// When updating alpine image, ensure all golang build image combinations below exist
-	AlpineImageVersion = "3.17"
+	LatestAlpineImageVersion = "3.18"
+)
 
+var (
+	// ADD NEW GO VERSION [2]
 	// golang official dockerhub images to use for cosmos builds
 	// Find from https://hub.docker.com/_/golang
-	Go118Image = Go118Version + "-alpine" + AlpineImageVersion
-	Go119Image = Go119Version + "-alpine" + AlpineImageVersion
-	Go120Image = Go120Version + "-alpine" + AlpineImageVersion
-	Go121Image = Go121Version + "-alpine" + AlpineImageVersion
-	// ADD NEW GO VERSION [2]
+	Go118Image = GolangAlpineImage(Go118Version, "3.17") // Go 1.18 is now deprecated, pinning to 3.17
+	Go119Image = GolangAlpineImage(Go119Version, LatestAlpineImageVersion)
+	Go120Image = GolangAlpineImage(Go120Version, LatestAlpineImageVersion)
+	Go121Image = GolangAlpineImage(Go121Version, LatestAlpineImageVersion)
 
 	// ADD NEW GO VERSION [3] - update GoDefaultVersion and GoDefaultImage to latest
 	GoDefaultVersion = Go121Version
 	GoDefaultImage   = Go121Image // default image for cosmos go builds if go.mod parse fails
 )
+
+func GolangAlpineImage(goVersion, alpineVersion string) string {
+	return goVersion + "-alpine" + alpineVersion
+}
 
 type GoVersion struct {
 	Version string
@@ -60,11 +66,21 @@ func goVersionsDesc() []string {
 }
 
 // GetImageForGoVersion will return the build docker image for the provided go version
-func GetImageAndVersionForGoVersion(goVersion string) GoVersion {
+func GetImageAndVersionForGoVersion(goVersion string, alpineVersion string) GoVersion {
+	// If alpine version is provided, use that image explicitly
+	if alpineVersion != "" {
+		return GoVersion{Version: goVersion, Image: GolangAlpineImage(goVersion, alpineVersion)}
+	}
+	// If alpine version is not provided, but go version is provided to the patch version, use the latest alpine version with that go version.
+	if len(strings.Split(goVersion, ".")) == 3 {
+		return GoVersion{Version: goVersion, Image: GolangAlpineImage(goVersion, LatestAlpineImageVersion)}
+	}
+	// If alpine version is not provided, and go version is not provided to the patch version, use the latest alpine version with the latest go patch version.
 	for _, goVer := range goVersionsDesc() {
 		if semver.Compare("v"+goVersion, "v"+goVer) >= 0 {
 			return GoImageForVersion[goVer]
 		}
 	}
+	// If unable to find go version in mapping, return default
 	return GoVersion{Version: GoDefaultVersion, Image: GoDefaultImage}
 }

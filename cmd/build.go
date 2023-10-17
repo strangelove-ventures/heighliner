@@ -35,34 +35,36 @@ type chainConfigFlags struct {
 }
 
 const (
-	flagFile         = "file"
-	flagRegistry     = "registry"
-	flagChain        = "chain"
-	flagOrg          = "org"
-	flagRepo         = "repo"
-	flagRepoHost     = "repo-host"
-	flagGitRef       = "git-ref"
-	flagDockerfile   = "dockerfile"
-	flagBuildDir     = "build-dir"
-	flagPreBuild     = "pre-build"
-	flagBuildTarget  = "build-target"
-	flagBuildEnv     = "build-env"
-	flagBinaries     = "binaries"
-	flagLibraries    = "libraries"
-	flagTag          = "tag"
-	flagVersion      = "version" // DEPRECATED
-	flagNumber       = "number"
-	flagParallel     = "parallel"
-	flagSkip         = "skip"
-	flagTarExport    = "tar-export-path"
-	flagLatest       = "latest"
-	flagLocal        = "local"
-	flagUseBuildkit  = "use-buildkit"
-	flagBuildkitAddr = "buildkit-addr"
-	flagPlatform     = "platform"
-	flagNoCache      = "no-cache"
-	flagNoBuildCache = "no-build-cache"
-	flagRace         = "race"
+	flagFile          = "file"
+	flagRegistry      = "registry"
+	flagChain         = "chain"
+	flagOrg           = "org"
+	flagRepo          = "repo"
+	flagRepoHost      = "repo-host"
+	flagGitRef        = "git-ref"
+	flagDockerfile    = "dockerfile"
+	flagBuildDir      = "build-dir"
+	flagPreBuild      = "pre-build"
+	flagBuildTarget   = "build-target"
+	flagBuildEnv      = "build-env"
+	flagBinaries      = "binaries"
+	flagLibraries     = "libraries"
+	flagTag           = "tag"
+	flagVersion       = "version" // DEPRECATED
+	flagNumber        = "number"
+	flagParallel      = "parallel"
+	flagSkip          = "skip"
+	flagTarExport     = "tar-export-path"
+	flagLatest        = "latest"
+	flagLocal         = "local"
+	flagUseBuildkit   = "use-buildkit"
+	flagBuildkitAddr  = "buildkit-addr"
+	flagPlatform      = "platform"
+	flagNoCache       = "no-cache"
+	flagNoBuildCache  = "no-build-cache"
+	flagRace          = "race"
+	flagGoVersion     = "go-version"
+	flagAlpineVersion = "alpine-version"
 )
 
 func loadChainsYaml(configFile string) error {
@@ -165,6 +167,8 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 	buildCmd.PersistentFlags().StringVarP(&buildConfig.Platform, flagPlatform, "p", docker.DefaultPlatforms, "Platforms to build (only applies to buildkit builds with -b)")
 	buildCmd.PersistentFlags().BoolVar(&buildConfig.NoCache, flagNoCache, false, "Don't use docker cache for building")
 	buildCmd.PersistentFlags().BoolVar(&buildConfig.NoBuildCache, flagNoBuildCache, false, "Invalidate caches for clone and build.")
+	buildCmd.PersistentFlags().StringVar(&buildConfig.GoVersion, flagGoVersion, "", "Go version override to use for building (go builds only)")
+	buildCmd.PersistentFlags().StringVar(&buildConfig.AlpineVersion, flagAlpineVersion, "", "Alpine version override to use for building (go builds only)")
 
 	// DEPRECATED
 	buildCmd.PersistentFlags().StringP(flagVersion, "v", "", "DEPRECATED, use --git-ref/-g instead")
