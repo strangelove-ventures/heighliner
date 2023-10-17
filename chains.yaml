@@ -488,15 +488,13 @@
 
 # dydx
 - name: dydx
-  pre-build: |
-    apt update
-    wget https://storage.googleapis.com/strangelove-public/dydx/dydxprotocold-${VERSION}-linux-amd64
-    mv dydxprotocold-${VERSION}-linux-amd64 /usr/bin/dydxprotocold
-    chmod 755 /usr/bin/dydxprotocold
+  github-organization: dydxprotocol
+  github-repo: v4-chain
+  dockerfile: cosmos
+  build-target: make install
+  build-dir: protocol
   binaries:
-    - /usr/bin/dydxprotocold
-  platforms:
-    - linux/amd64
+    - /go/bin/dydxprotocold
 
 # Emoney
 - name: emoney
