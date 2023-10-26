@@ -895,6 +895,8 @@
   build-target: make install
   binaries:
     - /go/bin/persistenceCore
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Polkadot
 - name: polkadot
