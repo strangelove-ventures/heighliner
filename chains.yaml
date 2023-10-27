@@ -953,6 +953,8 @@
   build-target: make build
   binaries:
     - build/quicksilverd
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Regen
 - name: regen
