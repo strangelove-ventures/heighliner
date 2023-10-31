@@ -307,11 +307,14 @@
 # Celestia
 - name: celestia
   github-organization: celestiaorg
-  github-repo: celestia-app
+  github-repo: celestia-node
   dockerfile: cosmos
-  build-target: make install
+  build-target: |
+    versioningPath="github.com/celestiaorg/celestia-node/nodebuilder/node"
+    LDFLAGS="$LDFLAGS -X '${versioningPath}.buildTime=$(date)' -X '${versioningPath}.lastCommit=$(git rev-parse HEAD)' -X '${versioningPath}.semanticVersion=$(git describe --tags --dirty=-dev 2>/dev/null || git rev-parse --abbrev-ref HEAD)'"
+    go install -ldflags="$LDFLAGS" ./cmd/celestia
   binaries: 
-    - /go/bin/celestia-appd
+    - /go/bin/celestia
 
 # Cerberus
 - name: cerberus
