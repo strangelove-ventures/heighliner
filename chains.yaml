@@ -415,9 +415,12 @@
     export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fstack-protector"
     go install -ldflags="$LDFLAGS" ./cmd/interchain-security-pd
     go install -ldflags="$LDFLAGS" ./cmd/interchain-security-cd
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-cdd
   binaries:
     - /go/bin/interchain-security-pd
     - /go/bin/interchain-security-cd
+    - /go/bin/interchain-security-cdd
+
 
 # Crescent
 - name: crescent
