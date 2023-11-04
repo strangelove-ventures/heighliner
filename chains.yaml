@@ -304,8 +304,21 @@
   binaries:
     - /usr/local/bin/carbond
 
-# Celestia
+# Celestia App
 - name: celestia
+  github-organization: celestiaorg
+  github-repo: celestia-app
+  dockerfile: cosmos
+  build-target: |
+    VERSION := $(shell echo $(shell git describe --tags 2>/dev/null || git log -1 --format='%h') | sed 's/^v//')
+    COMMIT=$(git log -1 --format='%H')
+    LDFLAGS="$LDFLAGS -X github.com/cosmos/cosmos-sdk/version.Name=celestia-app -X github.com/cosmos/cosmos-sdk/version.AppName=celestia-appd -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
+    go install -ldflags="$LDFLAGS" ./cmd/celestia-appd
+  binaries: 
+    - /go/bin/celestia-appd
+
+# Celestia Node
+- name: celestia-node
   github-organization: celestiaorg
   github-repo: celestia-node
   dockerfile: cosmos
