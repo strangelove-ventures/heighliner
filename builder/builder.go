@@ -213,13 +213,15 @@ func getModFile(
 
 // getWasmvmVersion will get the wasmvm version from the mod file
 func getWasmvmVersion(modFile *modfile.File) string {
-	wasmvmRepo := "github.com/CosmWasm/wasmvm"
+	const defaultWasmvmRepo = "github.com/CosmWasm/wasmvm"
+	wasmvmRepo := defaultWasmvmRepo
 	wasmvmVersion := ""
 
 	// First check all the "requires"
 	for _, item := range modFile.Require {
 		// Must have 2 tokens, repo & version
 		if (len(item.Syntax.Token) == 2) && (strings.Contains(item.Syntax.Token[0], wasmvmRepo)) {
+			wasmvmRepo = item.Syntax.Token[0]
 			wasmvmVersion = item.Syntax.Token[1]
 		}
 	}
@@ -228,13 +230,18 @@ func getWasmvmVersion(modFile *modfile.File) string {
 	for _, item := range modFile.Replace {
 		// Must have 3 or more tokens
 		if (len(item.Syntax.Token) > 2) && (strings.Contains(item.Syntax.Token[0], wasmvmRepo)) {
+			wasmvmRepo = item.Syntax.Token[len(item.Syntax.Token)-2]
 			wasmvmVersion = item.Syntax.Token[len(item.Syntax.Token)-1]
 		}
 	}
 
-	fmt.Println("WasmVM version from go.mod: ", wasmvmVersion)
+	fmt.Printf("WasmVM from go.mod: repo: %s, version: %s\n", wasmvmRepo, wasmvmVersion)
 
-	return wasmvmVersion
+	if wasmvmVersion == "" {
+		return ""
+	}
+
+	return wasmvmRepo + " " + wasmvmVersion
 }
 
 // buildChainNodeDockerImage builds the requested chain node docker image
