@@ -15,8 +15,10 @@ WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 # Download CosmWasm libwasmvm if found
 RUN set -eux; \
     export ARCH=$(uname -m); \
-    if [ ! -z "${WASMVM_VERSION}" ]; then \
-      wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
+    if [ ! -z "${WASMVM_VERSION}" ]; then\
+      WASMVM_REPO=$(echo $WASMVM_VERSION | awk '{print $1}');\
+      WASMVM_VERS=$(echo $WASMVM_VERSION | awk '{print $2}');\
+      wget -O $LIBDIR/libwasmvm_muslc.a https://${WASMVM_REPO}/releases/download/${WASMVM_VERS}/libwasmvm_muslc.$(uname -m).a;\
     fi;
 
 ARG BUILD_DIR

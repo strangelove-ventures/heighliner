@@ -1130,6 +1130,17 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Terra
+- name: terra-classic
+  github-organization: terra-money
+  github-repo: classic-core
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/terrad
+  build-env:
+    - BUILD_TAGS=muslc
+
 # Thorchain
 - name: thorchain
   repo-host: gitlab.com
