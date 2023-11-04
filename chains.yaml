@@ -1132,8 +1132,8 @@
 
 # Terra Classic
 - name: terra-classic
-  github-organization: terra-money
-  github-repo: classic-core
+  github-organization: classic-terra
+  github-repo: core
   dockerfile: cosmos
   build-target: make install
   binaries:
