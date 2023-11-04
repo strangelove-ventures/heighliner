@@ -1130,7 +1130,7 @@
   build-env:
     - BUILD_TAGS=muslc
 
-# Terra
+# Terra Classic
 - name: terra-classic
   github-organization: terra-money
   github-repo: classic-core
