@@ -808,12 +808,10 @@
 - name: nibiru
   github-organization: NibiruChain
   github-repo: nibiru
-  dockerfile: cosmos
+  dockerfile: cargo
   build-target: make install
   binaries:
-    - /go/bin/nibid
-  build-env:
-    - BUILD_TAGS=muslc
+    - /root/go/bin/nibid
 
 # Noble
 - name: noble
