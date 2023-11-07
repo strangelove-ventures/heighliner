@@ -571,6 +571,21 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# ibc-go 08-wasm sim (for testing)
+- name: ibc-go-wasm-simd
+  github-organization: cosmos
+  github-repo: ibc-go
+  dockerfile: cosmos
+  build-dir: modules/light-clients/08-wasm
+  build-target: |
+    BUILD_TAGS=netgo,muslc
+    LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=sim -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/cosmos/cosmos-sdk/version.ServerName=simd"
+    go build -mod=readonly -tags="${BUILD_TAGS}" -ldflags="$LDFLAGS ${LD_FLAGS}" -trimpath -o build/simd testing/simapp/simd/main.go 
+  binaries:
+    - modules/light-clients/08-wasm/build/simd
+  build-env:
+    - BUILD_TAGS=muslc
+
 # hyperlane agents
 - name: hyperlane-agents
   github-organization: hyperlane-xyz
