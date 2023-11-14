@@ -146,7 +146,7 @@ RUN bash -c 'set -eux;\
   done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.0 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use ln and rm from full featured busybox for assembling final image

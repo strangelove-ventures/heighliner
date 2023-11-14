@@ -15,8 +15,10 @@ WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 # Download CosmWasm libwasmvm if found
 RUN set -eux; \
     export ARCH=$(uname -m); \
-    if [ ! -z "${WASMVM_VERSION}" ]; then \
-      wget -O /lib/libwasmvm_muslc.a https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.$(uname -m).a; \
+    if [ ! -z "${WASMVM_VERSION}" ]; then\
+      WASMVM_REPO=$(echo $WASMVM_VERSION | awk '{print $1}');\
+      WASMVM_VERS=$(echo $WASMVM_VERSION | awk '{print $2}');\
+      wget -O /lib/libwasmvm_muslc.a https://${WASMVM_REPO}/releases/download/${WASMVM_VERS}/libwasmvm_muslc.$(uname -m).a;\
     fi;
 
 ARG BUILD_DIR
@@ -31,7 +33,7 @@ RUN set -eux; \
     fi;
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.0.7 AS infra-toolkit
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.0 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use ln and rm from full featured busybox for assembling final image
