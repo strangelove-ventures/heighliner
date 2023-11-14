@@ -304,14 +304,30 @@
   binaries:
     - /usr/local/bin/carbond
 
-# Celestia
+# Celestia App
 - name: celestia
   github-organization: celestiaorg
   github-repo: celestia-app
   dockerfile: cosmos
-  build-target: make install
+  build-target: |
+    VERSION := $(shell echo $(shell git describe --tags 2>/dev/null || git log -1 --format='%h') | sed 's/^v//')
+    COMMIT=$(git log -1 --format='%H')
+    LDFLAGS="$LDFLAGS -X github.com/cosmos/cosmos-sdk/version.Name=celestia-app -X github.com/cosmos/cosmos-sdk/version.AppName=celestia-appd -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
+    go install -ldflags="$LDFLAGS" ./cmd/celestia-appd
   binaries: 
     - /go/bin/celestia-appd
+
+# Celestia Node
+- name: celestia-node
+  github-organization: celestiaorg
+  github-repo: celestia-node
+  dockerfile: cosmos
+  build-target: |
+    versioningPath="github.com/celestiaorg/celestia-node/nodebuilder/node"
+    LDFLAGS="$LDFLAGS -X '${versioningPath}.buildTime=$(date)' -X '${versioningPath}.lastCommit=$(git rev-parse HEAD)' -X '${versioningPath}.semanticVersion=$(git describe --tags --dirty=-dev 2>/dev/null || git rev-parse --abbrev-ref HEAD)'"
+    go install -ldflags="$LDFLAGS" ./cmd/celestia
+  binaries: 
+    - /go/bin/celestia
 
 # Cerberus
 - name: cerberus
@@ -792,12 +808,10 @@
 - name: nibiru
   github-organization: NibiruChain
   github-repo: nibiru
-  dockerfile: cosmos
+  dockerfile: cargo
   build-target: make install
   binaries:
-    - /go/bin/nibid
-  build-env:
-    - BUILD_TAGS=muslc
+    - /root/go/bin/nibid
 
 # Noble
 - name: noble
@@ -895,6 +909,8 @@
   build-target: make install
   binaries:
     - /go/bin/persistenceCore
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Polkadot
 - name: polkadot
@@ -951,6 +967,8 @@
   build-target: make build
   binaries:
     - build/quicksilverd
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Regen
 - name: regen
@@ -969,6 +987,18 @@
   build-target: make install
   binaries:
     - /go/bin/rizond
+
+# saga
+- name: saga
+  github-organization: sagaxyz
+  github-repo: ssc
+  dockerfile: cosmos
+  build-target: |
+    make install
+  binaries:
+    - /go/bin/sscd
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Secret Network
 - name: secretnetwork
@@ -1092,6 +1122,17 @@
 # Terra
 - name: terra
   github-organization: terra-money
+  github-repo: core
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/terrad
+  build-env:
+    - BUILD_TAGS=muslc
+
+# Terra Classic
+- name: terra-classic
+  github-organization: classic-terra
   github-repo: core
   dockerfile: cosmos
   build-target: make install
