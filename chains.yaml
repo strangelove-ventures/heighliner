@@ -1165,6 +1165,13 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Union
+- name: union
+  dockerfile: imported
+  base-image: ghcr.io/unionlabs/uniond
+  binaries:
+    - /nix/store/*-uniond-${ARCH}-unknown-linux-musl/bin/uniond
+
 # Vidulum
 - name: vidulum
   github-organization: vidulum
