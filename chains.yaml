@@ -530,6 +530,17 @@
   binaries:
     - /go/bin/emd
 
+# Ethos
+- name: ethos
+  github-organization: Ethos-Works
+  github-repo: ethos-chain
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/ethosd
+
 # Evmos
 - name: evmos
   github-organization: tharsis
@@ -765,6 +776,18 @@
     - BUILD_TAGS=muslc
   binaries:
     - /go/bin/marsd
+
+# Mesh-security-sdk simd
+- name: meshd
+  github-organization: osmosis-labs
+  github-repo: mesh-security-sdk
+  dockerfile: cosmos
+  build-target: make install
+  build-dir: demo
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/meshd
 
 # Migaloo
 - name: migaloo
