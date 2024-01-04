@@ -1,4 +1,5 @@
 FROM golang:bullseye AS build-env
+# FROM ubuntu:22.04
 
 ARG PRE_BUILD
 ARG VERSION
@@ -33,6 +34,7 @@ ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
 FROM debian:bullseye
+# FROM ubuntu:22.04
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
