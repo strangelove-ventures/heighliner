@@ -184,7 +184,8 @@
   build-target: |
     set -eux
     apk add --update nodejs npm jq py3-pip
-    git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
+    CONTRACT_VERSION=$(cat contract-version.json | jq -r '.gateway')
+    git clone -b ${CONTRACT_VERSION} --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
     # The npm commands will complain about nodejs versions but will proceed.
     # See issue: https://github.com/strangelove-ventures/heighliner/issues/92
