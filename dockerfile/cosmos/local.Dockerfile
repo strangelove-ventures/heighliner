@@ -92,7 +92,7 @@ COPY --from=infra-toolkit /etc/ssl/cert.pem /etc/ssl/cert.pem
 # Install heighliner user
 COPY --from=infra-toolkit /etc/passwd /etc/passwd
 COPY --from=infra-toolkit --chown=1025:1025 /home/heighliner /home/heighliner
-
+COPY --from=infra-toolkit --chown=1025:1025 /tmp /tmp
 
 # Install chain binary
 FROM init-env AS build-env

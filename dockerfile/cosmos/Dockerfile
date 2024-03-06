@@ -53,6 +53,8 @@ RUN set -eux;\
       WASMVM_REPO=$(echo $WASMVM_VERSION | awk '{print $1}');\
       WASMVM_VERS=$(echo $WASMVM_VERSION | awk '{print $2}');\
       wget -O $LIBDIR/libwasmvm_muslc.a https://${WASMVM_REPO}/releases/download/${WASMVM_VERS}/libwasmvm_muslc.${ARCH}.a;\
+      cp $LIBDIR/libwasmvm_muslc.a $LIBDIR/libwasmvm.x86_64.a;\
+      cp $LIBDIR/libwasmvm_muslc.a $LIBDIR/libwasmvm.aarch64.a;\
     fi;\
     export GOOS=linux GOARCH=$TARGETARCH CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"';\
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi;\
@@ -171,6 +173,7 @@ COPY --from=infra-toolkit /etc/ssl/cert.pem /etc/ssl/cert.pem
 # Install heighliner user
 COPY --from=infra-toolkit /etc/passwd /etc/passwd
 COPY --from=infra-toolkit --chown=1025:1025 /home/heighliner /home/heighliner
+COPY --from=infra-toolkit --chown=1025:1025 /tmp /tmp
 
 WORKDIR /home/heighliner
 USER heighliner
