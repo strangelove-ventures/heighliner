@@ -175,6 +175,7 @@
     - /go/src/github.com/ava-labs/avalanchego/build/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 
 # Axelar
+# Requires "--alpine-version 3.18" set as a flag to the build command
 - name: axelar
   github-organization: axelarnetwork
   github-repo: axelar-core
