@@ -33,7 +33,7 @@ RUN set -eux; \
     fi;
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.0 AS infra-toolkit
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use ln and rm from full featured busybox for assembling final image
@@ -92,7 +92,7 @@ COPY --from=infra-toolkit /etc/ssl/cert.pem /etc/ssl/cert.pem
 # Install heighliner user
 COPY --from=infra-toolkit /etc/passwd /etc/passwd
 COPY --from=infra-toolkit --chown=1025:1025 /home/heighliner /home/heighliner
-
+COPY --from=infra-toolkit --chown=1025:1025 /tmp /tmp
 
 # Install chain binary
 FROM init-env AS build-env
