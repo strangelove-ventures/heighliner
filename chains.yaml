@@ -175,6 +175,7 @@
     - /go/src/github.com/ava-labs/avalanchego/build/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy
 
 # Axelar
+# Requires "--alpine-version 3.18" set as a flag to the build command
 - name: axelar
   github-organization: axelarnetwork
   github-repo: axelar-core
@@ -184,12 +185,15 @@
   build-target: |
     set -eux
     apk add --update nodejs npm jq py3-pip
-    git clone -b v4.3.0 --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
+    CONTRACT_VERSION=$(cat contract-version.json | jq -r '.gateway')
+    git clone -b ${CONTRACT_VERSION} --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
     # The npm commands will complain about nodejs versions but will proceed.
     # See issue: https://github.com/strangelove-ventures/heighliner/issues/92
     npm ci
     npm run build
+    # prettier + alpine + certain versions of the flatten-contracts scripts fail during prettier write, which is not fully necessary since hardhat flatten still outputs artifacts
+    sed -i '/prettier/d' scripts/flatten-contracts.sh
     npm run flatten
     mkdir -p ../contract-artifacts/gateway
     mv artifacts/* ../contract-artifacts/
@@ -201,7 +205,12 @@
       -X github.com/cosmos/cosmos-sdk/version.AppName=axelard \
       -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
       -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
-      -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
+      -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT \
+      -X github.com/CosmWasm/wasmd/x/wasm/types/MaxWasmSize=3145728 \
+      -X github.com/axelarnetwork/axelar-core/x/axelarnet/exported.NativeAsset=uaxl \
+      -X github.com/axelarnetwork/axelar-core/app.WasmEnabled=true \
+      -X github.com/axelarnetwork/axelar-core/app.IBCWasmHooksEnabled=false \
+      -X github.com/axelarnetwork/axelar-core/app.WasmCapabilities="iterator,staking,stargate,cosmwasm_1_3""
     go build -o ./bin/axelard -mod=readonly -tags "$BUILD_TAGS" -ldflags "$LDFLAGS" ./cmd/axelard
   platforms:
     - linux/amd64
@@ -230,6 +239,20 @@
     ./scripts/init.sh
   binaries:
     - /build/Basilisk-node/target/${ARCH}-unknown-linux-gnu/release/basilisk
+
+#BeraChain
+- name: berachain
+  dockerfile: none
+  pre-build: |
+    apt update -y
+    apt install -y wget libstdc++6
+    wget -qq 'https://berad-private.s3.us-east-2.amazonaws.com/berad-linux-amd64-v0.0.6-alpha?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAXIHH4ECZJT5YBQR6%2F20231228%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20231228T170607Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=56ccce6310ea364bc78f4089b86749e9f642723ab49bf836dd7d544c55f120b6' -O berad
+    mv berad /usr/bin
+    chmod 555 /usr/bin/berad
+  binaries:
+    - /usr/bin/berad
+  platforms:
+    - linux/amd64
 
 # Bitcanna
 - name: bitcanna
@@ -1052,6 +1075,17 @@
   base-image: ghcr.io/scrtlabs/secret-network-node
   platforms:
     - linux/amd64
+
+# Seda
+- name: seda
+  github-organization: sedaprotocol
+  github-repo: seda-chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/sedad
+  build-env:
+    - BUILD_TAGS=muslc
 
 # Sei
 - name: sei
