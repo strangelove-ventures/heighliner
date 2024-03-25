@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/docker/cli v24.0.4+incompatible
-	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/go-git/go-billy/v5 v5.4.0
 	github.com/go-git/go-git/v5 v5.5.2
 	github.com/hashicorp/go-version v1.6.0
