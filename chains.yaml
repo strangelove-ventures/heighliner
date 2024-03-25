@@ -1295,3 +1295,14 @@
     - /go/bin/xiond
   build-env:
     - BUILD_TAGS=muslc
+
+# Xpla
+- name: xpla
+  github-organization: xpladev
+  github-repo: xpla
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/xplad
+  build-env:
+    - BUILD_TAGS=muslc
