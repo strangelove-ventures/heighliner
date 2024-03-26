@@ -1,4 +1,4 @@
-FROM golang:bullseye AS build-env
+FROM golang:bookworm AS build-env
 # FROM ubuntu:22.04
 
 ARG PRE_BUILD
@@ -33,13 +33,14 @@ ARG LIBRARIES
 ENV LIBRARIES_ENV ${LIBRARIES}
 RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
-FROM debian:bullseye
+FROM debian:bookworm
 # FROM ubuntu:22.04
 
 LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
 
 # Install binaries
 COPY --from=build-env /root/bin /usr/bin
+
 
 # Install libraries
 COPY --from=build-env /root/lib /usr/lib
