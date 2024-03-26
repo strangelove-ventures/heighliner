@@ -23,6 +23,9 @@ var CosmosLocalCross []byte
 //go:embed imported/Dockerfile
 var Imported []byte
 
+//go:embed agoric/Dockerfile
+var Agoric []byte
+
 //go:embed none/Dockerfile
 var None []byte
 

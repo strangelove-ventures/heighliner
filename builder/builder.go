@@ -120,6 +120,9 @@ func rawDockerfile(
 	case DockerfileTypeImported:
 		return dockerfileEmbeddedOrLocal("imported/Dockerfile", dockerfile.Imported)
 
+        case DockerfileTypeAgoric:
+		return dockerfileEmbeddedOrLocal("agoric/Dockerfile", dockerfile.Agoric)
+
 	case DockerfileTypeCargo:
 		if useBuildKit {
 			return dockerfileEmbeddedOrLocal("cargo/Dockerfile", dockerfile.Cargo)

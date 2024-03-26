@@ -11,76 +11,9 @@
 
 # Agoric-sdk
 - name: agoric
-  dockerfile: cargo
-  github-organization: Agoric
-  github-repo: agoric-sdk
-  build-env:
-    - LEDGER_ENABLED=false
-  build-target: |
-    apt update && apt install -y python3 g++
-
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-    nvm install 18
-    npm i -g yarn
-
-    set -eux
-    cd golang/cosmos
-    export CGO_ENABLED=1 GOOS=linux GOARCH=${TARGETARCH} CC=${ARCH}-linux-gnu-gcc CXX=${ARCH}-linux-gnu-g++
-    COMMIT=$(git log -1 --format='%H')
-    COMMON_LDFLAGS="-X github.com/cosmos/cosmos-sdk/version.Name=agoric \
-      -X github.com/cosmos/cosmos-sdk/version.AppName=agd \
-      -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
-      -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
-      -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
-
-    # Build daemon lib
-    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -buildmode=c-shared -o build/libagcosmosdaemon.so ./cmd/libdaemon/main.go
-
-    # Build helper
-    LDFLAGS_HELPER="$COMMON_LDFLAGS -X github.com/cosmos/cosmos-sdk/version.AppName=ag-cosmos-helper"
-    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$LDFLAGS_HELPER" -o ../../bin/ag-cosmos-helper ./cmd/helper
-
-    # Build agd
-    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -o ../../bin/agd ./cmd/agd
-
-    # Build nodejs swingset kernel
-    npm install node-addon-api --legacy-peer-deps
-    export CC_host=gcc CXX_host=g++
-    GYP_DEBUG="--arch=${TARGETARCH}" make node-compile-gyp
-    # cp binding.gyp.in binding.gyp
-    # /root/.nvm/versions/node/*/lib/node_modules/npm/bin/node-gyp-bin/node-gyp configure build --arch=${TARGETARCH}
-    cd ../../packages
-    rm -rf ui-components web-components wallet-connection wallet web-components
-    cd ..
-    npm_config_arch=${TARGETARCH} yarn
-    npm_config_arch=${TARGETARCH} yarn build
-
-    # Move to final location
-    mkdir /agoric-sdk
-    mv packages node_modules bin golang /agoric-sdk
-  directories:
-    - /agoric-sdk
-    - /root/.nvm/versions/node
-  libraries:
-    - /agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
-  target-libraries:
-    - /lib/${ARCH}-linux-gnu/libdl.so.2
-    - /lib/${ARCH}-linux-gnu/libm.so.6
-    - /usr/lib/${ARCH}-linux-gnu/libstdc++.so.6
-    - /usr/lib/gcc/${ARCH}-linux-gnu/10/libgcc_s.so
-    - /lib/${ARCH}-linux-gnu/libgcc_s.so.1
-  final-image: |
-    set -eux
-    ln -s /agoric-sdk/bin/agd /bin/agd
-    ln -s /agoric-sdk/bin/ag-cosmos-helper /bin/ag-cosmos-helper
-    ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-chain-cosmos /bin/ag-chain-cosmos
-    ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-nchainz /bin/ag-nchainz
-    mkdir -p /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build /build/agoric-sdk/golang/cosmos/build
-    mv /agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build/
-    ln -s  /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /build/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
-    ln -s /root/.nvm/versions/node/*/bin/node /bin/node
+  dockerfile: agoric
+  platforms:
+    - linux/amd64
 
 # Akash
 - name: akash
