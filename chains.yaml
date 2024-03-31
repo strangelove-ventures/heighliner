@@ -246,7 +246,8 @@
   pre-build: |
     apt update -y
     apt install -y wget libstdc++6
-    wget -qq 'https://berad-private.s3.us-east-2.amazonaws.com/berad-linux-amd64-v0.0.6-alpha?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAXIHH4ECZJT5YBQR6%2F20231228%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20231228T170607Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=56ccce6310ea364bc78f4089b86749e9f642723ab49bf836dd7d544c55f120b6' -O berad
+    curl -o berad 'https://testnet-genesis.s3.ca-central-1.amazonaws.com/berad-linux-amd64-v0.2.3-alpha-rc7
+    chmod +x berad
     mv berad /usr/bin
     chmod 555 /usr/bin/berad
   binaries:
@@ -1293,5 +1294,16 @@
   build-target: make install
   binaries:
     - /go/bin/xiond
+  build-env:
+    - BUILD_TAGS=muslc
+
+# Xpla
+- name: xpla
+  github-organization: xpladev
+  github-repo: xpla
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/xplad
   build-env:
     - BUILD_TAGS=muslc
