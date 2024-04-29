@@ -905,6 +905,15 @@
   binaries:
     - /go/bin/omniflixhubd
 
+# Onex
+- name: onex
+  github-organization: onomyprotocol
+  github-repo: onex
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/onexd
+
 # Onomy
 - name: onomy
   github-organization: onomyprotocol
