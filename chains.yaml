@@ -603,8 +603,6 @@
     mv gravity-linux-amd64 /usr/bin/gravity
   binaries:
     - /usr/bin/gravity
-  libraries:
-    - /lib/x86_64-linux-gnu/libc.so.6
   platforms:
     - linux/amd64
 
