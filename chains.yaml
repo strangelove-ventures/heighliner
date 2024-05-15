@@ -999,6 +999,7 @@
     - /build/polkadot/target/${ARCH}-unknown-linux-gnu/release/polkadot
 
 # Provenance
+# Requires "--alpine-version 3.18" set as a flag to the build command
 - name: provenance
   github-organization: provenance-io
   github-repo: provenance
