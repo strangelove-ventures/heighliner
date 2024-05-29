@@ -25,10 +25,10 @@ type chainConfigFlags struct {
 	orgOverride         string
 	repoOverride        string
 	repoHostOverride    string
+	cloneKeyOverride    string
 	dockerfileOverride  string
 	buildDirOverride    string
 	preBuildOverride    string
-	preCloneOverride    string
 	buildTargetOverride string
 	buildEnvOverride    string
 	binariesOverride    string
@@ -42,11 +42,11 @@ const (
 	flagOrg           = "org"
 	flagRepo          = "repo"
 	flagRepoHost      = "repo-host"
+	flagCloneKey      = "clone-key"
 	flagGitRef        = "git-ref"
 	flagDockerfile    = "dockerfile"
 	flagBuildDir      = "build-dir"
 	flagPreBuild      = "pre-build"
-	flagPreClone      = "pre-clone"
 	flagBuildTarget   = "build-target"
 	flagBuildEnv      = "build-env"
 	flagBinaries      = "binaries"
@@ -152,10 +152,10 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 	buildCmd.PersistentFlags().StringVarP(&chainConfig.orgOverride, flagOrg, "o", "", "github-organization override for building from a fork")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.repoOverride, flagRepo, "", "github-repo override for building from a fork")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.repoHostOverride, flagRepoHost, "", "repo-host Git repository host override for building from a fork")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.cloneKeyOverride, flagCloneKey, "", "base64 encoded ssh key to authenticate")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.dockerfileOverride, flagDockerfile, "", "dockerfile override (cosmos, cargo, imported, none)")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.buildDirOverride, flagBuildDir, "", "build-dir override - repo relative directory to run build target")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.preBuildOverride, flagPreBuild, "", "pre-build override - command(s) to run prior to build-target")
-	buildCmd.PersistentFlags().StringVar(&chainConfig.preCloneOverride, flagPreClone, "", "pre-clone override - command(s) to run prior to repo clone")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.buildTargetOverride, flagBuildTarget, "", "Build target (build-target) override")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.buildEnvOverride, flagBuildEnv, "", "build-env override - Build environment variables")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.binariesOverride, flagBinaries, "", "binaries override - Binaries after build phase to package into final image")

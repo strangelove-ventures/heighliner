@@ -12,9 +12,16 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then\
         wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
     fi
 
-ARG PRE_CLONE
+ARG CLONE_KEY
 
-RUN if [ ! -z "PRE_CLONE" ]; then sh -c "${PRE_CLONE}"; fi
+RUN if [ ! -z "CLONE_KEY" ]; then\
+        mkdir -p ~/.ssh;\
+        echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
+        chmod 600 ~/.ssh/id_ed25519;\
+        apk add openssh;\
+        git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
+        ssh-keyscan github.com >> ~/.ssh/known_hosts;\
+    fi
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
