@@ -34,6 +34,7 @@ type ChainNodeConfig struct {
 	TargetLibraries    []string       `yaml:"target-libraries"`
 	Directories        []string       `yaml:"directories"`
 	PreBuild           string         `yaml:"pre-build"`
+	PreClone           string         `yaml:"pre-clone"`
 	Platforms          []string       `yaml:"platforms"`
 	BuildEnv           []string       `yaml:"build-env"`
 	BaseImage          string         `yaml:"base-image"`

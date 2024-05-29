@@ -141,6 +141,7 @@ func queueAndBuild(
 				GithubRepo:         chainConfig.repoOverride,
 				Dockerfile:         builder.DockerfileType(chainConfig.dockerfileOverride),
 				PreBuild:           chainConfig.preBuildOverride,
+				PreClone:           chainConfig.preCloneOverride,
 				BuildTarget:        chainConfig.buildTargetOverride,
 				BuildEnv:           strings.Split(chainConfig.buildEnvOverride, " "),
 				BuildDir:           chainConfig.buildDirOverride,

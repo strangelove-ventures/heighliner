@@ -403,6 +403,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"TARGET_LIBRARIES":    targetLibraries,
 		"DIRECTORIES":         directories,
 		"PRE_BUILD":           chainConfig.Build.PreBuild,
+		"PRE_CLONE":           chainConfig.Build.PreClone,
 		"FINAL_IMAGE":         chainConfig.Build.FinalImage,
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,

@@ -12,6 +12,10 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then\
         wget -c https://musl.cc/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
     fi
 
+ARG PRE_CLONE
+
+RUN if [ ! -z "PRE_CLONE" ]; then sh -c "${PRE_CLONE}"; fi
+
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 
