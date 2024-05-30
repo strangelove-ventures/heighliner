@@ -97,6 +97,9 @@ func queueAndBuild(
 		if chainConfig.repoHostOverride != "" {
 			chainNodeConfig.RepoHost = chainConfig.repoHostOverride
 		}
+		if chainConfig.cloneKeyOverride != "" {
+			chainNodeConfig.CloneKey = chainConfig.cloneKeyOverride
+		}
 		if chainConfig.buildTargetOverride != "" {
 			chainNodeConfig.BuildTarget = chainConfig.buildTargetOverride
 		}
@@ -139,6 +142,7 @@ func queueAndBuild(
 				RepoHost:           chainConfig.repoHostOverride,
 				GithubOrganization: chainConfig.orgOverride,
 				GithubRepo:         chainConfig.repoOverride,
+				CloneKey:           chainConfig.cloneKeyOverride,
 				Dockerfile:         builder.DockerfileType(chainConfig.dockerfileOverride),
 				PreBuild:           chainConfig.preBuildOverride,
 				BuildTarget:        chainConfig.buildTargetOverride,

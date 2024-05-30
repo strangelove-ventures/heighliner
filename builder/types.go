@@ -24,6 +24,7 @@ type ChainNodeConfig struct {
 	RepoHost           string         `yaml:"repo-host"`
 	GithubOrganization string         `yaml:"github-organization"`
 	GithubRepo         string         `yaml:"github-repo"`
+	CloneKey           string         `yaml:"clone-key"`
 	Language           DockerfileType `yaml:"language"` // DEPRECATED, use "dockerfile" instead
 	Dockerfile         DockerfileType `yaml:"dockerfile"`
 	BuildTarget        string         `yaml:"build-target"`

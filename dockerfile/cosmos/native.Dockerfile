@@ -3,6 +3,17 @@ FROM golang:${BASE_VERSION} AS build-env
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev
 
+ARG CLONE_KEY
+
+RUN if [ ! -z "CLONE_KEY" ]; then\
+        mkdir -p ~/.ssh;\
+        echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
+        chmod 600 ~/.ssh/id_ed25519;\
+        apk add openssh;\
+        git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
+        ssh-keyscan github.com >> ~/.ssh/known_hosts;\
+    fi
+
 ARG TARGETARCH
 ARG BUILDARCH
 ARG GITHUB_ORGANIZATION
