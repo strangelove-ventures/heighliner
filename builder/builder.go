@@ -20,6 +20,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
+	internalssh "golang.org/x/crypto/ssh"
 	"golang.org/x/mod/modfile"
 
 	"github.com/strangelove-ventures/heighliner/docker"
@@ -192,6 +193,7 @@ func getModFile(
 			if err != nil {
 				return nil, errors.New("failed to generate public key")
 			}
+			key.HostKeyCallback = internalssh.InsecureIgnoreHostKey()
 
 			cloneOpts.URL = fmt.Sprintf("git@%s:%s/%s.git", repoHost, organization, repoName)
 			cloneOpts.Auth = key
