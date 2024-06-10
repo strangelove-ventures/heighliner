@@ -14,7 +14,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then\
 
 ARG CLONE_KEY
 
-RUN if [ ! -z "CLONE_KEY" ]; then\
+RUN if [ ! -z "${CLONE_KEY}" ]; then\
         mkdir -p ~/.ssh;\
         echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
         chmod 600 ~/.ssh/id_ed25519;\
