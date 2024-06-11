@@ -278,7 +278,7 @@
     - BUILD_TAGS=muslc
   build-target: make build
   binaries:
-    - /go/src/github.com/notional-labs/composable-centauri/bin/centaurid
+    - /go/src/github.com/notional-labs/composable-centauri/bin/picad
 
 
 # Canto
