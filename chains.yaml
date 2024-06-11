@@ -595,13 +595,16 @@
 
 # Gravity Bridge
 - name: gravitybridge
-  github-organization: Gravity-Bridge
-  github-repo: Gravity-Bridge
-  dockerfile: cosmos
-  build-target: make build
-  build-dir: module
+  pre-build: |
+    apt update
+    sudo apt install libc6
+    wget https://github.com/Gravity-Bridge/Gravity-Bridge/releases/download/$VERSION/gravity-linux-amd64
+    chmod +x gravity-linux-amd64
+    mv gravity-linux-amd64 /usr/bin/gravity
   binaries:
-    - module/build/gravity
+    - /usr/bin/gravity
+  platforms:
+    - linux/amd64
 
 # ibc-go sim (for testing)
 - name: ibc-go-simd
@@ -796,6 +799,17 @@
   build-target: make install
   binaries:
     - /go/bin/lumd
+
+# terra
+- name: terra
+  github-organization: classic-terra
+  github-repo: core
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/terrad
 
 # Mars
 - name: mars
