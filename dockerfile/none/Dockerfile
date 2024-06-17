@@ -34,7 +34,7 @@ RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}
 
 FROM debian:bullseye
 
-LABEL org.opencontainers.image.source="https://github.com/p2p-org/heighliner"
+LABEL org.opencontainers.image.source="https://github.com/p2p-org/cosmos-heighliner"
 
 # Install binaries
 COPY --from=build-env /root/bin /usr/bin
