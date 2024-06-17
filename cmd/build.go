@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/heighliner/builder"
-	"github.com/strangelove-ventures/heighliner/docker"
+	"github.com/p2p-org/heighliner/builder"
+	"github.com/p2p-org/heighliner/docker"
 	"gopkg.in/yaml.v2"
 )
 
@@ -126,7 +126,7 @@ it will be built and pushed`,
 					chainConfig.ref = version
 				}
 				fmt.Printf(
-					`Warning: --version/-v flag is deprecated. Please update to use --git-ref/-g instead. 
+					`Warning: --version/-v flag is deprecated. Please update to use --git-ref/-g instead.
 An optional flag --tag/-t is now available to override the resulting docker image tag if desirable to differ from the derived tag
 `)
 			}

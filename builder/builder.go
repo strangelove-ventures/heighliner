@@ -23,8 +23,8 @@ import (
 	internalssh "golang.org/x/crypto/ssh"
 	"golang.org/x/mod/modfile"
 
-	"github.com/strangelove-ventures/heighliner/docker"
-	"github.com/strangelove-ventures/heighliner/dockerfile"
+	"github.com/p2p-org/heighliner/docker"
+	"github.com/p2p-org/heighliner/dockerfile"
 )
 
 type HeighlinerBuilder struct {

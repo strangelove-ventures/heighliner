@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/heighliner/builder"
+	"github.com/p2p-org/heighliner/builder"
 	"gopkg.in/yaml.v2"
 )
 

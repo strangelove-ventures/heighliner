@@ -160,7 +160,7 @@ RUN bash -c 'set -eux;\
   done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 AS infra-toolkit
+FROM ghcr.io/p2p-org/infra-toolkit:v0.1.4 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use ln and rm from full featured busybox for assembling final image
@@ -172,7 +172,7 @@ FROM alpine:3 as alpine-3
 # Build final image from scratch
 FROM scratch
 
-LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
+LABEL org.opencontainers.image.source="https://github.com/p2p-org/heighliner"
 
 WORKDIR /bin
 
