@@ -3,7 +3,7 @@ package builder_test
 import (
 	"testing"
 
-	"github.com/strangelove-ventures/heighliner/builder"
+	"github.com/p2p-org/heighliner/builder"
 	"github.com/stretchr/testify/require"
 )
 

@@ -3,7 +3,7 @@ package main
 import (
 	_ "embed"
 
-	"github.com/strangelove-ventures/heighliner/cmd"
+	"github.com/p2p-org/heighliner/cmd"
 )
 
 //go:embed chains.yaml

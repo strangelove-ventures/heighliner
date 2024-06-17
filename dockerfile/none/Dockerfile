@@ -34,7 +34,7 @@ RUN bash -c 'LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}
 
 FROM debian:bullseye
 
-LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
+LABEL org.opencontainers.image.source="https://github.com/p2p-org/heighliner"
 
 # Install binaries
 COPY --from=build-env /root/bin /usr/bin
@@ -42,7 +42,7 @@ COPY --from=build-env /root/bin /usr/bin
 # Install libraries
 COPY --from=build-env /root/lib /usr/lib
 
-RUN groupadd -g 1025 -r heighliner && useradd -u 1025 --no-log-init -r -g heighliner heighliner
-WORKDIR /home/heighliner
-RUN chown -R heighliner:heighliner /home/heighliner
-USER heighliner
+RUN groupadd -g 1111 -r p2p && useradd -u 1111 --no-log-init -r -g p2p p2p
+WORKDIR /home/p2p
+RUN chown -R p2p:p2p /home/p2p
+USER p2p

@@ -1,4 +1,4 @@
-module github.com/strangelove-ventures/heighliner
+module github.com/p2p-org/heighliner
 
 go 1.21
 

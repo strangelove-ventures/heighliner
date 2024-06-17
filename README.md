@@ -1,3 +1,5 @@
+[![Conforms to README.lint](https://img.shields.io/badge/README.lint-conforming-brightgreen)](https://github.com/p2p-org/readme-dot-lint)
+
 
 🌌 Why use Heighliner?
 =============================
@@ -11,10 +13,10 @@ We built Heighliner to streamline the management and building of production-grad
 
 Heighliner container images are useful for anyone who's responsible for infrastructure deployments like
 
-- validator + [horcrux](https://github.com/strangelove-ventures/horcrux),
+- validator + [horcrux](https://github.com/p2p-org/horcrux),
 - full nodes,
 - archive nodes,
-- end-to-end testing ([interchaintest](https://github.com/strangelove-ventures/interchaintest)),
+- end-to-end testing ([interchaintest](https://github.com/p2p-org/interchaintest)),
 - and more.
 
 🌌🌌🌌 What does Heighliner do?
@@ -22,7 +24,7 @@ Heighliner container images are useful for anyone who's responsible for infrastr
 
 Heighliner images are minimally constructed from scratch images, packaging only the chain binary and a useful reduced set of busybox utilities.
 
-This repository has a CI/CD pipeline to automatically build images when new git tags are detected on the chain repos in [chains.yaml](./chains.yaml). These images are hosted as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner)
+This repository has a CI/CD pipeline to automatically build images when new git tags are detected on the chain repos in [chains.yaml](./chains.yaml). These images are hosted as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/p2p-org/packages?repo_name=heighliner)
 
 
 
@@ -31,18 +33,18 @@ This repository has a CI/CD pipeline to automatically build images when new git 
 
 ## Add a New Chain
 
-To add a chain to the heighliner built-in configuration and have your chain images available on our repository's [ghcr](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner), submit a PR adding it to [chains.yaml](./chains.yaml) so it will be included in the automatic builds.
+To add a chain to the heighliner built-in configuration and have your chain images available on our repository's [ghcr](https://github.com/orgs/p2p-org/packages?repo_name=heighliner), submit a PR adding it to [chains.yaml](./chains.yaml) so it will be included in the automatic builds.
 
 For further instructions see: [addChain.md](./addChain.md)
 
 ## Add Heighliner Images to your Chain Repo
 
-To publish heighliner images on your chain repository and/or incorporate heighliner images into your chain repo's CI/CD flow, see [heighliner-build-action](https://github.com/strangelove-ventures/heighliner-build-action)
+To publish heighliner images on your chain repository and/or incorporate heighliner images into your chain repo's CI/CD flow, see [heighliner-build-action](https://github.com/p2p-org/heighliner-build-action)
 
 ## Build Your Own
 
 If you would like to build the images yourself, heighliner is a CLI tool to help you do so.
-Download the latest [release](https://github.com/strangelove-ventures/heighliner/releases), or build it yourself with:
+Download the latest [release](https://github.com/p2p-org/heighliner/releases), or build it yourself with:
 
 ```shell
 go build
@@ -69,10 +71,10 @@ Docker image `gaia:local` will be built and stored in your local docker images.
 
 ```shell
 cd ~/gaia-fork
-heighliner build -c gaia -o strangelove-ventures -g working_branch -t image_tag
+heighliner build -c gaia -o p2p-org -g working_branch -t image_tag
 ```
 
-Heighliner will build the `working_branch` branch from the `strangelove-ventures/gaia` github organization/repository. Docker image `gaia:image_tag` will be stored in your local docker images.
+Heighliner will build the `working_branch` branch from the `p2p-org/gaia` github organization/repository. Docker image `gaia:image_tag` will be stored in your local docker images.
 
 #### Example: build with all overrides.
 
@@ -88,22 +90,22 @@ Docker image `somegaia:v8.0.0-somefork` will be built and stored in your local d
 
 ```shell
 # docker login ...
-heighliner build -r ghcr.io/strangelove-ventures/heighliner -c gaia -g v6.0.0
+heighliner build -r ghcr.io/p2p-org/heighliner -c gaia -g v6.0.0
 ```
 
-Docker image `ghcr.io/strangelove-ventures/heighliner/gaia:v6.0.0` will be built and pushed to ghcr.io
+Docker image `ghcr.io/p2p-org/heighliner/gaia:v6.0.0` will be built and pushed to ghcr.io
 
 #### Example: build and push last n releases of osmosis chain
 
 ```shell
 # docker login ...
-heighliner build -r ghcr.io/strangelove-ventures/heighliner -c osmosis -n 3
+heighliner build -r ghcr.io/p2p-org/heighliner -c osmosis -n 3
 ```
 
 heighliner will fetch the last 3 osmosis release tags from github, build docker images, and push them, e.g.:
-- `ghcr.io/strangelove-ventures/heighliner/osmosis:v6.1.0`
-- `ghcr.io/strangelove-ventures/heighliner/osmosis:v6.0.0`
-- `ghcr.io/strangelove-ventures/heighliner/osmosis:v5.0.0`
+- `ghcr.io/p2p-org/heighliner/osmosis:v6.1.0`
+- `ghcr.io/p2p-org/heighliner/osmosis:v6.0.0`
+- `ghcr.io/p2p-org/heighliner/osmosis:v5.0.0`
 
 #### Example: build and push last n releases of all chains
 
@@ -112,7 +114,7 @@ This will make a request to each chain's Github repository to fetch all recent r
 ```shell
 # docker login ...
 export GH_USER=github_username GH_PAT=github_personal_access_token
-heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 3
+heighliner build -r ghcr.io/p2p-org/heighliner -n 3
 ```
 
 heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](./chains.yaml), build docker images, and push them.
@@ -141,7 +143,7 @@ Docker images for `heighliner/gaia:v7.0.1` will now be available in your local d
 #### Example: Use custom buildkit server, build x64 and arm64 docker images for gaia v7.0.1, and push:
 
 ```shell
-heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -g v7.0.1 -r ghcr.io/strangelove-ventures/heighliner
+heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -g v7.0.1 -r ghcr.io/p2p-org/heighliner
 ```
 
 Docker images for `heighliner/gaia:v7.0.1` will be built on the remote buildkit server and then pushed to the container repository. The manifest for the tag will contain both amd64 and arm64 images.

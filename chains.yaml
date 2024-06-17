@@ -77,9 +77,9 @@
     ln -s /agoric-sdk/bin/ag-cosmos-helper /bin/ag-cosmos-helper
     ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-chain-cosmos /bin/ag-chain-cosmos
     ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-nchainz /bin/ag-nchainz
-    mkdir -p /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build /build/agoric-sdk/golang/cosmos/build
-    mv /agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build/
-    ln -s  /go/src/github.com/strangelove-ventures/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /build/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
+    mkdir -p /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build /build/agoric-sdk/golang/cosmos/build
+    mv /agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build/
+    ln -s  /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /build/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
     ln -s /root/.nvm/versions/node/*/bin/node /bin/node
 
 # Akash
@@ -189,7 +189,7 @@
     git clone -b ${CONTRACT_VERSION} --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
     cd axelar-cgp-solidity
     # The npm commands will complain about nodejs versions but will proceed.
-    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92
+    # See issue: https://github.com/p2p-org/heighliner/issues/92
     npm ci
     npm run build
     # prettier + alpine + certain versions of the flatten-contracts scripts fail during prettier write, which is not fully necessary since hardhat flatten still outputs artifacts
@@ -631,7 +631,7 @@
 
 # hyperlane sim (for testing)
 - name: hyperlane-simd
-  github-organization: strangelove-ventures
+  github-organization: p2p-org
   github-repo: hyperlane-cosmos
   dockerfile: cosmos
   build-target: make build
@@ -1333,4 +1333,3 @@
     - /go/bin/xplad
   build-env:
     - BUILD_TAGS=muslc
-

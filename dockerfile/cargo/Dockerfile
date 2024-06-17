@@ -146,8 +146,8 @@ RUN bash -c 'set -eux;\
   done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 AS infra-toolkit
-RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
+FROM ghcr.io/p2p-org/infra-toolkit:v0.1.6 AS infra-toolkit
+RUN addgroup --gid 1111 -S p2p && adduser --uid 1111 -S p2p -G p2p
 
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
@@ -222,7 +222,7 @@ RUN bash -c 'set -eux;\
 # Build final image from scratch
 FROM scratch
 
-LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/heighliner"
+LABEL org.opencontainers.image.source="https://github.com/p2p/heighliner"
 
 WORKDIR /bin
 
@@ -308,7 +308,7 @@ COPY --from=alpine-3 /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install heighliner user
 COPY --from=infra-toolkit /etc/passwd /etc/passwd
-COPY --from=infra-toolkit --chown=1025:1025 /home/heighliner /home/heighliner
+COPY --from=infra-toolkit --chown=1111:1111 /home/p2p /home/p2p
 
-WORKDIR /home/heighliner
-USER heighliner
+WORKDIR /home/p2p
+USER p2p

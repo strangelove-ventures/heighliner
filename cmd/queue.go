@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/heighliner/builder"
+	"github.com/p2p-org/heighliner/builder"
 )
 
 type GithubRelease struct {
