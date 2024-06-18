@@ -3,7 +3,7 @@ ARG VERSION
 FROM $BASE_IMAGE:$VERSION AS imported
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/p2p-org/cosmos-infra-toolkit:v0.1.6 AS infra-toolkit
+FROM ghcr.io/p2p-org/cosmos-heighliner:infra-toolkit-v0.1.6 AS infra-toolkit
 RUN addgroup --gid 1111 -S p2p && adduser --uid 1111 -S p2p -G p2p
 
 # Use ln and rm from full featured busybox for assembling final image
