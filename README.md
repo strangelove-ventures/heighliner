@@ -90,22 +90,22 @@ Docker image `somegaia:v8.0.0-somefork` will be built and stored in your local d
 
 ```shell
 # docker login ...
-heighliner build -r ghcr.io/p2p-org/heighliner -c gaia -g v6.0.0
+heighliner build -r ghcr.io/p2p-org/cosmos-heighliner -c gaia -g v6.0.0
 ```
 
-Docker image `ghcr.io/p2p-org/heighliner/gaia:v6.0.0` will be built and pushed to ghcr.io
+Docker image `ghcr.io/p2p-org/cosmos-heighliner/gaia:v6.0.0` will be built and pushed to ghcr.io
 
 #### Example: build and push last n releases of osmosis chain
 
 ```shell
 # docker login ...
-heighliner build -r ghcr.io/p2p-org/heighliner -c osmosis -n 3
+heighliner build -r ghcr.io/p2p-org/cosmos-heighliner -c osmosis -n 3
 ```
 
 heighliner will fetch the last 3 osmosis release tags from github, build docker images, and push them, e.g.:
-- `ghcr.io/p2p-org/heighliner/osmosis:v6.1.0`
-- `ghcr.io/p2p-org/heighliner/osmosis:v6.0.0`
-- `ghcr.io/p2p-org/heighliner/osmosis:v5.0.0`
+- `ghcr.io/p2p-org/cosmos-heighliner/osmosis:v6.1.0`
+- `ghcr.io/p2p-org/cosmos-heighliner/osmosis:v6.0.0`
+- `ghcr.io/p2p-org/cosmos-heighliner/osmosis:v5.0.0`
 
 #### Example: build and push last n releases of all chains
 
@@ -114,7 +114,7 @@ This will make a request to each chain's Github repository to fetch all recent r
 ```shell
 # docker login ...
 export GH_USER=github_username GH_PAT=github_personal_access_token
-heighliner build -r ghcr.io/p2p-org/heighliner -n 3
+heighliner build -r ghcr.io/p2p-org/cosmos-heighliner -n 3
 ```
 
 heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](./chains.yaml), build docker images, and push them.
@@ -143,7 +143,7 @@ Docker images for `heighliner/gaia:v7.0.1` will now be available in your local d
 #### Example: Use custom buildkit server, build x64 and arm64 docker images for gaia v7.0.1, and push:
 
 ```shell
-heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -g v7.0.1 -r ghcr.io/p2p-org/heighliner
+heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -g v7.0.1 -r ghcr.io/p2p-org/cosmos-heighliner
 ```
 
 Docker images for `heighliner/gaia:v7.0.1` will be built on the remote buildkit server and then pushed to the container repository. The manifest for the tag will contain both amd64 and arm64 images.
