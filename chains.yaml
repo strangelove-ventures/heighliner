@@ -429,7 +429,7 @@
     - /build/composable/code/target/${ARCH}-unknown-linux-gnu/release/composable
 
 # Cosmos Hub
-- name: gaia
+- name: cosmoshub
   github-organization: cosmos
   github-repo: gaia
   dockerfile: cosmos
