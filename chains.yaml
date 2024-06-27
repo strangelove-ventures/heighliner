@@ -521,6 +521,18 @@
   binaries:
     - /go/bin/dymd
 
+# Dymension Rollapp evm
+- name: dymension-rollap-evm
+  github-organization: dymensionxyz
+  github-repo: rollapp-evm
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BECH32_PREFIX=cry
+    - BUILD_TAGS=netgo,muslc
+  binaries:
+    - /go/bin/rollap-evm
+
 # dydx
 - name: dydx
   github-organization: dydxprotocol
