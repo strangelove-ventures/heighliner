@@ -50,62 +50,20 @@ RUN addgroup --gid 1111 -S p2p && adduser --uid 1111 -S p2p -G p2p
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
 
-# Use alpine to source the latest CA certificates
-FROM alpine:3 as alpine-3
-
 # Build part 1 of the final image
-FROM scratch AS final-part1
+FROM alpine:3 AS final-part1
 
 LABEL org.opencontainers.image.source="https://github.com/p2p-org/cosmos-heighliner"
 
 WORKDIR /bin
 
-# Install ln (for making hard links) and rm (for cleanup) from full busybox image (will be deleted, only needed for image assembly)
-COPY --from=busybox-full /bin/ln /bin/rm ./
-
-# Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
-COPY --from=infra-toolkit /busybox/busybox /bin/sh
-
 # Install jq
 COPY --from=infra-toolkit /usr/local/bin/jq /bin/
-
-# Add hard links for read-only utils
-# Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
-RUN for b in \
-  cat \
-  date \
-  df \
-  du \
-  env \
-  grep \
-  head \
-  less \
-  ls \
-  md5sum \
-  pwd \
-  sha1sum \
-  sha256sum \
-  sha3sum \
-  sha512sum \
-  sleep \
-  stty \
-  tail \
-  tar \
-  tee \
-  tr \
-  watch \
-  which \
-  ; do ln sh $b; done
-
-# Remove write utils
-RUN rm ln rm
-
-# Install trusted CA certificates
-COPY --from=alpine-3 /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install p2p user
 COPY --from=infra-toolkit /etc/passwd /etc/passwd
 COPY --from=infra-toolkit --chown=1111:1111 /home/p2p /home/p2p
+COPY --from=infra-toolkit --chown=1111:1111 /etc/apk /etc/apk
 COPY --from=infra-toolkit --chown=1111:1111 /tmp /tmp
 
 # Install chain binary
