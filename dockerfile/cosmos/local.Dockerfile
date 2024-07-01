@@ -60,11 +60,11 @@ WORKDIR /bin
 # Install jq
 COPY --from=infra-toolkit /usr/local/bin/jq /bin/
 
-# Install p2p user
-COPY --from=infra-toolkit /etc/passwd /etc/passwd
-COPY --from=infra-toolkit --chown=1111:1111 /home/p2p /home/p2p
-COPY --from=infra-toolkit --chown=1111:1111 /etc/apk /etc/apk
-COPY --from=infra-toolkit --chown=1111:1111 /tmp /tmp
+# # Install p2p user
+# COPY --from=infra-toolkit /etc/passwd /etc/passwd
+# COPY --from=infra-toolkit --chown=1111:1111 /home/p2p /home/p2p
+# COPY --from=infra-toolkit --chown=1111:1111 /etc/apk /etc/apk
+# COPY --from=infra-toolkit --chown=1111:1111 /tmp /tmp
 
 # Install chain binary
 FROM init-env AS build-env
@@ -140,4 +140,4 @@ COPY --from=build-env /root/bin /bin
 COPY --from=build-env /root/lib /lib
 
 WORKDIR /home/p2p
-USER p2p
+# USER p2p
