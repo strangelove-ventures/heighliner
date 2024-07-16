@@ -659,8 +659,6 @@
     mv libwasmvm.x86_64.so /usr/lib
   binaries:
     - /usr/bin/injectived
-    - /usr/bin/peggo
-    - /usr/bin/injective-exchange
   libraries:
     - /usr/lib/libwasmvm.x86_64.so
   platforms:
