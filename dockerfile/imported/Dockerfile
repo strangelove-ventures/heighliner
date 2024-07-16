@@ -17,8 +17,8 @@ FROM debian:latest AS build-env
 COPY --from=imported / /imported
 
 RUN export ARCH=$(uname -m);\
-    BIN="$(eval "echo "/imported/nix/store/*-uniond-$(uname -m)-unknown-linux-musl/bin/uniond"")";\
-    echo $BIN
+  BIN="$(eval "echo "/imported/nix/store/*-uniond-$(uname -m)-unknown-linux-musl/bin/uniond"")";\
+  echo $BIN
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
@@ -30,20 +30,20 @@ RUN bash -c 'set -eux;\
   BINARIES_ARR=();\
   IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV";\
   for BINARY in "${BINARIES_ARR[@]}"; do\
-    BINSPLIT=();\
-    IFS=: read -ra BINSPLIT <<< "$BINARY";\
-    BINPATH="${BINSPLIT[1]+"${BINSPLIT[1]}"}";\
-    BIN="$(eval "echo "/imported${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
-    if [ ! -z "$BINPATH" ]; then\
-      if [[ $BINPATH == *"/"* ]]; then\
-        mkdir -p "$(dirname "${BINPATH}")";\
-        cp "$BIN" "${BINPATH}";\
-      else\
-        cp "$BIN" "/root/bin/${BINPATH}";\
-      fi;\
-    else\
-      cp "$BIN" /root/bin/;\
-    fi;\
+  BINSPLIT=();\
+  IFS=: read -ra BINSPLIT <<< "$BINARY";\
+  BINPATH="${BINSPLIT[1]+"${BINSPLIT[1]}"}";\
+  BIN="$(eval "echo "/imported${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
+  if [ ! -z "$BINPATH" ]; then\
+  if [[ $BINPATH == *"/"* ]]; then\
+  mkdir -p "$(dirname "${BINPATH}")";\
+  cp "$BIN" "${BINPATH}";\
+  else\
+  cp "$BIN" "/root/bin/${BINPATH}";\
+  fi;\
+  else\
+  cp "$BIN" /root/bin/;\
+  fi;\
   done'
 
 RUN mkdir -p /root/lib
@@ -213,4 +213,4 @@ COPY --from=infra-toolkit --chown=1111:1111 /home/p2p /home/p2p
 COPY --from=infra-toolkit --chown=1111:1111 /tmp /tmp
 
 WORKDIR /home/p2p
-USER p2p
+# USER p2p
