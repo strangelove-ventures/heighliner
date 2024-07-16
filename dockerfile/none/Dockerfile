@@ -11,20 +11,20 @@ RUN bash -c 'set -eux;\
   BINARIES_ARR=();\
   IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV";\
   for BINARY in "${BINARIES_ARR[@]}"; do\
-    BINSPLIT=();\
-    IFS=: read -ra BINSPLIT <<< "$BINARY";\
-    BINPATH=${BINSPLIT[1]+"${BINSPLIT[1]}"};\
-    BIN="$(eval "echo "${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
-    if [ ! -z "$BINPATH" ]; then\
-      if [[ $BINPATH == *"/"* ]]; then\
-        mkdir -p "$(dirname "${BINPATH}")";\
-        cp "$BIN" "${BINPATH}";\
-      else\
-        cp "$BIN" "/root/bin/${BINPATH}";\
-      fi;\
-    else\
-      cp "$BIN" /root/bin/;\
-    fi;\
+  BINSPLIT=();\
+  IFS=: read -ra BINSPLIT <<< "$BINARY";\
+  BINPATH=${BINSPLIT[1]+"${BINSPLIT[1]}"};\
+  BIN="$(eval "echo "${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
+  if [ ! -z "$BINPATH" ]; then\
+  if [[ $BINPATH == *"/"* ]]; then\
+  mkdir -p "$(dirname "${BINPATH}")";\
+  cp "$BIN" "${BINPATH}";\
+  else\
+  cp "$BIN" "/root/bin/${BINPATH}";\
+  fi;\
+  else\
+  cp "$BIN" /root/bin/;\
+  fi;\
   done'
 
 RUN mkdir /root/lib
@@ -45,4 +45,4 @@ COPY --from=build-env /root/lib /usr/lib
 RUN groupadd -g 1111 -r p2p && useradd -u 1111 --no-log-init -r -g p2p p2p
 WORKDIR /home/p2p
 RUN chown -R p2p:p2p /home/p2p
-USER p2p
+# USER p2p

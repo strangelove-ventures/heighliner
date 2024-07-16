@@ -4,12 +4,12 @@ RUN rustup component add rustfmt
 
 RUN apt update && apt install -y libssl1.1 libssl-dev openssl libclang-dev clang cmake libstdc++6
 RUN if [ "$(uname -m)" = "aarch64" ]; then\
-      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-aarch_64.zip;\
-      unzip protoc-21.8-linux-aarch_64.zip -d /usr;\
-    elif [ "${TARGETARCH}" = "amd64" ]; then\
-      wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-x86_64.zip;\
-      unzip protoc-21.8-linux-x86_64.zip -d /usr;\
-    fi
+  wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-aarch_64.zip;\
+  unzip protoc-21.8-linux-aarch_64.zip -d /usr;\
+  elif [ "${TARGETARCH}" = "amd64" ]; then\
+  wget https://github.com/protocolbuffers/protobuf/releases/download/v21.8/protoc-21.8-linux-x86_64.zip;\
+  unzip protoc-21.8-linux-x86_64.zip -d /usr;\
+  fi
 
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
@@ -28,10 +28,10 @@ ARG BUILD_TARGET
 ARG BUILD_DIR
 
 RUN if [ ! -z "$BUILD_TARGET" ]; then\
-      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
-      if [ ! -f "Cargo.toml" ]; then exit 0; fi;\
-      cargo fetch;\
-    fi
+  if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+  if [ ! -f "Cargo.toml" ]; then exit 0; fi;\
+  cargo fetch;\
+  fi
 
 ARG BUILD_ENV
 ARG BUILD_TAGS
@@ -40,24 +40,24 @@ ARG PRE_BUILD
 # Install go if necessary for project
 ARG GO_VERSION
 RUN set -eux; \
-    export ARCH=$(uname -m);\
-    if [ "$ARCH" = "x86_64" ]; then BUILDARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then BUILDARCH=arm64; fi;\
-    if [ ! -z "$GO_VERSION" ]; then\
-      wget https://go.dev/dl/go${GO_VERSION}.linux-${BUILDARCH}.tar.gz  -O - | tar -C /usr/local -xz;\
-    fi
+  export ARCH=$(uname -m);\
+  if [ "$ARCH" = "x86_64" ]; then BUILDARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then BUILDARCH=arm64; fi;\
+  if [ ! -z "$GO_VERSION" ]; then\
+  wget https://go.dev/dl/go${GO_VERSION}.linux-${BUILDARCH}.tar.gz  -O - | tar -C /usr/local -xz;\
+  fi
 
 RUN set -eux;\
-    if [ ! -z "$GO_VERSION" ]; then export PATH=$PATH:/usr/local/go/bin; fi;\
-    export ARCH=$(uname -m);\
-    export CARGO_BUILD_TARGET=${ARCH}-unknown-linux-gnu;\
-    if [ "$ARCH" = "x86_64" ]; then export BUILDARCH=amd64 TARGETARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then export BUILDARCH=arm64 TARGETARCH=arm64; fi;\
-    [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}";\
-    if [ ! -z "$BUILD_TARGET" ]; then\
-      if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi;\
-      if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi;\
-      if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
-      sh -c "${BUILD_TARGET}";\
-    fi
+  if [ ! -z "$GO_VERSION" ]; then export PATH=$PATH:/usr/local/go/bin; fi;\
+  export ARCH=$(uname -m);\
+  export CARGO_BUILD_TARGET=${ARCH}-unknown-linux-gnu;\
+  if [ "$ARCH" = "x86_64" ]; then export BUILDARCH=amd64 TARGETARCH=amd64; elif [ "$ARCH" = "aarch64" ]; then export BUILDARCH=arm64 TARGETARCH=arm64; fi;\
+  [ ! -z "$PRE_BUILD" ] && sh -c "${PRE_BUILD}";\
+  if [ ! -z "$BUILD_TARGET" ]; then\
+  if [ ! -z "$BUILD_ENV" ]; then export ${BUILD_ENV}; fi;\
+  if [ ! -z "$BUILD_TAGS" ]; then export "${BUILD_TAGS}"; fi;\
+  if [ ! -z "$BUILD_DIR" ]; then cd "${BUILD_DIR}"; fi;\
+  sh -c "${BUILD_TARGET}";\
+  fi
 
 # Copy all binaries to /root/bin, for a single place to copy into final image.
 # If a colon (:) delimiter is present, binary will be renamed to the text after the delimiter.
@@ -70,20 +70,20 @@ RUN bash -c 'set -eux;\
   BINARIES_ARR=();\
   IFS=, read -ra BINARIES_ARR <<< "$BINARIES_ENV";\
   for BINARY in "${BINARIES_ARR[@]}"; do\
-    BINSPLIT=();\
-    IFS=: read -ra BINSPLIT <<< "$BINARY";\
-    BINPATH="${BINSPLIT[1]+"${BINSPLIT[1]}"}";\
-    BIN="$(eval "echo "${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
-    if [ ! -z "$BINPATH" ]; then\
-      if [[ $BINPATH == *"/"* ]]; then\
-        mkdir -p "$(dirname "${BINPATH}")";\
-        cp "$BIN" "${BINPATH}";\
-      else\
-        cp "$BIN" "/root/bin/${BINPATH}";\
-      fi;\
-    else\
-      cp "$BIN" /root/bin/;\
-    fi;\
+  BINSPLIT=();\
+  IFS=: read -ra BINSPLIT <<< "$BINARY";\
+  BINPATH="${BINSPLIT[1]+"${BINSPLIT[1]}"}";\
+  BIN="$(eval "echo "${BINSPLIT[0]+"${BINSPLIT[0]}"}"")";\
+  if [ ! -z "$BINPATH" ]; then\
+  if [[ $BINPATH == *"/"* ]]; then\
+  mkdir -p "$(dirname "${BINPATH}")";\
+  cp "$BIN" "${BINPATH}";\
+  else\
+  cp "$BIN" "/root/bin/${BINPATH}";\
+  fi;\
+  else\
+  cp "$BIN" /root/bin/;\
+  fi;\
   done'
 
 RUN mkdir -p /root/lib
@@ -261,4 +261,4 @@ COPY --from=infra-toolkit /etc/passwd /etc/passwd
 COPY --from=infra-toolkit --chown=1111:1111 /home/p2p /home/p2p
 
 WORKDIR /home/p2p
-USER p2p
+# USER p2p
