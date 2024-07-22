@@ -15,7 +15,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then\
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
 
-WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
+WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
 ARG GITHUB_REPO
 ARG VERSION
@@ -23,14 +23,23 @@ ARG BUILD_TIMESTAMP
 
 ADD . .
 
-WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
-
 ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
 ARG PRE_BUILD
 ARG BUILD_DIR
 ARG WASMVM_VERSION
+
+ARG CLONE_KEY
+
+RUN if [ ! -z "${CLONE_KEY}" ]; then\
+  mkdir -p ~/.ssh;\
+  echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
+  chmod 600 ~/.ssh/id_ed25519;\
+  apk add openssh;\
+  git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
+  ssh-keyscan github.com >> ~/.ssh/known_hosts;\
+  fi
 
 RUN set -eux;\
     LIBDIR=/lib;\
