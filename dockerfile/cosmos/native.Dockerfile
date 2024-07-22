@@ -3,6 +3,17 @@ FROM golang:${BASE_VERSION} AS build-env
 
 RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev ncurses-dev
 
+ARG CLONE_KEY
+
+RUN if [ ! -z "${CLONE_KEY}" ]; then\
+        mkdir -p ~/.ssh;\
+        echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
+        chmod 600 ~/.ssh/id_ed25519;\
+        apk add openssh;\
+        git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
+        ssh-keyscan github.com >> ~/.ssh/known_hosts;\
+    fi
+
 ARG TARGETARCH
 ARG BUILDARCH
 ARG GITHUB_ORGANIZATION
@@ -88,6 +99,9 @@ RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G hei
 # Use ln and rm from full featured busybox for assembling final image
 FROM busybox:1.34.1-musl AS busybox-full
 
+# Use alpine to source the latest CA certificates
+FROM alpine:3 as alpine-3
+
 # Build final image from scratch
 FROM scratch
 
@@ -142,7 +156,7 @@ COPY --from=build-env /root/bin /bin
 COPY --from=build-env /root/lib /lib
 
 # Install trusted CA certificates
-COPY --from=infra-toolkit /etc/ssl/cert.pem /etc/ssl/cert.pem
+COPY --from=alpine-3 /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install heighliner user
 COPY --from=infra-toolkit /etc/passwd /etc/passwd

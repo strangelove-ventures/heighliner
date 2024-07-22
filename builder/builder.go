@@ -2,6 +2,8 @@ package builder
 
 import (
 	"context"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +18,9 @@ import (
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
+	internalssh "golang.org/x/crypto/ssh"
 	"golang.org/x/mod/modfile"
 
 	"github.com/strangelove-ventures/heighliner/docker"
@@ -151,6 +155,7 @@ func getModFile(
 	repoHost string,
 	organization string,
 	repoName string,
+	cloneKey string,
 	ref string,
 	buildDir string,
 	local bool,
@@ -177,6 +182,22 @@ func getModFile(
 		}
 		// Try as tag ref first
 		cloneOpts.ReferenceName = plumbing.NewTagReferenceName(ref)
+		// if there is a clone key, decode and use it to authenticate
+		if cloneKey != "" {
+			cloneKeyBz, err := base64.StdEncoding.DecodeString(cloneKey)
+			if err != nil {
+				return nil, errors.New("failed to decode clone key")
+			}
+
+			key, err := ssh.NewPublicKeys("git", cloneKeyBz, "")
+			if err != nil {
+				return nil, errors.New("failed to generate public key")
+			}
+			key.HostKeyCallback = internalssh.InsecureIgnoreHostKey()
+
+			cloneOpts.URL = fmt.Sprintf("git@%s:%s/%s.git", repoHost, organization, repoName)
+			cloneOpts.Auth = key
+		}
 
 		// Clone into memory
 		fs := memfs.New()
@@ -353,7 +374,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	modFile, err := getModFile(
 		repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo,
-		chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
+		chainConfig.Build.CloneKey, chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
 	)
 
 	goVersion := buildCfg.GoVersion
@@ -397,6 +418,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"REPO_HOST":           repoHost,
 		"GITHUB_ORGANIZATION": chainConfig.Build.GithubOrganization,
 		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
+		"CLONE_KEY":           chainConfig.Build.CloneKey,
 		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
 		"BINARIES":            binaries,
 		"LIBRARIES":           libraries,

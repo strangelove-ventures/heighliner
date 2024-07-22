@@ -11,12 +11,13 @@ import (
 const (
 	Go118Version = "1.18.10"
 	Go119Version = "1.19.13"
-	Go120Version = "1.20.10"
-	Go121Version = "1.21.3"
+	Go120Version = "1.20.14"
+	Go121Version = "1.21.7"
+	Go122Version = "1.22.0"
 	// ADD NEW GO VERSION [1] - latest patch release for each major/minor
 
 	// When updating alpine image, ensure all golang build image combinations below exist
-	LatestAlpineImageVersion = "3.18"
+	LatestAlpineImageVersion = "3.19"
 )
 
 var (
@@ -24,13 +25,14 @@ var (
 	// golang official dockerhub images to use for cosmos builds
 	// Find from https://hub.docker.com/_/golang
 	Go118Image = GolangAlpineImage(Go118Version, "3.17") // Go 1.18 is now deprecated, pinning to 3.17
-	Go119Image = GolangAlpineImage(Go119Version, LatestAlpineImageVersion)
+	Go119Image = GolangAlpineImage(Go119Version, "3.18") // Go 1.19 is now deprecated, pinning to 3.18
 	Go120Image = GolangAlpineImage(Go120Version, LatestAlpineImageVersion)
 	Go121Image = GolangAlpineImage(Go121Version, LatestAlpineImageVersion)
+	Go122Image = GolangAlpineImage(Go122Version, LatestAlpineImageVersion)
 
 	// ADD NEW GO VERSION [3] - update GoDefaultVersion and GoDefaultImage to latest
-	GoDefaultVersion = Go121Version
-	GoDefaultImage   = Go121Image // default image for cosmos go builds if go.mod parse fails
+	GoDefaultVersion = Go122Version
+	GoDefaultImage   = Go122Image // default image for cosmos go builds if go.mod parse fails
 )
 
 func GolangAlpineImage(goVersion, alpineVersion string) string {
@@ -48,6 +50,7 @@ var GoImageForVersion = map[string]GoVersion{
 	"1.19": GoVersion{Version: Go119Version, Image: Go119Image},
 	"1.20": GoVersion{Version: Go120Version, Image: Go120Image},
 	"1.21": GoVersion{Version: Go121Version, Image: Go121Image},
+	"1.22": GoVersion{Version: Go122Version, Image: Go122Image},
 	// ADD NEW GO VERSION [4]
 }
 
