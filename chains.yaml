@@ -427,6 +427,18 @@
   binaries:
     - /go/bin/gaiad
 
+  # Haqq (ISLM)
+- name: haqq
+  github-organization: haqq-network
+  github-repo: haqq
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/haqqd
+
 # Cosmos Hub ICS
 - name: ics
   github-organization: cosmos
