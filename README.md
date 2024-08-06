@@ -1,5 +1,3 @@
-[![Conforms to README.lint](https://img.shields.io/badge/README.lint-conforming-brightgreen)](https://github.com/strangelove-ventures/readme-dot-lint)
-
 
 🌌 Why use Heighliner?
 =============================
