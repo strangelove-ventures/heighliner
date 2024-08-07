@@ -1104,6 +1104,21 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Selfchain
+- name: selfchain
+  pre-build: |
+    apt update
+    apt install -y unzip
+    wget -O selfchaind-linux-amd64 "https://1501792788-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FcIZFCZY4EPKDYaPcDZLG%2Fuploads%2Fmw20fOJy2upARsT39IgG%2Fselfchaind-linux-amd64?alt=media&token=9bbc32fe-23b1-42d3-88ed-bdb3b07ebf95"
+    mv selfchaind-linux-amd64 /usr/bin/selfchaind
+    chmod 755 /usr/bin/selfchaind
+  binaries:
+    - /usr/bin/selfchaind
+      #  libraries:
+      #    - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64
+
 # Sei
 - name: sei
   github-organization: sei-protocol
@@ -1155,6 +1170,25 @@
   build-target: make build
   binaries:
     - build/simd
+
+# soar
+- name: soarchain
+  pre-build: |
+    apt update
+    apt install -y unzip
+
+    wget https://github.com/soar-robotics/testnet-binaries/raw/main/v0.2.10/debian11/soarchain_linux_amd64.tar.gz
+    wget https://github.com/soar-robotics/testnet-validator-onboard/raw/main/release/libwasmvm.x86_64.so
+    tar xfz soarchain_linux_amd64.tar.gz
+    mv soarchaind /usr/bin
+    mv libwasmvm.x86_64.so /usr/lib
+  binaries:
+    - /usr/bin/soarchaind
+  libraries:
+    - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64
+
 
 # Sommelier
 - name: sommelier
