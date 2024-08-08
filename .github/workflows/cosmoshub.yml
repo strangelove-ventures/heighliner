@@ -53,5 +53,5 @@ jobs:
 
       - name: Tag and push Docker image
         run: |
-          docker tag cosmoshub:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cosmoshub-${{ env.VERSION }}
+          docker tag gaia:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cosmoshub-${{ env.VERSION }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cosmoshub-${{ env.VERSION }}
