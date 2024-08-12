@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and push Axelar Docker image
         run: |
-          ./heighliner build -c axelar --alpine-version 3.18 --git-ref ${{ env.VERSION }}
+          ./heighliner build -c axelar --go-version 1.21 --alpine-version 3.18 --git-ref ${{ env.VERSION }}
 
       - name: Tag and push Docker image
         run: |
