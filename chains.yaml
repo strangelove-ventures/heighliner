@@ -184,6 +184,11 @@
     - BUILD_TAGS=muslc
   binaries:
     - bin/axelard
+  pre-build: |
+    apk add unzip bash jq
+    wget https://github.com/axelarnetwork/axelar-cgp-solidity/releases/download/v2.1.0/Bytecode-v2.1.0.zip
+    unzip Bytecode-v2.1.0.zip -d contract-artifacts/gateway
+    bash scripts/populate-bytecode.sh
   build-target: |
     set -eux
     VERSION=$(echo $(git describe --tags) | sed 's/^v//')
