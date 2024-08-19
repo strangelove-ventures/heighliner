@@ -13,7 +13,7 @@ const (
 	Go119Version = "1.19.13"
 	Go120Version = "1.20.14"
 	Go121Version = "1.21.7"
-	Go122Version = "1.22.0"
+	Go122Version = "1.22.3"
 	// ADD NEW GO VERSION [1] - latest patch release for each major/minor
 
 	// When updating alpine image, ensure all golang build image combinations below exist
