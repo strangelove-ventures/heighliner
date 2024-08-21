@@ -1,0 +1,57 @@
+name: Build and Push Stride Docker Image
+
+on:
+  push:
+    tags:
+      - "stride-v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  INFRA_TOOLKIT: v0.1.6
+
+jobs:
+  build-and-push-stride:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.21'
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Heighliner binary
+        run: |
+          go build -o heighliner
+
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/stride-}" >> $GITHUB_ENV
+
+      - name: Manually pull the base Docker image
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker pull ghcr.io/p2p-org/cosmos-heighliner:infra-toolkit-${{ env.INFRA_TOOLKIT }}
+
+      - name: Build and push stride Docker image
+        run: |
+          ./heighliner build -c stride --git-ref ${{ env.VERSION }}
+
+      - name: Tag and push Docker image
+        run: |
+          docker tag stride:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:stride-${{ env.VERSION }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:stride-${{ env.VERSION }}
