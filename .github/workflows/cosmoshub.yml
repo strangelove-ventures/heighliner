@@ -55,7 +55,7 @@ jobs:
       - name: Build and push cosmoshub Docker image
         run: |
           cd temp/
-          docker build -t gaia:${{ env.VERSION }}
+          docker build -t gaia:${{ env.VERSION }} .
 
       - name: Tag and push Docker image
         run: |
