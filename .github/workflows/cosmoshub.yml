@@ -54,6 +54,7 @@ jobs:
 
       - name: Build and push cosmoshub Docker image
         run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cd temp/
           docker build -t gaia:${{ env.VERSION }} .
 
