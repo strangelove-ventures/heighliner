@@ -71,7 +71,7 @@ func BuildDockerImage(ctx context.Context, dockerfile string, tags []string, pus
 			return err
 		}
 		if dockerLogLine.Stream != "" {
-			fmt.Printf(dockerLogLine.Stream)
+			fmt.Print(dockerLogLine.Stream)
 		}
 		if dockerLogLine.Aux != nil {
 			fmt.Printf("Image ID: %s\n", dockerLogLine.Aux.ID)
