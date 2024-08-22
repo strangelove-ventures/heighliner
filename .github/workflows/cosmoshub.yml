@@ -45,18 +45,11 @@ jobs:
       - name: Manually pull the base Docker image
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker pull ghcr.io/p2p-org/cosmos-heighliner:cosmoshub-v18.1.0
-
-      - name: Pull gaiad binary
-        run: |
-          cd temp/
-          wget https://github.com/cosmos/gaia/releases/download/v19.1.0/gaiad-v19.1.0-linux-amd64
+          docker pull ghcr.io/p2p-org/cosmos-heighliner:infra-toolkit-${{ env.INFRA_TOOLKIT }}
 
       - name: Build and push cosmoshub Docker image
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          cd temp/
-          docker build -t gaia:${{ env.VERSION }} .
+          ./heighliner build -c gaia --git-ref ${{ env.VERSION }}
 
       - name: Tag and push Docker image
         run: |
