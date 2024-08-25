@@ -25,6 +25,17 @@ ARG BUILD_DIR
 
 ADD ${BUILD_DIR}/go.mod ${BUILD_DIR}/go.sum ./
 
+ARG CLONE_KEY
+
+RUN if [ ! -z "${CLONE_KEY}" ]; then\
+  mkdir -p ~/.ssh;\
+  echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
+  chmod 600 ~/.ssh/id_ed25519;\
+  apk add openssh;\
+  git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
+  ssh-keyscan github.com >> ~/.ssh/known_hosts;\
+  fi
+
 # Download go mod dependencies, if there is no custom build directory
 # Note: a custom build dir indicates a monorepo with potential dependencies we can't anticipate atm
 RUN set -eux; \

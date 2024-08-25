@@ -65,7 +65,9 @@ RUN set -eux;\
       WASMVM_VERS=$(echo $WASMVM_VERSION | awk '{print $2}');\
       wget -O $LIBDIR/libwasmvm_muslc.a https://${WASMVM_REPO}/releases/download/${WASMVM_VERS}/libwasmvm_muslc.${ARCH}.a;\
       cp $LIBDIR/libwasmvm_muslc.a $LIBDIR/libwasmvm.x86_64.a;\
+      cp $LIBDIR/libwasmvm_muslc.a $LIBDIR/libwasmvm_muslc.x86_64.a;\ 
       cp $LIBDIR/libwasmvm_muslc.a $LIBDIR/libwasmvm.aarch64.a;\
+      cp $LIBDIR/libwasmvm_muslc.a $LIBDIR/libwasmvm_muslc.aarch64.a;\
     fi;\
     export GOOS=linux GOARCH=$TARGETARCH CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"';\
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi;\

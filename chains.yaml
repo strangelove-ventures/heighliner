@@ -875,12 +875,10 @@
 - name: neutron
   github-organization: neutron-org
   github-repo: neutron
-  dockerfile: cosmos
+  dockerfile: cargo
   build-target: make install
   binaries:
-    - /go/bin/neutrond
-  build-env:
-    - BUILD_TAGS=muslc
+    - /root/go/bin/neutrond
 
 # Nibiru
 - name: nibiru
@@ -987,6 +985,8 @@
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pcli
     - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pclientd
+  platforms:
+    - linux/amd64
   target-libraries:
     - /lib/${ARCH}-linux-gnu/libnss_dns.so.2
     - /lib/${ARCH}-linux-gnu/libresolv.so.2
@@ -1259,9 +1259,17 @@
   github-organization: thorchain
   github-repo: thornode
   dockerfile: cosmos
-  build-target: make install
+  # Thorchain Makefile does not consume LDFLAGS env vars
+  build-target: |
+    COMMIT=$(git log -1 --format='%H' 2>/dev/null)
+    BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    VERSION=$(cat version)
+    if [ -z "$TAG" ]; then TAG=mocknet; fi
+    ldflags="-X gitlab.com/thorchain/thornode/constants.Version=${VERSION} -X gitlab.com/thorchain/thornode/constants.GitCommit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.Name=THORChain -X github.com/cosmos/cosmos-sdk/version.AppName=thornode -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.BuildTags=${TAG} -buildid="
+    go install -tags=$TAG -ldflags="${ldflags} $LDFLAGS" ./cmd/thornode ./cmd/bifrost
   binaries:
     - /go/bin/thornode
+    - /go/bin/bifrost
   pre-build: |
     apk --no-cache add findutils protoc && \
     rm -rf /var/cache/apk/*
@@ -1323,6 +1331,8 @@
   github-repo: xion
   dockerfile: cosmos
   build-target: make install
+  pre-build:
+    apk add --no-cache binutils-gold
   binaries:
     - /go/bin/xiond
   build-env:
