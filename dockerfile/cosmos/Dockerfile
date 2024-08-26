@@ -1,7 +1,7 @@
 ARG BASE_VERSION
 FROM --platform=$BUILDPLATFORM golang:${BASE_VERSION} AS build-env
 
-RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
+RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev git-lfs
 
 ARG TARGETARCH
 ARG BUILDARCH
@@ -32,7 +32,10 @@ ARG GITHUB_REPO
 ARG VERSION
 ARG BUILD_TIMESTAMP
 
-RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git --recursive
+RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git --recursive \
+    && cd ${GITHUB_REPO} \
+    && git lfs install \
+    && git lfs pull
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
