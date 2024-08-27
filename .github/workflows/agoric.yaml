@@ -3,7 +3,7 @@ name: Build and Push agoric Docker Image
 on:
   push:
     tags:
-      - "agoric-v[0-9]+.[0-9]+.[0-9]+*"
+      - "agoric-upgrade-[0-9]+*"
   workflow_dispatch:
 
 env:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Extract version from tag
         id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/agoric-}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Manually pull the base Docker image
         run: |
