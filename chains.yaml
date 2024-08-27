@@ -38,10 +38,6 @@
     # Build daemon lib
     go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -buildmode=c-shared -o build/libagcosmosdaemon.so ./cmd/libdaemon/main.go
 
-    # Build helper
-    LDFLAGS_HELPER="$COMMON_LDFLAGS -X github.com/cosmos/cosmos-sdk/version.AppName=ag-cosmos-helper"
-    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$LDFLAGS_HELPER" -o ../../bin/ag-cosmos-helper ./cmd/helper
-
     # Build agd
     go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -o ../../bin/agd ./cmd/agd
 
@@ -74,7 +70,6 @@
   final-image: |
     set -eux
     ln -s /agoric-sdk/bin/agd /bin/agd
-    ln -s /agoric-sdk/bin/ag-cosmos-helper /bin/ag-cosmos-helper
     ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-chain-cosmos /bin/ag-chain-cosmos
     ln -s /agoric-sdk/packages/cosmic-swingset/bin/ag-nchainz /bin/ag-nchainz
     mkdir -p /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build /build/agoric-sdk/golang/cosmos/build
