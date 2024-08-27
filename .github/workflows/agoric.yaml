@@ -1,9 +1,9 @@
-name: Build and Push Stride Docker Image
+name: Build and Push agoric Docker Image
 
 on:
   push:
     tags:
-      - "stride-v[0-9]+.[0-9]+.[0-9]+*"
+      - "agoric-v[0-9]+.[0-9]+.[0-9]+*"
   workflow_dispatch:
 
 env:
@@ -12,7 +12,7 @@ env:
   INFRA_TOOLKIT: v0.1.6
 
 jobs:
-  build-and-push-stride:
+  build-and-push-agoric:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,18 +40,18 @@ jobs:
 
       - name: Extract version from tag
         id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/stride-}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/tags/agoric-}" >> $GITHUB_ENV
 
       - name: Manually pull the base Docker image
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker pull ghcr.io/p2p-org/cosmos-heighliner:infra-toolkit-${{ env.INFRA_TOOLKIT }}
 
-      - name: Build and push stride Docker image
+      - name: Build and push agoric Docker image
         run: |
-          ./heighliner build -c stride --git-ref ${{ env.VERSION }}
+          ./heighliner build -c agoric --git-ref ${{ env.VERSION }}
 
       - name: Tag and push Docker image
         run: |
-          docker tag stride:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:stride-${{ env.VERSION }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:stride-${{ env.VERSION }}
+          docker tag agoric:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:agoric-${{ env.VERSION }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:agoric-${{ env.VERSION }}
