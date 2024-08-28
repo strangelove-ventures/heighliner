@@ -77,6 +77,43 @@
     ln -s  /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /build/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
     ln -s /root/.nvm/versions/node/*/bin/node /bin/node
 
+# Agoric-sdk
+- name: agoric-agd
+  dockerfile: cargo
+  github-organization: Agoric
+  github-repo: agoric-sdk
+  build-env:
+    - LEDGER_ENABLED=false
+  build-target: |
+    set -eux
+    cd golang/cosmos
+    export CGO_ENABLED=1 GOOS=linux GOARCH=${TARGETARCH} CC=${ARCH}-linux-gnu-gcc CXX=${ARCH}-linux-gnu-g++
+    COMMIT=$(git log -1 --format='%H')
+    COMMON_LDFLAGS="-X github.com/cosmos/cosmos-sdk/version.Name=agoric \
+      -X github.com/cosmos/cosmos-sdk/version.AppName=agd \
+      -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
+      -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
+      -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
+
+    # Build daemon lib
+    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -buildmode=c-shared -o build/libagcosmosdaemon.so ./cmd/libdaemon/main.go
+
+    # Build agd
+    go build -v -mod=readonly -tags "$BUILD_TAGS" -ldflags "$COMMON_LDFLAGS" -o ../../bin/agd ./cmd/agd
+
+    # Move to final location
+    cd ../../
+    mkdir /agoric-sdk
+    mv  bin golang /agoric-sdk
+  directories:
+    - /agoric-sdk
+  final-image: |
+    set -eux
+    ln -s /agoric-sdk/bin/agd /bin/agd
+    mkdir -p /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build /build/agoric-sdk/golang/cosmos/build
+    mv /agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build/
+    ln -s  /go/src/github.com/p2p-org/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so /build/agoric-sdk/golang/cosmos/build/libagcosmosdaemon.so
+
 # Akash
 - name: akash
   github-organization: akash-network

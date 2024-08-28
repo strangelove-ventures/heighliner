@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and push agoric Docker image
         run: |
-          ./heighliner build -c agoric --go-version 1.21 --git-ref ${{ env.VERSION }}
+          ./heighliner build -c agoric-agd --go-version 1.21 --git-ref ${{ env.VERSION }}
 
       - name: Tag and push Docker image
         run: |
