@@ -876,7 +876,7 @@
 
 # Noble
 - name: noble
-  github-organization: noble-assets
+  github-organization: pharr117
   github-repo: noble
   dockerfile: cosmos
   build-target: make install
@@ -1018,7 +1018,7 @@
   dockerfile: cosmos
   build-target: make install
   binaries:
-    - /go/bin/quasarnoded
+    - /go/bin/quasard
   build-env:
     - BUILD_TAGS=muslc
 
@@ -1251,10 +1251,11 @@
     VERSION=$(cat version)
     if [ -z "$TAG" ]; then TAG=mocknet; fi
     ldflags="-X gitlab.com/thorchain/thornode/constants.Version=${VERSION} -X gitlab.com/thorchain/thornode/constants.GitCommit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.Name=THORChain -X github.com/cosmos/cosmos-sdk/version.AppName=thornode -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.BuildTags=${TAG} -buildid="
-    go install -tags=$TAG -ldflags="${ldflags} $LDFLAGS" ./cmd/thornode ./cmd/bifrost
+    go install -tags=$TAG -ldflags="${ldflags} $LDFLAGS" ./cmd/thornode ./cmd/bifrost ./tools/generate
   binaries:
     - /go/bin/thornode
     - /go/bin/bifrost
+    - /go/bin/generate
   pre-build: |
     apk --no-cache add findutils protoc && \
     rm -rf /var/cache/apk/*
@@ -1316,8 +1317,6 @@
   github-repo: xion
   dockerfile: cosmos
   build-target: make install
-  pre-build:
-    apk add --no-cache binutils-gold
   binaries:
     - /go/bin/xiond
   build-env:
@@ -1333,4 +1332,3 @@
     - /go/bin/xplad
   build-env:
     - BUILD_TAGS=muslc
-
