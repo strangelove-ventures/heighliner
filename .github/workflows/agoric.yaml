@@ -47,6 +47,9 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker pull ghcr.io/p2p-org/cosmos-heighliner:infra-toolkit-${{ env.INFRA_TOOLKIT }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push agoric Docker image
         run: |
           ./heighliner build -c agoric-agd --go-version 1.21 --git-ref ${{ env.VERSION }}
