@@ -876,7 +876,7 @@
 
 # Noble
 - name: noble
-  github-organization: pharr117
+  github-organization: noble-assets
   github-repo: noble
   dockerfile: cosmos
   build-target: make install
