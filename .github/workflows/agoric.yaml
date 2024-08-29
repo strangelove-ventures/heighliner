@@ -3,7 +3,7 @@ name: Build and Push agoric Docker Image
 on:
   push:
     tags:
-      - "agoric-upgrade-[0-9]+*"
+      - "agoric-sdk-[0-9]+*"
   workflow_dispatch:
 
 env:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Extract version from tag
         id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/tags/agoric-sdk-}" >> $GITHUB_ENV
 
       - name: Manually pull the base Docker image
         run: |
@@ -52,9 +52,9 @@ jobs:
 
       - name: Build and push agoric Docker image
         run: |
-          ./heighliner build -c agoric-agd --go-version 1.21 --git-ref ${{ env.VERSION }}
+          ./heighliner build -c agoric-imported 1.21 --git-ref ${{ env.VERSION }}
 
       - name: Tag and push Docker image
         run: |
-          docker tag agoric:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:agoric-${{ env.VERSION }}
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:agoric-${{ env.VERSION }}
+          docker tag agoric-imported:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
