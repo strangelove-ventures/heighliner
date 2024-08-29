@@ -67,5 +67,5 @@ jobs:
 
       - name: Tag and push Docker image
         run: |
-          docker tag agoric-imported:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          docker tag agoric-imported:${{ env.SDK_VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
