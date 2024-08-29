@@ -3,7 +3,7 @@ name: Build and Push agoric Docker Image
 on:
   push:
     tags:
-      - "agoric-sdk-[0-9]+*"
+      - "agoric-upgrade-[0-9]+*"
   workflow_dispatch:
 
 env:
@@ -40,19 +40,30 @@ jobs:
 
       - name: Extract version from tag
         id: extract_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/agoric-sdk-}" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Checkout agorik-sdk repository
+        uses: actions/checkout@v4
+        with:
+          repository: agoric/agoric-sdk
+          ref: ${{ env.VERSION }}
+          fetch-tags: true
+          path: agoric-sdk
+
+      - name: Extract SDK version    
+        run: |
+          cd agoric-sdk
+          echo "SDK_VERSION=$(git tag --points-at HEAD | grep sdk | awk -F@ {'print $3'})" >> $GITHUB_ENV
+          cd ..
 
       - name: Manually pull the base Docker image
         run: |
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker pull ghcr.io/p2p-org/cosmos-heighliner:infra-toolkit-${{ env.INFRA_TOOLKIT }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Build and push agoric Docker image
         run: |
-          ./heighliner build -c agoric-imported 1.21 --git-ref ${{ env.VERSION }}
+          ./heighliner build -c agoric-imported --git-ref ${{ env.SDK_VERSION }}
 
       - name: Tag and push Docker image
         run: |
