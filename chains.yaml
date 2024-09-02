@@ -893,12 +893,10 @@
 - name: neutron
   github-organization: neutron-org
   github-repo: neutron
-  dockerfile: cosmos
+  dockerfile: cargo
   build-target: make install
   binaries:
-    - /go/bin/neutrond
-  build-env:
-    - BUILD_TAGS=muslc
+    - /root/go/bin/neutrond
 
 # Nibiru
 - name: nibiru
