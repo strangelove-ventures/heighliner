@@ -1018,7 +1018,7 @@
   dockerfile: cosmos
   build-target: make install
   binaries:
-    - /go/bin/quasarnoded
+    - /go/bin/quasard
   build-env:
     - BUILD_TAGS=muslc
 
@@ -1316,8 +1316,6 @@
   github-repo: xion
   dockerfile: cosmos
   build-target: make install
-  pre-build:
-    apk add --no-cache binutils-gold
   binaries:
     - /go/bin/xiond
   build-env:
@@ -1333,4 +1331,3 @@
     - /go/bin/xplad
   build-env:
     - BUILD_TAGS=muslc
-
