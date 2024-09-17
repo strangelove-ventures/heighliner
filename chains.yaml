@@ -860,12 +860,12 @@
 - name: neutron
   github-organization: neutron-org
   github-repo: neutron
-  dockerfile: cosmos
+  dockerfile: cargo
   build-target: make install
-  build-env:
-    - BUILD_TAGS=muslc
   binaries:
-    - /go/bin/neutrond
+    - /root/go/bin/neutrond
+  libraries:
+    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm/*/internal/api/libwasmvm.${ARCH}.so
 
 # Nibiru
 - name: nibiru
