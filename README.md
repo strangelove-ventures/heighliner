@@ -22,7 +22,7 @@ Heighliner container images are useful for anyone who's responsible for infrastr
 
 Heighliner images are minimally constructed from scratch images, packaging only the chain binary and a useful reduced set of busybox utilities.
 
-This repository has a CI/CD pipeline to automatically build images when new git tags are detected on the chain repos in [chains.yaml](chains/chains.yaml). These images are hosted as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner)
+This repository has a CI/CD pipeline to automatically build images when new git tags are detected on the chain repos in [chains/](chains). These images are hosted as packages in the Github Container Registry (ghcr) [here](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner)
 
 
 
@@ -31,7 +31,7 @@ This repository has a CI/CD pipeline to automatically build images when new git 
 
 ## Add a New Chain
 
-To add a chain to the heighliner built-in configuration and have your chain images available on our repository's [ghcr](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner), submit a PR adding it to [chains.yaml](chains/chains.yaml) so it will be included in the automatic builds.
+To add a chain to the heighliner built-in configuration and have your chain images available on our repository's [ghcr](https://github.com/orgs/strangelove-ventures/packages?repo_name=heighliner), submit a PR adding it to the [chains directory](chains) so it will be included in the automatic builds.
 
 For further instructions see: [addChain.md](./addChain.md)
 
@@ -115,7 +115,7 @@ export GH_USER=github_username GH_PAT=github_personal_access_token
 heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 3
 ```
 
-heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](chains/chains.yaml), build docker images, and push them.
+heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](chains/01_chains.yaml), build docker images, and push them.
 
 
 
