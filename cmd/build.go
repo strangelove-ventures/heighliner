@@ -93,7 +93,7 @@ func loadChainsYaml(configFile string) error {
 				var newChains []builder.ChainNodeConfig
 				err = yaml.Unmarshal(bz, &newChains)
 				if err != nil {
-					return fmt.Errorf("error unmarshalling yaml from file: %s: %w", configFile, err)
+					return fmt.Errorf("error unmarshalling yaml from file: %s- %s: %w", configFile, v, err)
 				}
 				combinedChains = append(combinedChains, newChains...)
 			}
