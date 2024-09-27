@@ -36,7 +36,7 @@ jobs:
 
       - name: Build Heighliner binary
         run: |
-          go build -o heighliner
+          go build -o heighliner 
 
       - name: Extract version from tag
         id: extract_version
@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and push terra Docker image
         run: |
-          ./heighliner build -c terra --git-ref ${{ env.VERSION }}
+          ./heighliner build -c terra --git-ref ${{ env.VERSION }} --alpine-version 3.18
 
       - name: Tag and push Docker image
         run: |
