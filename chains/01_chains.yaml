@@ -654,14 +654,14 @@
   pre-build: |
     apt update
     apt install unzip
+    #    wget https://github.com/InjectiveLabs/injective-chain-releases/releases/download/$VERSION/linux-amd64.zip
     wget https://github.com/InjectiveLabs/injective-chain-releases/releases/download/$VERSION/linux-amd64.zip
     unzip linux-amd64.zip
-    mv injectived peggo injective-exchange /usr/bin
+    mv injectived peggo /usr/bin
     mv libwasmvm.x86_64.so /usr/lib
   binaries:
     - /usr/bin/injectived
     - /usr/bin/peggo
-    - /usr/bin/injective-exchange
   libraries:
     - /usr/lib/libwasmvm.x86_64.so
   platforms:
@@ -1006,12 +1006,26 @@
   github-repo: provenance
   dockerfile: cosmos
   build-target: make install
+  pre-build: |
+    wget -O /lib/libwasmvm.x86_64.so https://github.com/CosmWasm/wasmvm/releases/download/v2.1.0/libwasmvm.x86_64.so
   binaries:
     - /go/bin/provenanced
   build-env:
     - WITH_LEDGER=false
     - WITH_CLEVELDB=false
     - BUILD_TAGS=muslc musl dynamic
+# Pryzm
+#    wget https://storage.googleapis.com/pryzm-zone/core/0.18.0/pryzmd-0.18.0-linux-amd64.tar.gz
+- name: pryzm
+  pre-build: |
+    apt update
+    wget https://storage.googleapis.com/pryzm-zone/core/0.19.0/pryzmd-0.19.0-linux-amd64.tar.gz
+    tar xfz pryzmd-0.19.0-linux-amd64.tar.gz
+    mv pryzmd /usr/bin
+  binaries:
+    - /usr/bin/pryzmd
+  platforms:
+    - linux/amd64
 
 # Quasar
 - name: quasar
@@ -1106,6 +1120,21 @@
   build-env:
     - BUILD_TAGS=muslc
 
+# Selfchain
+- name: selfchain
+  pre-build: |
+    apt update
+    apt install -y unzip
+    wget -O selfchaind-linux-amd64 "https://1501792788-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FcIZFCZY4EPKDYaPcDZLG%2Fuploads%2Fmw20fOJy2upARsT39IgG%2Fselfchaind-linux-amd64?alt=media&token=9bbc32fe-23b1-42d3-88ed-bdb3b07ebf95"
+    mv selfchaind-linux-amd64 /usr/bin/selfchaind
+    chmod 755 /usr/bin/selfchaind
+  binaries:
+    - /usr/bin/selfchaind
+      #  libraries:
+      #    - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64
+
 # Sei
 - name: sei
   github-organization: sei-protocol
@@ -1158,6 +1187,26 @@
   binaries:
     - build/simd
 
+# soar
+- name: soarchain
+  pre-build: |
+    apt update
+    apt install -y unzip
+
+    #wget https://github.com/soar-robotics/testnet-validator-onboard/raw/main/release/libwasmvm.x86_64.so
+    wget https://github.com/soar-robotics/mainnet-rehearsal/raw/main/binary/debian11/soarchaind.tar.gz
+    wget https://github.com/soar-robotics/mainnet-rehearsal/raw/main/binary/libwasmvm.x86_64.so
+    
+    tar xfz soarchaind.tar.gz
+    mv soarchaind /usr/bin
+    mv libwasmvm.x86_64.so /usr/lib
+  binaries:
+    - /usr/bin/soarchaind
+  libraries:
+    - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64
+
 # Sommelier
 - name: sommelier
   github-organization: peggyjv
@@ -1197,6 +1246,16 @@
   build-target: make build
   binaries:
     - build/strided
+
+#  Symphony
+- name: symphony
+  github-organization: Orchestra-Labs
+  github-repo: symphony
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/symphonyd
+
 
 # Tendermint
 - name: tendermint
