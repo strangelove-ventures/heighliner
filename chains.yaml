@@ -217,7 +217,6 @@
       -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
       -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT \
       -X github.com/CosmWasm/wasmd/x/wasm/types/MaxWasmSize=3145728 \
-      -X github.com/axelarnetwork/axelar-core/app.MaxWasmSize=3145728 \
       -X github.com/axelarnetwork/axelar-core/x/axelarnet/exported.NativeAsset=uaxl \
       -X github.com/axelarnetwork/axelar-core/app.WasmEnabled=true \
       -X github.com/axelarnetwork/axelar-core/app.IBCWasmHooksEnabled=false \
@@ -898,8 +897,6 @@
   build-target: make install
   binaries:
     - /root/go/bin/neutrond
-  libraries:
-    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm/*/internal/api/libwasmvm.${ARCH}.so
 
 # Nibiru
 - name: nibiru
@@ -1252,7 +1249,7 @@
 
 # Terra
 - name: terra
-  github-organization: terra-money
+  github-organization: phoenix-directive
   github-repo: core
   dockerfile: cosmos
   build-target: make install
