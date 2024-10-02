@@ -6,7 +6,7 @@ import (
 	"github.com/strangelove-ventures/heighliner/cmd"
 )
 
-//go:chains chains.yaml
+//go:embed chains.yaml
 var chainsYaml []byte
 
 func main() {
