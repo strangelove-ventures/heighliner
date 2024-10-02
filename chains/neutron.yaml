@@ -1,0 +1,10 @@
+# Neutron
+- name: neutron
+  github-organization: neutron-org
+  github-repo: neutron
+  dockerfile: cargo
+  build-target: make install
+  binaries:
+    - /root/go/bin/neutrond
+  libraries:
+    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm/*/internal/api/libwasmvm.${ARCH}.so

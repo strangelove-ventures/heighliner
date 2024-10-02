@@ -1,0 +1,10 @@
+# Noria
+- name: noria
+  github-organization: noria-net
+  github-repo: noria
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/noriad

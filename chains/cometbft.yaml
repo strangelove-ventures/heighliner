@@ -1,0 +1,8 @@
+# CometBFT
+- name: cometbft
+  github-organization: cometbft
+  github-repo: cometbft
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - /go/src/github.com/cometbft/cometbft/build/cometbft

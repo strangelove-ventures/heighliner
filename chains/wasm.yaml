@@ -1,0 +1,10 @@
+# Wasm
+- name: wasm
+  github-organization: CosmWasm
+  github-repo: wasmd
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/wasmd
+  build-env:
+    - BUILD_TAGS=muslc

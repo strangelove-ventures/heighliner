@@ -1,0 +1,8 @@
+# Migaloo
+- name: migaloo
+  github-organization: White-Whale-Defi-Platform
+  github-repo: migaloo-chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/migalood

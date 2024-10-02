@@ -1,0 +1,10 @@
+# Andromeda
+- name: andromeda
+  github-organization: andromedaprotocol
+  github-repo: andromedad
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/andromedad
+  build-env:
+    - BUILD_TAGS=muslc

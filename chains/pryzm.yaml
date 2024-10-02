@@ -1,0 +1,12 @@
+# Pryzm
+#    wget https://storage.googleapis.com/pryzm-zone/core/0.18.0/pryzmd-0.18.0-linux-amd64.tar.gz
+- name: pryzm
+  pre-build: |
+    apt update
+    wget https://storage.googleapis.com/pryzm-zone/core/0.19.0/pryzmd-0.19.0-linux-amd64.tar.gz
+    tar xfz pryzmd-0.19.0-linux-amd64.tar.gz
+    mv pryzmd /usr/bin
+  binaries:
+    - /usr/bin/pryzmd
+  platforms:
+    - linux/amd64

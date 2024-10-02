@@ -1,0 +1,20 @@
+# Arkeo
+- name: arkeo
+  github-organization: arkeonetwork
+  github-repo: arkeo
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/arkeod
+  build-env:
+    - CGO_ENABLED=0
+  pre-build: |
+    apk --no-cache add findutils curl protoc && \
+    rm -rf /var/cache/apk/*
+    BIN="/usr/local/bin" && \
+    VERSION="1.20.0" && \
+    curl -sSL \
+    "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" \
+    -o "${BIN}/buf" && \
+    chmod +x "${BIN}/buf"
+    make protob

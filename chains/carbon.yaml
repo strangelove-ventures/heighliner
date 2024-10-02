@@ -1,0 +1,34 @@
+# Carbon
+- name: carbon
+  github-organization: Switcheo
+  github-repo: carbon-bootstrap
+  dockerfile: cargo
+  build-target: |
+    apt update && apt install wget build-essential jq cmake sudo -y
+    wget https://github.com/google/leveldb/archive/1.23.tar.gz && \
+      tar -zxvf 1.23.tar.gz && \
+      wget https://github.com/google/googletest/archive/release-1.11.0.tar.gz && \
+      tar -zxvf release-1.11.0.tar.gz && \
+      mv googletest-release-1.11.0/* leveldb-1.23/third_party/googletest && \
+      wget https://github.com/google/benchmark/archive/v1.5.5.tar.gz && \
+      tar -zxvf v1.5.5.tar.gz && \
+      mv benchmark-1.5.5/* leveldb-1.23/third_party/benchmark && \
+      cd leveldb-1.23 && \
+      mkdir -p build && \
+      cd build && \
+      cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON .. && \
+      cmake --build . && \
+      sudo cp -P libleveldb.so* /usr/local/lib/ && \
+      sudo ldconfig && \
+      cd .. && \
+      sudo cp -r include/leveldb /usr/local/include/ && \
+      cd .. && \
+    NETWORK=mainnet
+    VERSION_NUM=$(echo ${VERSION} | cut -c 2-)
+    wget https://github.com/Switcheo/carbon-bootstrap/releases/download/"${VERSION}"/carbond"${VERSION_NUM}"-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    tar -xvf carbond${VERSION_NUM}-${NETWORK}.linux-$(dpkg --print-architecture).tar.gz
+    sudo mv carbond /usr/local/bin
+  libraries:
+    - /usr/local/lib/libleveldb.so.*
+  binaries:
+    - /usr/local/bin/carbond

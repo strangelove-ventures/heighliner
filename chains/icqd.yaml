@@ -1,0 +1,8 @@
+# Interchain queries demo
+- name: icqd
+  github-organization: quasar-finance
+  github-repo: interchain-query-demo
+  dockerfile: cosmos
+  build-target: go build -ldflags "$LDFLAGS" -o build/icq ./cmd/interchain-query-demod
+  binaries:
+    - build/icq

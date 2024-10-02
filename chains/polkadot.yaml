@@ -1,0 +1,10 @@
+# Polkadot
+- name: polkadot
+  github-organization: paritytech
+  github-repo: polkadot
+  dockerfile: cargo
+  build-target: cargo build --release
+  pre-build: |
+    ./scripts/init.sh
+  binaries:
+    - /build/polkadot/target/${ARCH}-unknown-linux-gnu/release/polkadot

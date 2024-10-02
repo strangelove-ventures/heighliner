@@ -1,0 +1,6 @@
+# Union
+- name: union
+  dockerfile: imported
+  base-image: ghcr.io/unionlabs/uniond-release
+  binaries:
+    - /nix/store/*-uniond-${ARCH}-unknown-linux-musl/bin/uniond

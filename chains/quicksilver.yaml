@@ -1,0 +1,10 @@
+# Quicksilver
+- name: quicksilver
+  github-organization: ingenuity-build
+  github-repo: quicksilver
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/quicksilverd
+  build-env:
+    - BUILD_TAGS=muslc

@@ -1,0 +1,23 @@
+# Avalanche
+- name: avalanche
+  github-organization: ava-labs
+  github-repo: avalanchego
+  dockerfile: avalanche
+  pre-build: |
+    startTime="$(sed -n 's|.*"startTime":\([^"]*\),.*|\1|p' genesis/genesis_local.json)"
+    nowTime="$(date +%s)"
+    if [ $nowTime -gt $startTime ]; then
+      sed "s/$startTime/$nowTime/g" genesis/genesis_local.json > genesis/genesis_local_tmp.json
+      mv genesis/genesis_local_tmp.json genesis/genesis_local.json
+    fi
+  build-target: |
+    set -eux
+    # Build AvalancheGo
+    bash scripts/build.sh
+    # Build SubnetEVM
+    git clone -b v0.5.9-ibc-v0.1.0 --single-branch https://github.com/ConsiderItDone/subnet-evm.git
+    cd subnet-evm
+    bash scripts/build.sh
+  binaries:
+    - build/avalanchego
+    - /go/src/github.com/ava-labs/avalanchego/build/plugins/srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy

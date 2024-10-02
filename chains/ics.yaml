@@ -1,0 +1,14 @@
+# Cosmos Hub ICS
+- name: ics
+  github-organization: cosmos
+  github-repo: interchain-security
+  dockerfile: cosmos
+  build-target: |
+    export GOFLAGS='-buildmode=pie'
+    export CGO_CPPFLAGS="-D_FORTIFY_SOURCE=2"
+    export CGO_LDFLAGS="-Wl,-z,relro,-z,now -fstack-protector"
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-pd
+    go install -ldflags="$LDFLAGS" ./cmd/interchain-security-cd
+  binaries:
+    - /go/bin/interchain-security-pd
+    - /go/bin/interchain-security-cd

@@ -1,0 +1,8 @@
+# Regen
+- name: regen
+  github-organization: regen-network
+  github-repo: regen-ledger
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/regen

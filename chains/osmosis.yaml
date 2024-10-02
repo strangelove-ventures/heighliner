@@ -1,0 +1,10 @@
+# Osmosis
+- name: osmosis
+  github-organization: osmosis-labs
+  github-repo: osmosis
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/osmosisd
+  build-env:
+    - BUILD_TAGS=muslc

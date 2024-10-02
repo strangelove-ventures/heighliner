@@ -1,0 +1,10 @@
+# panacea
+- name: panacea
+  github-organization: medibloc
+  github-repo: panacea-core
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/panacead
+  build-env:
+    - BUILD_TAGS=muslc

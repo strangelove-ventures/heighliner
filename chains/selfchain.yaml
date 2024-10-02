@@ -1,0 +1,14 @@
+# Selfchain
+- name: selfchain
+  pre-build: |
+    apt update
+    apt install -y unzip
+    wget -O selfchaind-linux-amd64 "https://1501792788-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FcIZFCZY4EPKDYaPcDZLG%2Fuploads%2Fmw20fOJy2upARsT39IgG%2Fselfchaind-linux-amd64?alt=media&token=9bbc32fe-23b1-42d3-88ed-bdb3b07ebf95"
+    mv selfchaind-linux-amd64 /usr/bin/selfchaind
+    chmod 755 /usr/bin/selfchaind
+  binaries:
+    - /usr/bin/selfchaind
+      #  libraries:
+      #    - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64

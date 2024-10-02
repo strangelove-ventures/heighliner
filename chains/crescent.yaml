@@ -1,0 +1,8 @@
+# Crescent
+- name: crescent
+  github-organization: crescent-network
+  github-repo: crescent
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/crescentd

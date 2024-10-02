@@ -1,0 +1,11 @@
+# saga
+- name: saga
+  github-organization: sagaxyz
+  github-repo: ssc
+  dockerfile: cosmos
+  build-target: |
+    make install
+  binaries:
+    - /go/bin/sscd
+  build-env:
+    - BUILD_TAGS=muslc

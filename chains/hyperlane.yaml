@@ -1,0 +1,10 @@
+# hyperlane sim (for testing)
+- name: hyperlane-simd
+  github-organization: strangelove-ventures
+  github-repo: hyperlane-cosmos
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/simd
+  build-env:
+    - BUILD_TAGS=muslc

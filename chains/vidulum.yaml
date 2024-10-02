@@ -1,0 +1,8 @@
+# Vidulum
+- name: vidulum
+  github-organization: vidulum
+  github-repo: mainnet
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/vidulumd

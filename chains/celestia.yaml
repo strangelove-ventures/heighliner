@@ -1,0 +1,11 @@
+# Celestia Node
+- name: celestia-node
+  github-organization: celestiaorg
+  github-repo: celestia-node
+  dockerfile: cosmos
+  build-target: |
+    versioningPath="github.com/celestiaorg/celestia-node/nodebuilder/node"
+    LDFLAGS="$LDFLAGS -X '${versioningPath}.buildTime=$(date)' -X '${versioningPath}.lastCommit=$(git rev-parse HEAD)' -X '${versioningPath}.semanticVersion=$(git describe --tags --dirty=-dev 2>/dev/null || git rev-parse --abbrev-ref HEAD)'"
+    go install -ldflags="$LDFLAGS" ./cmd/celestia
+  binaries:
+    - /go/bin/celestia

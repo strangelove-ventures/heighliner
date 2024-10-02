@@ -1,0 +1,10 @@
+# Axelar tofnd
+- name: tofnd
+  github-organization: axelarnetwork
+  github-repo: tofnd
+  dockerfile: cargo
+  build-target: cargo build --release
+  pre-build:
+    apt install -y libgmp3-dev:${TARGETARCH}
+  binaries:
+    - /build/tofnd/target/${ARCH}-unknown-linux-gnu/release/tofnd

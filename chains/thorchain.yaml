@@ -1,0 +1,20 @@
+# Thorchain
+- name: thorchain
+  repo-host: gitlab.com
+  github-organization: thorchain
+  github-repo: thornode
+  dockerfile: cosmos
+  # Thorchain Makefile does not consume LDFLAGS env vars
+  build-target: |
+    COMMIT=$(git log -1 --format='%H' 2>/dev/null)
+    BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    VERSION=$(cat version)
+    if [ -z "$TAG" ]; then TAG=mocknet; fi
+    ldflags="-X gitlab.com/thorchain/thornode/constants.Version=${VERSION} -X gitlab.com/thorchain/thornode/constants.GitCommit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.Name=THORChain -X github.com/cosmos/cosmos-sdk/version.AppName=thornode -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.BuildTags=${TAG} -buildid="
+    go install -tags=$TAG -ldflags="${ldflags} $LDFLAGS" ./cmd/thornode ./cmd/bifrost
+  binaries:
+    - /go/bin/thornode
+    - /go/bin/bifrost
+  pre-build: |
+    apk --no-cache add findutils protoc && \
+    rm -rf /var/cache/apk/*

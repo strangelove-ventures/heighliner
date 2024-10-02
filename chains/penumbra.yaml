@@ -1,0 +1,19 @@
+# Penumbra
+- name: penumbra
+  github-organization: penumbra-zone
+  github-repo: penumbra
+  dockerfile: cargo
+  build-target: cargo build --release
+  pre-build: |
+    apt install -y git-lfs
+    git lfs fetch
+    git lfs checkout
+  binaries:
+    - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pd
+    - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pcli
+    - /build/penumbra/target/${ARCH}-unknown-linux-gnu/release/pclientd
+  platforms:
+    - linux/amd64
+  target-libraries:
+    - /lib/${ARCH}-linux-gnu/libnss_dns.so.2
+    - /lib/${ARCH}-linux-gnu/libresolv.so.2

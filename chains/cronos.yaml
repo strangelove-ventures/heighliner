@@ -1,0 +1,8 @@
+# Cronos
+- name: cronos
+  github-organization: crypto-org-chain
+  github-repo: cronos
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/cronosd

@@ -1,0 +1,10 @@
+# Seda
+- name: seda
+  github-organization: sedaprotocol
+  github-repo: seda-chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/sedad
+  build-env:
+    - BUILD_TAGS=muslc

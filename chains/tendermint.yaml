@@ -1,0 +1,8 @@
+# Tendermint
+- name: tendermint
+  github-organization: tendermint
+  github-repo: tendermint
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - /go/src/github.com/tendermint/tendermint/build/tendermint

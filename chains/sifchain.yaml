@@ -1,0 +1,8 @@
+# Sifchain
+- name: sifchain
+  github-organization: Sifchain
+  github-repo: sifnode
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/sifnoded

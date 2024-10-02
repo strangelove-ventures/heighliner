@@ -1,0 +1,8 @@
+# Omniflixhub
+- name: omniflixhub
+  github-organization: OmniFlix
+  github-repo: omniflixhub
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/omniflixhubd

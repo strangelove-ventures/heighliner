@@ -1,0 +1,10 @@
+# Konstellation
+- name: konstellation
+  github-organization: knstl
+  github-repo: konstellation
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/knstld

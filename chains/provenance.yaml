@@ -1,0 +1,14 @@
+# Provenance
+- name: provenance
+  github-organization: provenance-io
+  github-repo: provenance
+  dockerfile: cosmos
+  build-target: make install
+  pre-build: |
+    wget -O /lib/libwasmvm.x86_64.so https://github.com/CosmWasm/wasmvm/releases/download/v2.1.0/libwasmvm.x86_64.so
+  binaries:
+    - /go/bin/provenanced
+  build-env:
+    - WITH_LEDGER=false
+    - WITH_CLEVELDB=false
+    - BUILD_TAGS=muslc musl dynamic
