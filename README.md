@@ -115,7 +115,7 @@ export GH_USER=github_username GH_PAT=github_personal_access_token
 heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 3
 ```
 
-heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](chains/01_chains.yaml), build docker images, and push them.
+heighliner will fetch the last 3 release tags from github for all chains in [chains](chains), build docker images, and push them.
 
 
 
