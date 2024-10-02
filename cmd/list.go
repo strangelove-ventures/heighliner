@@ -22,7 +22,7 @@ func loadLocalChainsYaml() error {
 	if err != nil {
 		return err
 	}
-	chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
+	chainsYamlSearchPath := filepath.Join(cwd, "chains/")
 	err = loadChainsYaml(chainsYamlSearchPath)
 	if err != nil {
 		fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
