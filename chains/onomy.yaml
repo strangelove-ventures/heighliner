@@ -1,4 +1,4 @@
-# Onomy gbt: Not a chain, companion process required by validator
+# Onomy gbt. Not a chain, companion process required by validator
 - name: onomy-gbt
   github-organization: onomyprotocol
   github-repo: arc
