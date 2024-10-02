@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -70,19 +72,48 @@ const (
 )
 
 func loadChainsYaml(configFile string) error {
-	if _, err := os.Stat(configFile); err != nil {
+	fi, err := os.Stat(configFile)
+	if err != nil {
 		return fmt.Errorf("error checking for file: %s: %w", configFile, err)
 	}
-	bz, err := os.ReadFile(configFile)
-	if err != nil {
-		return fmt.Errorf("error reading file: %s: %w", configFile, err)
+	switch mode := fi.Mode(); {
+	case mode.IsDir():
+		{
+			dir := os.DirFS(configFile)
+			configFiles, err := fs.Glob(dir, "*.yaml")
+			if err != nil {
+				return fmt.Errorf("error checking for yaml files in : %s: %w", configFile, err)
+			}
+			var combinedChains []builder.ChainNodeConfig
+			for _, v := range configFiles {
+				bz, err := os.ReadFile(path.Join(configFile, v))
+				if err != nil {
+					return fmt.Errorf("error reading file: %s - %s: %w", configFile, v, err)
+				}
+				var newChains []builder.ChainNodeConfig
+				err = yaml.Unmarshal(bz, &newChains)
+				if err != nil {
+					return fmt.Errorf("error unmarshalling yaml from file: %s- %s: %w", configFile, v, err)
+				}
+				combinedChains = append(combinedChains, newChains...)
+			}
+			chains = combinedChains
+		}
+	case mode.IsRegular():
+		{
+			bz, err := os.ReadFile(configFile)
+			if err != nil {
+				return fmt.Errorf("error reading file: %s: %w", configFile, err)
+			}
+			var newChains []builder.ChainNodeConfig
+			err = yaml.Unmarshal(bz, &newChains)
+			if err != nil {
+				return fmt.Errorf("error unmarshalling yaml from file: %s: %w", configFile, err)
+			}
+			chains = newChains
+		}
 	}
-	var newChains []builder.ChainNodeConfig
-	err = yaml.Unmarshal(bz, &newChains)
-	if err != nil {
-		return fmt.Errorf("error unmarshalling yaml from file: %s: %w", configFile, err)
-	}
-	chains = newChains
+
 	return nil
 }
 
@@ -104,7 +135,7 @@ it will be built and pushed`,
 				// try to load a local chains.yaml, but do not panic for any error, will fall back to embedded chains.
 				cwd, err := os.Getwd()
 				if err == nil {
-					chainsYamlSearchPath := filepath.Join(cwd, "chains.yaml")
+					chainsYamlSearchPath := filepath.Join(cwd, "chains/")
 					if err := loadChainsYaml(chainsYamlSearchPath); err != nil {
 						fmt.Printf("No config found at %s, using embedded chains. pass -f to configure chains.yaml path.\n", chainsYamlSearchPath)
 					} else {
