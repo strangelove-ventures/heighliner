@@ -3,7 +3,7 @@ name: Build and Push Celestia app Docker Image
 on:
   push:
     tags:
-      - "celestia-app-v[0-9]+.[0-9]+.[0-9]+"
+      - "celestia-app-v*"
   workflow_dispatch:
 
 env:
