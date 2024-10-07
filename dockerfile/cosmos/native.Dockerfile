@@ -42,6 +42,7 @@ RUN set -eux;\
       WASMVM_REPO=$(echo $WASMVM_VERSION | awk '{print $1}');\
       WASMVM_VERS=$(echo $WASMVM_VERSION | awk '{print $2}');\
       wget -O /lib/libwasmvm_muslc.a https://${WASMVM_REPO}/releases/download/${WASMVM_VERS}/libwasmvm_muslc.$(uname -m).a;\
+      ln /lib/libwasmvm_muslc.a /lib/libwasmvm_muslc.$(uname -m).a;\
     fi;\
     export CGO_ENABLED=1 LDFLAGS='-linkmode external -extldflags "-static"';\
     if [ ! -z "$PRE_BUILD" ]; then sh -c "${PRE_BUILD}"; fi;\
