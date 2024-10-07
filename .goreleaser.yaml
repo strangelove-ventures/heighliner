@@ -14,7 +14,7 @@ builds:
     flags:
       - -mod=readonly
     ldflags:
-      - -s -w -X github.com/cosmos/heighliner/v1/cmd.Version={{ .Tag }}
+      - -s -w -X github.com/strangelove-ventures/heighliner/v1/cmd.Version={{ .Tag }}
   - id: darwin-arm64
     main: ./main.go
     binary: heighliner
@@ -28,7 +28,7 @@ builds:
     flags:
       - -mod=readonly
     ldflags:
-      - -s -w -X github.com/cosmos/heighliner/v1/cmd.Version={{ .Tag }}
+      - -s -w -X github.com/strangelove-ventures/heighliner/v1/cmd.Version={{ .Tag }}
   - id: linux-amd64
     main: ./main.go
     binary: heighliner
@@ -42,7 +42,7 @@ builds:
     flags:
       - -mod=readonly
     ldflags:
-      - -s -w -X github.com/cosmos/heighliner/v1/cmd.Version={{ .Tag }}
+      - -s -w -X github.com/strangelove-ventures/heighliner/v1/cmd.Version={{ .Tag }}
   - id: linux-arm64
     main: ./main.go
     binary: heighliner
@@ -56,7 +56,7 @@ builds:
     flags:
       - -mod=readonly
     ldflags:
-      - -s -w -X github.com/cosmos/heighliner/v1/cmd.Version={{ .Tag }}
+      - -s -w -X github.com/strangelove-ventures/heighliner/v1/cmd.Version={{ .Tag }}
 
 archives:
   - id: golang-cross
