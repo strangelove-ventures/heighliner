@@ -1,0 +1,52 @@
+name: Symbiotic
+
+on:
+  push:
+    tags:
+      - "symbiotic-v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  INFRA_TOOLKIT: v0.1.6
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.21'
+      - uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Heighliner binary
+        run: |
+          go build -o heighliner
+
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/symbiotic-}" >> $GITHUB_ENV
+
+      - name: Manually pull the base Docker image
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker pull ghcr.io/p2p-org/cosmos-heighliner:infra-toolkit-${{ env.INFRA_TOOLKIT }}
+
+      - name: Build and push docker image
+        run: |
+          ./heighliner build -c symbiotic --git-ref main
+
+      - name: Tag and push Docker image
+        run: |
+          docker tag symbiotic:main ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:symbiotic-${{ env.VERSION }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:symbiotic-${{ env.VERSION }}

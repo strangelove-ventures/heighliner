@@ -1227,6 +1227,15 @@
   binaries:
     - build/strided
 
+# Symbiotic
+- name: symbiotic
+  github-organization: symbioticfi
+  github-repo: cosmos-sdk
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/symd
+
 # Tendermint
 - name: tendermint
   github-organization: tendermint
