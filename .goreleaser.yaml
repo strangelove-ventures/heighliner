@@ -1,4 +1,4 @@
 version: 1
 before:
   hooks:
-  - bash -c 'cat chains/* > chains.yaml'
+  - bash -c 'cat chains/*.yaml > chains.yaml'
