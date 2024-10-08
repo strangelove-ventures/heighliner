@@ -1,5 +1,4 @@
-project_name: Heighliner
-
+version: 1
 before:
   hooks:
-  - cat chains/* chains.yaml
+  - bash -c 'cat chains/* chains.yaml'
