@@ -1,6 +1,6 @@
-# Terra
-- name: terra
-  github-organization: phoenix-directive
+# Terra Classic
+- name: terra-classic
+  github-organization: classic-terra
   github-repo: core
   dockerfile: cosmos
   build-target: make install
@@ -8,5 +8,3 @@
     - /go/bin/terrad
   build-env:
     - BUILD_TAGS=muslc
-
-
