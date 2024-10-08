@@ -1,0 +1,8 @@
+# Lumnetwork
+- name: lumnetwork
+  github-organization: lum-network
+  github-repo: chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/lumd

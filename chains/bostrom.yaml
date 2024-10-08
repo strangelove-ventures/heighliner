@@ -1,0 +1,10 @@
+# Bostrom
+- name: bostrom
+  github-organization: cybercongress
+  github-repo: go-cyber
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/cyber
+  build-env:
+    - BUILD_TAGS=muslc

@@ -1,0 +1,10 @@
+# Chihuahua
+- name: chihuahua
+  github-organization: ChihuahuaChain
+  github-repo: chihuahua
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/chihuahuad

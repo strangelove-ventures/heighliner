@@ -1,0 +1,10 @@
+# Fetchhub
+- name: fetchhub
+  github-organization: fetchai
+  github-repo: fetchd
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/fetchd

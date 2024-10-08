@@ -1,0 +1,13 @@
+# Akash
+- name: akash
+  github-organization: akash-network
+  github-repo: node
+  dockerfile: cosmos
+  build-target: |
+    apk add --update nodejs npm jq direnv
+    direnv allow
+    eval $(direnv export bash)
+    export GOVERSION=$(./script/tools.sh gotoolchain | sed 's/go*//')
+    make install
+  binaries:
+    - /go/bin/akash

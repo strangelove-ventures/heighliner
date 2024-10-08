@@ -1,0 +1,11 @@
+# Cosmos Hub
+- name: gaia
+  github-organization: cosmos
+  github-repo: gaia
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - LEDGER_ENABLED=false
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/gaiad

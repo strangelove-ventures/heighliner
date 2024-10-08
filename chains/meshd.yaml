@@ -1,0 +1,11 @@
+# Mesh-security-sdk simd
+- name: meshd
+  github-organization: osmosis-labs
+  github-repo: mesh-security-sdk
+  dockerfile: cosmos
+  build-target: make install
+  build-dir: demo
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/meshd

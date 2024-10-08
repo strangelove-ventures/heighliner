@@ -1,0 +1,10 @@
+# Archway
+- name: archway
+  github-organization: archway-network
+  github-repo: archway
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/archwayd
+  build-env:
+    - BUILD_TAGS=muslc

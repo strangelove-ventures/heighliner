@@ -1,0 +1,8 @@
+# Sommelier
+- name: sommelier
+  github-organization: peggyjv
+  github-repo: sommelier
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/sommelier

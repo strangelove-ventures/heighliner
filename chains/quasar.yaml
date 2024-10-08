@@ -1,0 +1,10 @@
+# Quasar
+- name: quasar
+  github-organization: quasar-finance
+  github-repo: quasar
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/quasard
+  build-env:
+    - BUILD_TAGS=muslc

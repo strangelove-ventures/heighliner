@@ -1,0 +1,9 @@
+# dydx
+- name: dydx
+  github-organization: dydxprotocol
+  github-repo: v4-chain
+  dockerfile: cosmos
+  build-target: make install
+  build-dir: protocol
+  binaries:
+    - /go/bin/dydxprotocold

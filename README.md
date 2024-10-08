@@ -45,8 +45,18 @@ If you would like to build the images yourself, heighliner is a CLI tool to help
 Download the latest [release](https://github.com/strangelove-ventures/heighliner/releases), or build it yourself with:
 
 ```shell
-go build
+make build
 ```
+
+## Build and put binary in path. 
+
+If you would like to build an image and put it in your local path , you can do the following.
+
+```shell
+make install
+```
+
+
 
 #### Example: build the docker image for gaia v6.0.0:
 
@@ -115,7 +125,7 @@ export GH_USER=github_username GH_PAT=github_personal_access_token
 heighliner build -r ghcr.io/strangelove-ventures/heighliner -n 3
 ```
 
-heighliner will fetch the last 3 release tags from github for all chains in [chains.yaml](chains/01_chains.yaml), build docker images, and push them.
+heighliner will fetch the last 3 release tags from github for all chains in [chains](chains), build docker images, and push them.
 
 
 

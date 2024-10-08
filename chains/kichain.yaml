@@ -1,0 +1,10 @@
+# Kichain
+- name: kichain
+  github-organization: KiFoundation
+  github-repo: ki-tools
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/kid
+  build-env:
+    - BUILD_TAGS=muslc

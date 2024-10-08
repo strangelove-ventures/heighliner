@@ -1,0 +1,8 @@
+# Kava
+- name: kava
+  github-organization: Kava-Labs
+  github-repo: kava
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/kava

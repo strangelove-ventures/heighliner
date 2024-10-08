@@ -1,0 +1,8 @@
+# Nibiru
+- name: nibiru
+  github-organization: NibiruChain
+  github-repo: nibiru
+  dockerfile: cargo
+  build-target: make install
+  binaries:
+    - /root/go/bin/nibid

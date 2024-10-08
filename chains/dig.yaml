@@ -1,0 +1,10 @@
+# Dig
+- name: dig
+  github-organization: notional-labs
+  github-repo: dig
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/digd
+  build-env:
+    - BUILD_TAGS=muslc

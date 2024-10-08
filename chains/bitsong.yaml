@@ -1,0 +1,8 @@
+# BitSong
+- name: bitsong
+  github-organization: bitsongofficial
+  github-repo: go-bitsong
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/bitsongd

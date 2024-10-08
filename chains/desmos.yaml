@@ -1,0 +1,10 @@
+# Desmos
+- name: desmos
+  github-organization: desmos-labs
+  github-repo: desmos
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/desmos
+  build-env:
+    - BUILD_TAGS=muslc

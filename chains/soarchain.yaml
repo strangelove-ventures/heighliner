@@ -1,0 +1,19 @@
+# soar
+- name: soarchain
+  pre-build: |
+    apt update
+    apt install -y unzip
+
+    #wget https://github.com/soar-robotics/testnet-validator-onboard/raw/main/release/libwasmvm.x86_64.so
+    wget https://github.com/soar-robotics/mainnet-rehearsal/raw/main/binary/debian11/soarchaind.tar.gz
+    wget https://github.com/soar-robotics/mainnet-rehearsal/raw/main/binary/libwasmvm.x86_64.so
+    
+    tar xfz soarchaind.tar.gz
+    mv soarchaind /usr/bin
+    mv libwasmvm.x86_64.so /usr/lib
+  binaries:
+    - /usr/bin/soarchaind
+  libraries:
+    - /usr/lib/libwasmvm.x86_64.so
+  platforms:
+    - linux/amd64

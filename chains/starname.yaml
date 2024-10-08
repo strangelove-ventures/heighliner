@@ -1,0 +1,10 @@
+# Starname
+- name: starname
+  github-organization: iov-one
+  github-repo: starnamed
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/starnamed
+  build-env:
+    - BUILD_TAGS=muslc

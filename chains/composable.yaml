@@ -1,0 +1,26 @@
+# Composable
+- name: composable
+  github-organization: ComposableFi
+  github-repo: composable
+  dockerfile: cargo
+  build-target: |
+    apt install -y zlib1g-dev:${TARGETARCH}
+    TOOLCHAIN=$(cat rust-toolchain.toml | grep channel | awk '{print $3}' | tr -d '"')
+    rustup component add rust-src --toolchain ${TOOLCHAIN}-$(uname -m)-unknown-linux-gnu
+    rustup target add wasm32-unknown-unknown
+    cd code
+    cargo build --release -p wasm-optimizer
+    cargo build --release -p composable-runtime-wasm --target wasm32-unknown-unknown
+    cargo build --release -p picasso-runtime-wasm --target wasm32-unknown-unknown
+    cargo build --release -p dali-runtime-wasm --target wasm32-unknown-unknown
+    ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/dali_runtime.wasm --output ./target/wasm32-unknown-unknown/release/dali_runtime.optimized.wasm
+    ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/picasso_runtime.wasm --output ./target/wasm32-unknown-unknown/release/picasso_runtime.optimized.wasm
+    ./target/release/wasm-optimizer --input ./target/wasm32-unknown-unknown/release/composable_runtime.wasm --output ./target/wasm32-unknown-unknown/release/composable_runtime.optimized.wasm
+    cargo build --release -p composable -Zbuild-std --features=builtin-wasm
+  build-dir: code
+  build-env:
+    - DALI_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/dali_runtime.optimized.wasm
+    - PICASSO_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/picasso_runtime.optimized.wasm
+    - COMPOSABLE_RUNTIME=/build/composable/code/target/wasm32-unknown-unknown/release/composable_runtime.optimized.wasm
+  binaries:
+    - /build/composable/code/target/${ARCH}-unknown-linux-gnu/release/composable

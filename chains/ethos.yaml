@@ -1,0 +1,10 @@
+# Ethos
+- name: ethos
+  github-organization: Ethos-Works
+  github-repo: ethos-chain
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/ethosd

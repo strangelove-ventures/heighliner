@@ -1,0 +1,9 @@
+# Gravity Bridge
+- name: gravitybridge
+  github-organization: Gravity-Bridge
+  github-repo: Gravity-Bridge
+  dockerfile: cosmos
+  build-target: make build
+  build-dir: module
+  binaries:
+    - module/build/gravity

@@ -1,0 +1,12 @@
+# Wormchain (Wormhole Gateway)
+- name: wormchain
+  github-organization: wormhole-foundation
+  github-repo: wormhole
+  dockerfile: cosmos
+  build-target: |
+    BUILD_TAGS=netgo,muslc
+    LD_FLAGS="-s -w -X github.com/cosmos/cosmos-sdk/version.Name=wormchain -X github.com/cosmos/cosmos-sdk/version.Version=$(echo $(git describe --tags) | sed 's/^v//') -X github.com/cosmos/cosmos-sdk/version.Commit=$(git log -1 --format='%H') -X github.com/cosmos/cosmos-sdk/version.BuildTags=\"${BUILD_TAGS}\" -X github.com/cosmos/cosmos-sdk/version.ServerName=wormchaind"
+    go build -mod=readonly -tags="${BUILD_TAGS}" -ldflags="$LDFLAGS ${LD_FLAGS}" -o build/wormchaind cmd/wormchaind/main.go
+  build-dir: wormchain
+  binaries:
+    - wormchain/build/wormchaind

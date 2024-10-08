@@ -1,0 +1,10 @@
+# Kaon
+- name: kaon
+  github-organization: KYVENetwork
+  github-repo: chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/kyved
+  build-env:
+    - ENV=kaon

@@ -1,0 +1,8 @@
+# Crypto.org
+- name: cryptoorgchain
+  github-organization: crypto-org-chain
+  github-repo: chain-main
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/chain-maind

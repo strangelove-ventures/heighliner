@@ -1,0 +1,10 @@
+# ibc-go sim (for testing)
+- name: ibc-go-simd
+  github-organization: cosmos
+  github-repo: ibc-go
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/simd
+  build-env:
+    - BUILD_TAGS=muslc

@@ -1,0 +1,10 @@
+# Comdex
+- name: comdex
+  github-organization: comdex-official
+  github-repo: comdex
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/comdex

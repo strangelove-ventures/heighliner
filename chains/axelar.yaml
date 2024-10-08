@@ -1,0 +1,39 @@
+# Requires "--alpine-version 3.18" set as a flag to the build command
+- name: axelar
+  github-organization: axelarnetwork
+  github-repo: axelar-core
+  dockerfile: cosmos
+  binaries:
+    - bin/axelard
+  build-target: |
+    set -eux
+    apk add --update nodejs npm jq py3-pip
+    CONTRACT_VERSION=$(cat contract-version.json | jq -r '.gateway')
+    git clone -b ${CONTRACT_VERSION} --single-branch https://github.com/axelarnetwork/axelar-cgp-solidity.git
+    cd axelar-cgp-solidity
+    # The npm commands will complain about nodejs versions but will proceed.
+    # See issue: https://github.com/strangelove-ventures/heighliner/issues/92
+    npm ci
+    npm run build
+    # prettier + alpine + certain versions of the flatten-contracts scripts fail during prettier write, which is not fully necessary since hardhat flatten still outputs artifacts
+    sed -i '/prettier/d' scripts/flatten-contracts.sh
+    npm run flatten
+    mkdir -p ../contract-artifacts/gateway
+    mv artifacts/* ../contract-artifacts/
+    cd ..
+    VERSION=$(echo $(git describe --tags) | sed 's/^v//')
+    COMMIT=$(git log -1 --format='%H')
+    BUILD_TAGS=muslc
+    LDFLAGS="$LDFLAGS -X github.com/cosmos/cosmos-sdk/version.Name=axelar \
+      -X github.com/cosmos/cosmos-sdk/version.AppName=axelard \
+      -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION \
+      -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$BUILD_TAGS" \
+      -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT \
+      -X github.com/CosmWasm/wasmd/x/wasm/types/MaxWasmSize=3145728 \
+      -X github.com/axelarnetwork/axelar-core/x/axelarnet/exported.NativeAsset=uaxl \
+      -X github.com/axelarnetwork/axelar-core/app.WasmEnabled=true \
+      -X github.com/axelarnetwork/axelar-core/app.IBCWasmHooksEnabled=false \
+      -X github.com/axelarnetwork/axelar-core/app.WasmCapabilities="iterator,staking,stargate,cosmwasm_1_3""
+    go build -o ./bin/axelard -mod=readonly -tags "$BUILD_TAGS" -ldflags "$LDFLAGS" ./cmd/axelard
+  platforms:
+    - linux/amd64

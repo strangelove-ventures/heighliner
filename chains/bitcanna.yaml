@@ -1,0 +1,8 @@
+# Bitcanna
+- name: bitcanna
+  github-organization: BitCannaGlobal
+  github-repo: bcna
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/bcnad

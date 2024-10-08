@@ -1,0 +1,10 @@
+# Mars
+- name: mars
+  github-organization: mars-protocol
+  github-repo: hub
+  dockerfile: cosmos
+  build-target: make install
+  build-env:
+    - BUILD_TAGS=muslc
+  binaries:
+    - /go/bin/marsd
