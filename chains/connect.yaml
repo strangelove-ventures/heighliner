@@ -1,0 +1,13 @@
+# Connect (Slinky)
+# Work with --alpine-version='3.19' --go-version='1.22.5' in the build command
+- name: connect
+  github-organization: skip-mev
+  github-repo: connect
+  dockerfile: cosmos
+  build-env:
+    - GOFLAGS=-buildvcs=false
+  build-target: |
+    go build -ldflags "-linkmode=external -extldflags '-Wl,-z,muldefs -static'" -o ./build/ ./...
+    go install -mod=readonly -tags "muslc" -ldflags "-linkmode=external -extldflags '-Wl,-z,muldefs -static'" ./cmd/connect
+  binaries:
+    - /go/bin/connect
