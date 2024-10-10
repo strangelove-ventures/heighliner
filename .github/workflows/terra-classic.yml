@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and push terra-classic Docker image
         run: |
-          ./heighliner build -c terra-classic --git-ref ${{ env.VERSION }}
+          ./heighliner build -c terra-classic --git-ref ${{ env.VERSION }} --alpine-version 3.18
 
       - name: Tag and push Docker image
         run: |
