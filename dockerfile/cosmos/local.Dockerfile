@@ -37,11 +37,15 @@ RUN if [ ! -z "${CLONE_KEY}" ]; then\
   ssh-keyscan github.com >> ~/.ssh/known_hosts;\
   fi
 
-# Download go mod dependencies, if there is no custom build directory
+
+ARG VENDOR
+
+# Download go mod dependencies, if there is no custom build directory.
+# Skips if a go related "vendor" folder is detected.
 # Note: a custom build dir indicates a monorepo with potential dependencies we can't anticipate atm
 RUN set -eux; \
-    if [[ "${BUILD_DIR}" == "." ]]; then \
-      go mod download; \
+    if [[ "${BUILD_DIR}" == "." && "${VENDOR}}" == "false" ]]; then\
+        go mod download;\
     fi;
 
 # Use minimal busybox from infra-toolkit image for final scratch image
