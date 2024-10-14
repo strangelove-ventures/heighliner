@@ -410,6 +410,11 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		chainConfig.Build.BuildDir = "."
 	}
 
+	vendor := "false"
+	if vendorDir, err := os.Stat("vendor"); err == nil && vendorDir.IsDir() {
+		vendor = "true"
+	}
+
 	buildArgs := map[string]string{
 		"VERSION":             chainConfig.Ref,
 		"BASE_VERSION":        gv.Image,
@@ -429,6 +434,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"BUILD_ENV":           buildEnv,
 		"BUILD_TAGS":          buildTagsEnvVar,
 		"BUILD_DIR":           chainConfig.Build.BuildDir,
+		"VENDOR":              vendor,
 		"BUILD_TIMESTAMP":     buildTimestamp,
 		"GO_VERSION":          gv.Version,
 		"WASMVM_VERSION":      wasmvmVersion,
