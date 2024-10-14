@@ -1,0 +1,11 @@
+# Steward
+- name: steward
+  github-organization: peggyjv
+  github-repo: steward
+  dockerfile: cargo
+  build-target: cargo build --release
+  pre-build: |
+    apt update
+    apt install -y pkg-config libssl-dev
+  binaries:
+    - /build/steward/target/${ARCH}-unknown-linux-gnu/release/steward

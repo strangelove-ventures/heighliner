@@ -1,0 +1,15 @@
+# Yoda
+- name: yoda
+  github-organization: bandprotocol
+  github-repo: chain
+  dockerfile: cosmos
+  binaries:
+    - /go/bin/yoda
+  build-target: |
+    set -eux
+    apk add --update alpine-sdk gmp gmp-dev
+    GOWASM_VERSION=$(grep 'github.com/bandprotocol/go-owasm' go.mod | awk '{print $2}')
+    wget -O /lib/libgo_owasm_muslc.a https://github.com/bandprotocol/go-owasm/releases/download/${GOWASM_VERSION}/libgo_owasm_muslc.x86_64.a
+    VERSION=$(echo $(git describe --tags) | sed 's/^v//')
+    COMMIT=$(git log -1 --format='%H')
+    go install -mod=readonly -tags "muslc" -ldflags "-linkmode=external -extldflags '-Wl,-z,muldefs -static' -X github.com/cosmos/cosmos-sdk/version.Name=bandchain -X github.com/cosmos/cosmos-sdk/version.AppName=bandd -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION -X "github.com/cosmos/cosmos-sdk/version.BuildTags='ledger,netgo'" -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT" ./cmd/yoda
