@@ -1,0 +1,12 @@
+# Mantrachain
+- name: mantrachain
+  github-organization: MANTRA-Chain
+  github-repo: mantrachain
+  dockerfile: cosmos
+  build-target: |
+    LEDGER_ENABLED=true BUILD_TAGS='muslc osusergo' LINK_STATICALLY=true make build
+  binaries:
+    - build/mantrachaind
+  platforms:
+    - linux/amd64
+    - linux/arm64
