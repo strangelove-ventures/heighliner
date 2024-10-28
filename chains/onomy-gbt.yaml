@@ -1,0 +1,9 @@
+# Onomy gbt. Not a chain, companion process required by validator
+- name: onomy-gbt
+  github-organization: onomyprotocol
+  github-repo: arc
+  dockerfile: cargo
+  build-dir: orchestrator
+  build-target: cargo build --release
+  binaries:
+    - /build/arc/orchestrator/target/${ARCH}-unknown-linux-gnu/release/gbt
