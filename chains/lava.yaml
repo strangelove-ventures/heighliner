@@ -1,0 +1,8 @@
+- name: lava
+  github-organization: lavanet
+  github-repo: lava
+  dockerfile: cosmos
+  build-target: make install-lavad
+  binaries:
+    - /go/bin/lavad
+  
