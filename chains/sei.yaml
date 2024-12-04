@@ -4,8 +4,9 @@
   github-repo: sei-chain
   dockerfile: cosmos
   build-target: |
-    make install
+    make install install-price-feeder
   binaries:
     - /go/bin/seid
+    - /go/bin/price-feeder
   build-env:
     - BUILD_TAGS=muslc
