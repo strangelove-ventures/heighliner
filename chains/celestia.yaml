@@ -1,11 +1,13 @@
-# Celestia Node
-- name: celestia-node
+# Celestia App
+- name: celestia
   github-organization: celestiaorg
-  github-repo: celestia-node
+  github-repo: celestia-app
   dockerfile: cosmos
   build-target: |
-    versioningPath="github.com/celestiaorg/celestia-node/nodebuilder/node"
-    LDFLAGS="$LDFLAGS -X '${versioningPath}.buildTime=$(date)' -X '${versioningPath}.lastCommit=$(git rev-parse HEAD)' -X '${versioningPath}.semanticVersion=$(git describe --tags --dirty=-dev 2>/dev/null || git rev-parse --abbrev-ref HEAD)'"
-    go install -ldflags="$LDFLAGS" ./cmd/celestia
+    VERSION := $(shell echo $(shell git describe --tags 2>/dev/null || git log -1 --format='%h') | sed 's/^v//')
+    COMMIT=$(git log -1 --format='%H')
+    LDFLAGS="$LDFLAGS -X github.com/cosmos/cosmos-sdk/version.Name=celestia-app -X github.com/cosmos/cosmos-sdk/version.AppName=celestia-appd -X github.com/cosmos/cosmos-sdk/version.Version=$VERSION -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT"
+    go install -ldflags="$LDFLAGS" ./cmd/celestia-appd
   binaries:
-    - /go/bin/celestia
+    - /go/bin/celestia-appd
+    
