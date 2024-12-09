@@ -1,0 +1,8 @@
+#  Symphony
+- name: symphony
+  github-organization: Orchestra-Labs
+  github-repo: symphony
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - build/symphonyd
