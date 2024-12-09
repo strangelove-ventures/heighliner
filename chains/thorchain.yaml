@@ -10,7 +10,7 @@
     BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
     VERSION=$(cat version)
     if [ -z "$TAG" ]; then TAG=mocknet; fi
-    ldflags="-X gitlab.com/thorchain/thornode/constants.Version=${VERSION} -X gitlab.com/thorchain/thornode/constants.GitCommit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.Name=THORChain -X github.com/cosmos/cosmos-sdk/version.AppName=thornode -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.BuildTags=${TAG} -buildid="
+    ldflags="-X gitlab.com/thorchain/thornode/v3/constants.Version=${VERSION} -X gitlab.com/thorchain/thornode/v3/constants.GitCommit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.Name=THORChain -X github.com/cosmos/cosmos-sdk/version.AppName=thornode -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT} -X github.com/cosmos/cosmos-sdk/version.BuildTags=${TAG} -buildid="
     go install -tags=$TAG -ldflags="${ldflags} $LDFLAGS" ./cmd/thornode ./cmd/bifrost
   binaries:
     - /go/bin/thornode
