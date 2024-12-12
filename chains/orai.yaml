@@ -1,0 +1,10 @@
+# Oraichain
+- name: oraichain
+  github-organization: oraichain
+  github-repo: wasmd
+  dockerfile: cosmos
+  build-target: make build
+  binaries:
+    - /go/bin/oraid
+  build-env:
+    - BUILD_TAGS=muslc
