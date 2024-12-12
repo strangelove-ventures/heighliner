@@ -14,7 +14,7 @@ const (
 	Go120Version = "1.20.14"
 	Go121Version = "1.21.13"
 	Go122Version = "1.22.7"
-	Go123Version = "1.23.1"
+	Go123Version = "1.23.4"
 	// ADD NEW GO VERSION [1] - latest patch release for each major/minor
 
 	// When updating alpine image, ensure all golang build image combinations below exist
@@ -53,7 +53,7 @@ var GoImageForVersion = map[string]GoVersion{
 	"1.20": GoVersion{Version: Go120Version, Image: Go120Image},
 	"1.21": GoVersion{Version: Go121Version, Image: Go121Image},
 	"1.22": GoVersion{Version: Go122Version, Image: Go122Image},
-	"1.23": GoVersion{Version: Go122Version, Image: Go123Image},
+	"1.23": GoVersion{Version: Go123Version, Image: Go123Image},
 	// ADD NEW GO VERSION [4]
 }
 
