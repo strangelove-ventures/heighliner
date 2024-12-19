@@ -1,0 +1,11 @@
+# Axone
+- name: axone
+  github-organization: axone-protocol
+  github-repo: axoned
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/axoned
+  build-env:
+    - BUILD_TAGS=muslc
+    - LEDGER_ENABLED=false
