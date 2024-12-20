@@ -1,6 +1,6 @@
 module github.com/strangelove-ventures/heighliner
 
-go 1.21
+go 1.23
 
 require (
 	github.com/docker/cli v27.3.1+incompatible
