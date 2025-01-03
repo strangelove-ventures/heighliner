@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and push terra Docker image
         run: |
-          ./heighliner build -c terra --git-ref ${{ env.VERSION }} 
+          ./heighliner build -c terra --git-ref ${{ env.VERSION }} --alpine-version 3.18 --go-version 1.22
 
       - name: Tag and push Docker image
         run: |
