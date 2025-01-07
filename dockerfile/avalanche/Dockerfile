@@ -40,7 +40,7 @@ RUN set -eux;\
         LIBDIR=/usr/aarch64-linux-musl/lib;\
         mkdir -p $LIBDIR;\
         export CC=aarch64-linux-musl-gcc CXX=aarch64-linux-musl-g++;\
-      fi;\  
+      fi;\
     elif [ "${TARGETARCH}" = "amd64" ]; then\
       export ARCH=x86_64;\
       if [ "${BUILDARCH}" != "amd64" ]; then\
@@ -152,6 +152,10 @@ RUN for b in \
   tr \
   watch \
   which \
+  rm \
+  mv \
+  mkdir \
+  vi \
   ; do ln sh $b; done
 
 #  Remove write utils

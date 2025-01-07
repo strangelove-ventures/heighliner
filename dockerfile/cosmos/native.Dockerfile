@@ -158,6 +158,10 @@ RUN for b in \
   tr \
   watch \
   which \
+  rm \
+  mv \
+  mkdir \
+  vi \
   ; do ln sh $b; done
 
 # Copy over absolute path directories
