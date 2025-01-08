@@ -145,8 +145,8 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install ln (for making hard links) and rm (for cleanup) from full busybox image (will be deleted, only needed for image assembly)
-COPY --from=busybox-full /bin/ln /bin/mv /bin/rm /bin/mkdir /bin/dirname ./
+# Install ln (for making hard links), rm (for cleanup), mv, mkdir, vi and dirname from full busybox image (will be deleted, only needed for image assembly)
+COPY --from=busybox-full /bin/ln /bin/mv /bin/rm /bin/mkdir /bin/vi /bin/dirname ./
 
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
@@ -180,10 +180,6 @@ RUN for b in \
   tr \
   watch \
   which \
-  rm \
-  mv \
-  mkdir \
-  vi \
   ; do ln sh $b; done
 
 # Copy over absolute path directories
@@ -200,7 +196,7 @@ RUN sh -c 'i=0; while read DIR; do\
     done < /root/dir_abs.list'
 
 #  Remove write utils
-RUN rm ln rm mv mkdir dirname
+RUN rm ln dirname
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
