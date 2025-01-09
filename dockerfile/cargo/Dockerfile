@@ -226,8 +226,8 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install ln (for making hard links), rm (for cleanup), mv, mkdir, and dirname from full busybox image (will be deleted, only needed for image assembly)
-COPY --from=busybox-full /bin/ln /bin/rm /bin/mv /bin/mkdir /bin/dirname ./
+# Install ln (for making hard links), rm (for cleanup), mv, mkdir, vi and dirname from full busybox image (will be deleted, only needed for image assembly)
+COPY --from=busybox-full /bin/ln /bin/rm /bin/mv /bin/mkdir /bin/vi /bin/dirname ./
 
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
@@ -301,7 +301,7 @@ ARG FINAL_IMAGE
 RUN if [ ! -z "$FINAL_IMAGE" ]; then sh -c "$FINAL_IMAGE"; fi
 
 # Remove write utils used to construct image and tmp dir/file for lib copy.
-RUN rm -rf ln rm mv mkdir dirname /root/lib_abs /root/lib_abs.list
+RUN rm -rf ln dirname /root/lib_abs /root/lib_abs.list
 
 # Install trusted CA certificates
 COPY --from=alpine-3 /etc/ssl/cert.pem /etc/ssl/cert.pem
