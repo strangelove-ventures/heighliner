@@ -16,7 +16,5 @@
     - /root/go/bin/price-feeder
   libraries:
     - /usr/lib/libwasmvm.x86_64.so
-  build-env:
-    - BUILD_TAGS=glibc
   platforms:
     - linux/amd64
