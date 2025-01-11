@@ -4,7 +4,6 @@
   github-repo: sei-chain
   dockerfile: cosmos
   build-target: |
-    make install
     make install install-price-feeder
   binaries:
     - /go/bin/seid
