@@ -1,3 +1,12 @@
+# 0glabs
+- name: 0glabs
+  github-organization: 0glabs
+  github-repo: 0g-chain
+  dockerfile: cosmos
+  build-target: make install
+  binaries:
+    - /go/bin/0gchaind
+
 # Acrechain
 - name: acrechain
   github-organization: ArableProtocol
@@ -1263,7 +1272,7 @@
   github-organization: phoenix-directive
   github-repo: core
   dockerfile: cosmos
-  pre-build: | 
+  pre-build: |
     GO_VERSION=1.22.10
     apk update
     apk add --no-cache --virtual .build-deps bash gcc musl-dev openssl go
