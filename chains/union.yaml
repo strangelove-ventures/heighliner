@@ -1,6 +1,14 @@
 # Union
 - name: union
-  dockerfile: imported
-  base-image: ghcr.io/unionlabs/uniond-release
+  dockerfile: cargo
+  github-organization: unionlabs
+  github-repo: union
+  platforms:
+    - linux/amd64
+  pre-build: |
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm --init none --extra-conf "sandbox = false"
+  build-target: |
+    export PATH="${PATH}:/nix/var/nix/profiles/default/bin"
+    nix build .#uniond -L
   binaries:
     - /nix/store/*-uniond-${ARCH}-unknown-linux-musl/bin/uniond
