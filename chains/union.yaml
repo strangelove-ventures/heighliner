@@ -3,6 +3,8 @@
   dockerfile: cargo
   github-organization: unionlabs
   github-repo: union
+  platforms:
+    - linux/amd64
   pre-build: |
     curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux --no-confirm --init none --extra-conf "sandbox = false"
   build-target: |
