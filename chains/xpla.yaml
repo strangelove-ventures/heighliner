@@ -3,6 +3,8 @@
   github-organization: xpladev
   github-repo: xpla
   dockerfile: cosmos
+  pre-build:
+    apk add --update --no-cache binutils-gold
   build-target: make install
   binaries:
     - /go/bin/xplad
