@@ -127,22 +127,7 @@ WORKDIR /bin
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
 
-# Install jq
-COPY --from=infra-toolkit /usr/local/bin/jq /bin/
-
-# Install rm
-COPY --from=infra-toolkit /busybox/bin/rm /bin/rm
-
-# Install mv
-COPY --from=infra-toolkit /busybox/bin/mv /bin/mv
-
-# Install ln
-COPY --from=infra-toolkit /busybox/bin/ln /bin/ln
-
-# Install vi
-COPY --from=infra-toolkit /busybox/bin/vi /bin/vi
-
-# Add hard links for read-only utils
+# Add hard links utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
 RUN for b in \
   cat \
@@ -152,10 +137,13 @@ RUN for b in \
   env \
   grep \
   head \
+  jq \
   less \
   ls \
   md5sum \
+  mv \
   pwd \
+  rm \
   sha1sum \
   sha256sum \
   sha3sum \
@@ -166,9 +154,10 @@ RUN for b in \
   tar \
   tee \
   tr \
+  vi \
   watch \
   which \
-  ; do ln sh $b; done
+; do ln sh $b; done
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin

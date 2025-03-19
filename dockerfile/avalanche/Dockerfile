@@ -133,7 +133,7 @@ COPY --from=infra-toolkit /busybox/bin/ln /bin/ln
 COPY --from=infra-toolkit /busybox/bin/vi /bin/vi
 
 
-# Add hard links for read-only utils
+# Add hard links for utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
 RUN for b in \
   cat \
@@ -143,10 +143,13 @@ RUN for b in \
   env \
   grep \
   head \
+  jq \
   less \
   ls \
   md5sum \
+  mv \
   pwd \
+  rm \
   sha1sum \
   sha256sum \
   sha3sum \
@@ -157,12 +160,10 @@ RUN for b in \
   tar \
   tee \
   tr \
+  vi \
   watch \
   which \
   ; do ln sh $b; done
-
-#  Remove write utils
-RUN rm ln
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
