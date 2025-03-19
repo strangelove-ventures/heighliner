@@ -175,7 +175,7 @@ RUN for b in \
   vi \
   watch \
   which \
-; do ln sh $b; done
+  ; do ln sh $b; done
 
 # Copy over absolute path directories
 COPY --from=build-env /root/dir_abs /root/dir_abs

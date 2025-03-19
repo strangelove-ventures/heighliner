@@ -125,7 +125,7 @@ RUN for b in \
   vi \
   watch \
   which \
-; do ln sh $b; done
+  ; do ln sh $b; done
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
