@@ -81,9 +81,6 @@ RUN bash -c 'set -eux;\
 FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
-# Use ln and rm from full featured busybox for assembling final image
-FROM busybox:1.34.1-musl AS busybox-full
-
 # Use alpine to source the latest CA certificates
 FROM alpine:3 as alpine-3
 
@@ -94,14 +91,23 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install ln (for making hard links), rm (for cleanup), mv, mkdir, amd vi from full busybox image (will be deleted, only needed for image assembly)
-COPY --from=busybox-full /bin/ln /bin/rm /bin/mv /bin/mkdir /bin/vi ./
-
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
 
 # Install jq
 COPY --from=infra-toolkit /usr/local/bin/jq /bin/
+
+# Install rm
+COPY --from=infra-toolkit /busybox/bin/rm /bin/rm
+
+# Install mv
+COPY --from=infra-toolkit /busybox/bin/mv /bin/mv
+
+# Install ln
+COPY --from=infra-toolkit /busybox/bin/ln /bin/ln
+
+# Install vi
+COPY --from=infra-toolkit /busybox/bin/vi /bin/vi
 
 # Add hard links for read-only utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
