@@ -138,6 +138,9 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
+# Install dirname
+COPY --from=infra-toolkit /busybox/dirname /bin/dirname
+
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
 
@@ -152,6 +155,7 @@ RUN for b in \
   cat \
   date \
   df \
+  dirname \
   du \
   env \
   grep \
