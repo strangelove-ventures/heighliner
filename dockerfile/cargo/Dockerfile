@@ -226,6 +226,11 @@ WORKDIR /bin
 # Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
 
+COPY --from=infra-toolkit /busybox/busybox /bin/ln
+
+# Install jq
+COPY --from=infra-toolkit /usr/local/bin/jq /bin/
+
 # Add hard links for utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
 RUN for b in \
@@ -256,7 +261,8 @@ RUN for b in \
   vi \
   watch \
   which \
-; do ln sh $b; done
+  sh \
+  ; do ln ln $b; done
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
