@@ -91,9 +91,6 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
-COPY --from=infra-toolkit /busybox/busybox /bin/sh
-
 COPY --from=infra-toolkit /busybox/busybox /bin/ln
 
 # Install jq
