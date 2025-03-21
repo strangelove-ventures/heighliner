@@ -162,7 +162,6 @@ RUN for b in \
   env \
   grep \
   head \
-  jq \
   less \
   ls \
   md5sum \
