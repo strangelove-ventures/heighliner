@@ -124,11 +124,11 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install dirname
-COPY --from=infra-toolkit /usr/bin/dirname /bin/
+# Install minimal busybox as ln binary (will create hardlinks for the rest of the binaries to this data)
+COPY --from=infra-toolkit /busybox/busybox /bin/sh
+COPY --from=infra-toolkit /busybox/busybox /bin/ln
 
-# Install ln
-COPY --from=infra-toolkit /bin/ln /bin/
+COPY --from=infra-toolkit /busybox/busybox /bin/sh
 
 # Install jq
 COPY --from=infra-toolkit /usr/local/bin/jq /bin/
@@ -147,6 +147,7 @@ RUN for b in \
   less \
   ls \
   md5sum \
+  mkdir \
   mv \
   pwd \
   rm \
@@ -163,8 +164,9 @@ RUN for b in \
   vi \
   watch \
   which \
-  sh \
-  ; do ln ln $b; done
+  ; do ln ln $b; done; \
+  rm -rf sh; \
+  ln ln sh;
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
