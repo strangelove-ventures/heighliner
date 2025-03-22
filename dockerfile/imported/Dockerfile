@@ -128,8 +128,6 @@ WORKDIR /bin
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
 COPY --from=infra-toolkit /busybox/busybox /bin/ln
 
-COPY --from=infra-toolkit /busybox/busybox /bin/sh
-
 # Install jq
 COPY --from=infra-toolkit /usr/local/bin/jq /bin/
 
