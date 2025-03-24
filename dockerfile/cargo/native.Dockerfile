@@ -160,7 +160,7 @@ RUN bash -c 'set -eux;\
   done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.10 AS infra-toolkit
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.12 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use alpine to source the latest CA certificates
@@ -173,8 +173,10 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install minimal busybox as ln binary (will create hardlinks for the rest of the binaries to this data)
+# Installa minimal busybox as `sh` and `ln` binaries
+# sh allows using `RUN` commands
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
+# ln creates hardlinks for exposed binaries from infra-toolkit min config
 COPY --from=infra-toolkit /busybox/busybox /bin/ln
 
 # Install jq
@@ -198,6 +200,7 @@ RUN for b in \
   mv \
   pwd \
   rm \
+  sed \
   sha1sum \
   sha256sum \
   sha3sum \
