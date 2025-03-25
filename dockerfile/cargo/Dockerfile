@@ -146,11 +146,8 @@ RUN bash -c 'set -eux;\
   done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 AS infra-toolkit
+FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.12 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
-
-# Use ln and rm from full featured busybox for assembling final image
-FROM busybox:1.34.1-musl AS busybox-full
 
 # Use alpine to source the latest CA certificates
 FROM alpine:3 as alpine-3
@@ -226,21 +223,22 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install ln (for making hard links), rm (for cleanup), mv, mkdir, vi and dirname from full busybox image (will be deleted, only needed for image assembly)
-COPY --from=busybox-full /bin/ln /bin/rm /bin/mv /bin/mkdir /bin/vi /bin/dirname ./
-
-# Install minimal busybox image as shell binary (will create hardlinks for the rest of the binaries to this data)
+# Install minimal busybox as `sh` and `ln` binaries
+# sh allows using `RUN` commands
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
+# ln creates hardlinks for exposed binaries from infra-toolkit min config
+COPY --from=infra-toolkit /busybox/busybox /bin/ln
 
 # Install jq
 COPY --from=infra-toolkit /usr/local/bin/jq /bin/
 
-# Add hard links for read-only utils
+# Add hard links for utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
 RUN for b in \
   cat \
   date \
   df \
+  dirname \
   du \
   env \
   grep \
@@ -248,7 +246,11 @@ RUN for b in \
   less \
   ls \
   md5sum \
+  mkdir \
+  mv \
   pwd \
+  rm \
+  sed \
   sha1sum \
   sha256sum \
   sha3sum \
@@ -259,9 +261,12 @@ RUN for b in \
   tar \
   tee \
   tr \
+  vi \
   watch \
   which \
-  ; do ln sh $b; done
+  ; do ln ln $b; done; \
+  rm -rf sh; \
+  ln ln sh;
 
 # Install chain binaries
 COPY --from=build-env /root/bin /bin
