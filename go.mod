@@ -1,6 +1,7 @@
 module github.com/strangelove-ventures/heighliner
 
-go 1.23
+go 1.23.0
+
 require (
 	github.com/docker/cli v27.3.1+incompatible
 	github.com/docker/docker v27.3.1+incompatible
@@ -10,8 +11,8 @@ require (
 	github.com/moby/buildkit v0.12.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.3.0
-	golang.org/x/crypto v0.35.0
 	github.com/stretchr/testify v1.10.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/mod v0.17.0
 	golang.org/x/sync v0.11.0
 	gopkg.in/yaml.v2 v2.4.0
