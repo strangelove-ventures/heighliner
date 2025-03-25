@@ -142,7 +142,7 @@ LABEL org.opencontainers.image.source="https://github.com/strangelove-ventures/h
 
 WORKDIR /bin
 
-# Install a minimal busybox as `sh` and `ln` binaries
+# Install minimal busybox as `sh` and `ln` binaries
 # sh allows using `RUN` commands
 COPY --from=infra-toolkit /busybox/busybox /bin/sh
 # ln creates hardlinks for exposed binaries from infra-toolkit min config
