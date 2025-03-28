@@ -1,8 +1,8 @@
 build:
 	cat chains/*.yaml > chains.yaml
 	go build
-	rm -f chains.yaml
+	echo "# This is a stub file. Please add new chains to the chains/ directory" > chains.yaml
 install:
 	cat chains/*.yaml > chains.yaml
 	go install
-	rm -f chains.yaml
+	echo "# This is a stub file. Please add new chains to the chains/ directory" > chains.yaml
