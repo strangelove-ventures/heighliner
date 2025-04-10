@@ -13,12 +13,13 @@ const (
 	Go119Version = "1.19.13"
 	Go120Version = "1.20.14"
 	Go121Version = "1.21.13"
-	Go122Version = "1.22.7"
-	Go123Version = "1.23.4"
+	Go122Version = "1.22.12"
+	Go123Version = "1.23.8"
+	Go124Version = "1.24.2"
 	// ADD NEW GO VERSION [1] - latest patch release for each major/minor
 
 	// When updating alpine image, ensure all golang build image combinations below exist
-	LatestAlpineImageVersion = "3.20"
+	LatestAlpineImageVersion = "3.21"
 )
 
 var (
@@ -27,14 +28,15 @@ var (
 	// Find from https://hub.docker.com/_/golang
 	Go118Image = GolangAlpineImage(Go118Version, "3.17") // Go 1.18 is now deprecated, pinning to 3.17
 	Go119Image = GolangAlpineImage(Go119Version, "3.18") // Go 1.19 is now deprecated, pinning to 3.18
-	Go120Image = GolangAlpineImage(Go120Version, "3.19")
-	Go121Image = GolangAlpineImage(Go121Version, LatestAlpineImageVersion)
+	Go120Image = GolangAlpineImage(Go120Version, "3.19") // Go 1.20 is now deprecated, pinning to 3.19
+	Go121Image = GolangAlpineImage(Go121Version, "3.20") // Go 1.21 is now deprecated, pinning to 3.20
 	Go122Image = GolangAlpineImage(Go122Version, LatestAlpineImageVersion)
 	Go123Image = GolangAlpineImage(Go123Version, LatestAlpineImageVersion)
+	Go124Image = GolangAlpineImage(Go124Version, LatestAlpineImageVersion)
 
 	// ADD NEW GO VERSION [3] - update GoDefaultVersion and GoDefaultImage to latest
-	GoDefaultVersion = Go123Version
-	GoDefaultImage   = Go123Image // default image for cosmos go builds if go.mod parse fails
+	GoDefaultVersion = Go124Version
+	GoDefaultImage   = Go124Image // default image for cosmos go builds if go.mod parse fails
 )
 
 func GolangAlpineImage(goVersion, alpineVersion string) string {
@@ -48,12 +50,13 @@ type GoVersion struct {
 
 // GoImageForVersion is a map of go version to the builder image. Add new go versions here
 var GoImageForVersion = map[string]GoVersion{
-	"1.18": GoVersion{Version: Go118Version, Image: Go118Image},
-	"1.19": GoVersion{Version: Go119Version, Image: Go119Image},
-	"1.20": GoVersion{Version: Go120Version, Image: Go120Image},
-	"1.21": GoVersion{Version: Go121Version, Image: Go121Image},
-	"1.22": GoVersion{Version: Go122Version, Image: Go122Image},
-	"1.23": GoVersion{Version: Go123Version, Image: Go123Image},
+	"1.18": {Version: Go118Version, Image: Go118Image},
+	"1.19": {Version: Go119Version, Image: Go119Image},
+	"1.20": {Version: Go120Version, Image: Go120Image},
+	"1.21": {Version: Go121Version, Image: Go121Image},
+	"1.22": {Version: Go122Version, Image: Go122Image},
+	"1.23": {Version: Go123Version, Image: Go123Image},
+	"1.24": {Version: Go124Version, Image: Go124Image},
 	// ADD NEW GO VERSION [4]
 }
 
