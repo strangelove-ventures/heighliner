@@ -66,6 +66,8 @@ ARG BUILD_DIR
 
 # This Dockerfile  is the same as native.Dockerfile except that the chain code is sourced from the
 # current working directory instead of a remote git repository.
+COPY go.mod go.sum ./
+RUN go mod download
 ADD . .
 
 RUN set -eux; \

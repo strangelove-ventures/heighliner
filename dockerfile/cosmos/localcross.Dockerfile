@@ -21,8 +21,6 @@ ARG GITHUB_REPO
 ARG VERSION
 ARG BUILD_TIMESTAMP
 
-ADD . .
-
 ARG BUILD_TARGET
 ARG BUILD_ENV
 ARG BUILD_TAGS
@@ -39,7 +37,11 @@ RUN if [ ! -z "${CLONE_KEY}" ]; then\
   apk add openssh;\
   git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
   ssh-keyscan github.com >> ~/.ssh/known_hosts;\
-  fi
+  fi \
+
+COPY go.mod go.sum ./
+RUN go mod download
+ADD . .
 
 RUN set -eux;\
     LIBDIR=/lib;\
