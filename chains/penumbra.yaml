@@ -3,7 +3,7 @@
   github-organization: penumbra-zone
   github-repo: penumbra
   dockerfile: cargo
-  build-target: cargo build --release
+  build-target: cargo build --release --bins
   pre-build: |
     apt install -y git-lfs
     git lfs fetch
