@@ -2,10 +2,11 @@
 - name: gaia
   github-organization: cosmos
   github-repo: gaia
-  dockerfile: cosmos
+  dockerfile: cargo
   build-target: make install
   build-env:
     - LEDGER_ENABLED=false
-    - BUILD_TAGS=muslc
   binaries:
-    - /go/bin/gaiad
+    - /root/go/bin/gaiad
+  libraries:
+    - /root/go/pkg/mod/github.com/!cosm!wasm/wasmvm/*/internal/api/libwasmvm.${ARCH}.so
