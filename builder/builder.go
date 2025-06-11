@@ -232,6 +232,12 @@ func getModFile(
 	return goMod, nil
 }
 
+func trimWasmvmVersionSuffix(repo string) string {
+	repo = strings.TrimSuffix(repo, "/v2")
+	repo = strings.TrimSuffix(repo, "/v3")
+	return repo
+}
+
 // getWasmvmVersion will get the wasmvm version from the mod file
 func getWasmvmVersion(modFile *modfile.File) string {
 	const defaultWasmvmRepo = "github.com/CosmWasm/wasmvm"
@@ -242,7 +248,7 @@ func getWasmvmVersion(modFile *modfile.File) string {
 	for _, item := range modFile.Require {
 		// Must have 2 tokens, repo & version
 		if (len(item.Syntax.Token) == 2) && (strings.Contains(item.Syntax.Token[0], wasmvmRepo)) {
-			wasmvmRepo = strings.TrimSuffix(item.Syntax.Token[0], "/v2")
+			wasmvmRepo = trimWasmvmVersionSuffix(item.Syntax.Token[0])
 			wasmvmVersion = item.Syntax.Token[1]
 		}
 	}
@@ -251,7 +257,7 @@ func getWasmvmVersion(modFile *modfile.File) string {
 	for _, item := range modFile.Replace {
 		// Must have 3 or more tokens
 		if (len(item.Syntax.Token) > 2) && (strings.Contains(item.Syntax.Token[0], wasmvmRepo)) {
-			wasmvmRepo = strings.TrimSuffix(item.Syntax.Token[len(item.Syntax.Token)-2], "/v2")
+			wasmvmRepo = trimWasmvmVersionSuffix(item.Syntax.Token[len(item.Syntax.Token)-2])
 			wasmvmVersion = item.Syntax.Token[len(item.Syntax.Token)-1]
 		}
 	}
