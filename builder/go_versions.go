@@ -14,12 +14,13 @@ const (
 	Go120Version = "1.20.14"
 	Go121Version = "1.21.13"
 	Go122Version = "1.22.12"
-	Go123Version = "1.23.8"
-	Go124Version = "1.24.2"
+	Go123Version = "1.23.12"
+	Go124Version = "1.24.13"
+	Go125Version = "1.25.7"
 	// ADD NEW GO VERSION [1] - latest patch release for each major/minor
 
 	// When updating alpine image, ensure all golang build image combinations below exist
-	LatestAlpineImageVersion = "3.21"
+	LatestAlpineImageVersion = "3.23"
 )
 
 var (
@@ -30,13 +31,14 @@ var (
 	Go119Image = GolangAlpineImage(Go119Version, "3.18") // Go 1.19 is now deprecated, pinning to 3.18
 	Go120Image = GolangAlpineImage(Go120Version, "3.19") // Go 1.20 is now deprecated, pinning to 3.19
 	Go121Image = GolangAlpineImage(Go121Version, "3.20") // Go 1.21 is now deprecated, pinning to 3.20
-	Go122Image = GolangAlpineImage(Go122Version, LatestAlpineImageVersion)
-	Go123Image = GolangAlpineImage(Go123Version, LatestAlpineImageVersion)
+	Go122Image = GolangAlpineImage(Go122Version, "3.21") // Go 1.22 is now deprecated, pinning to 3.21
+	Go123Image = GolangAlpineImage(Go123Version, "3.22") // Go 1.23 is now deprecated, pinning to 3.22
 	Go124Image = GolangAlpineImage(Go124Version, LatestAlpineImageVersion)
+	Go125Image = GolangAlpineImage(Go125Version, LatestAlpineImageVersion)
 
 	// ADD NEW GO VERSION [3] - update GoDefaultVersion and GoDefaultImage to latest
-	GoDefaultVersion = Go124Version
-	GoDefaultImage   = Go124Image // default image for cosmos go builds if go.mod parse fails
+	GoDefaultVersion = Go125Version
+	GoDefaultImage   = Go125Image // default image for cosmos go builds if go.mod parse fails
 )
 
 func GolangAlpineImage(goVersion, alpineVersion string) string {
@@ -57,6 +59,7 @@ var GoImageForVersion = map[string]GoVersion{
 	"1.22": {Version: Go122Version, Image: Go122Image},
 	"1.23": {Version: Go123Version, Image: Go123Image},
 	"1.24": {Version: Go124Version, Image: Go124Image},
+	"1.25": {Version: Go125Version, Image: Go125Image},
 	// ADD NEW GO VERSION [4]
 }
 
