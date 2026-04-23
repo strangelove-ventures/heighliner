@@ -224,7 +224,11 @@ func getModFile(
 		}
 	}
 
-	goMod, err := modfile.Parse("go.mod", goModBz, nil)
+	// ParseLax ignores unknown directives (e.g. the Go 1.24+ `tool` directive
+	// unknown to the pinned golang.org/x/mod) while still populating `go` and
+	// `require`, which are the only fields used downstream for Go version
+	// selection and wasmvm version detection.
+	goMod, err := modfile.ParseLax("go.mod", goModBz, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse go.mod file: %w", err)
 	}
