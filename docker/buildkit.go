@@ -13,6 +13,8 @@ import (
 	"github.com/moby/buildkit/client/llb"
 	"github.com/moby/buildkit/session"
 	"github.com/moby/buildkit/session/auth/authprovider"
+	"github.com/moby/buildkit/session/secrets/secretsprovider"
+	"github.com/moby/buildkit/session/sshforward/sshprovider"
 	"github.com/moby/buildkit/util/entitlements"
 	"github.com/moby/buildkit/util/progress/progresswriter"
 	"github.com/sirupsen/logrus"
@@ -22,13 +24,75 @@ import (
 const BuildKitSock = "unix:///run/buildkit/buildkitd.sock"
 const DefaultPlatforms = "linux/arm64,linux/amd64"
 
+const (
+	GitKnownHostsSecretID = "git_known_hosts"
+	GitNetrcSecretID      = "git_netrc"
+)
+
+type BuildKitSessionOptions struct {
+	SSHAgentSocket string
+	SSHPrivateKey  []byte
+	Secrets        map[string][]byte
+}
+
 type BuildKitOptions struct {
 	Address  string
 	Platform string
 	NoCache  bool
+	Session  BuildKitSessionOptions
 
 	// Set type of progress (auto, plain, tty). Use plain to show container output
 	LogBuildProgress string
+}
+
+func buildKitSessionAttachables(options BuildKitSessionOptions) ([]session.Attachable, error) {
+	attachable := make([]session.Attachable, 0, 2)
+	if options.SSHAgentSocket != "" && len(options.SSHPrivateKey) != 0 {
+		return nil, fmt.Errorf("cannot forward both an SSH agent and a private key")
+	}
+
+	sshPath := options.SSHAgentSocket
+	if len(options.SSHPrivateKey) != 0 {
+		keyFile, err := os.CreateTemp("", "heighliner-buildkit-ssh-key-")
+		if err != nil {
+			return nil, fmt.Errorf("create temporary SSH key: %w", err)
+		}
+		keyPath := keyFile.Name()
+		defer func() { _ = os.Remove(keyPath) }()
+		if _, err := keyFile.Write(options.SSHPrivateKey); err != nil {
+			_ = keyFile.Close()
+			return nil, fmt.Errorf("write temporary SSH key: %w", err)
+		}
+		if err := keyFile.Close(); err != nil {
+			return nil, fmt.Errorf("close temporary SSH key: %w", err)
+		}
+		sshPath = keyPath
+	}
+
+	if sshPath != "" {
+		provider, err := sshprovider.NewSSHAgentProvider([]sshprovider.AgentConfig{{Paths: []string{sshPath}}})
+		if err != nil {
+			return nil, fmt.Errorf("create BuildKit SSH provider: %w", err)
+		}
+		attachable = append(attachable, provider)
+	}
+	if len(options.Secrets) != 0 {
+		attachable = append(attachable, secretsprovider.FromMap(options.Secrets))
+	}
+	return attachable, nil
+}
+
+func buildKitFrontendAttrs(args map[string]string, buildKitOptions BuildKitOptions) map[string]string {
+	opts := map[string]string{
+		"platform": buildKitOptions.Platform,
+	}
+	for arg, value := range args {
+		opts[fmt.Sprintf("build-arg:%s", arg)] = value
+	}
+	if buildKitOptions.NoCache {
+		opts["no-cache"] = ""
+	}
+	return opts
 }
 
 func GetDefaultBuildKitOptions() BuildKitOptions {
@@ -68,6 +132,11 @@ func BuildDockerImageWithBuildKit(
 
 	dockerConfig := config.LoadDefaultConfigFile(os.Stderr)
 	attachable := []session.Attachable{authprovider.NewDockerAuthProvider(dockerConfig)}
+	authAttachables, err := buildKitSessionAttachables(buildKitOptions.Session)
+	if err != nil {
+		return err
+	}
+	attachable = append(attachable, authAttachables...)
 
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -105,12 +174,7 @@ func BuildDockerImageWithBuildKit(
 		exports[0] = export
 	}
 
-	opts := map[string]string{
-		"platform": buildKitOptions.Platform,
-	}
-	for arg, value := range args {
-		opts[fmt.Sprintf("build-arg:%s", arg)] = value
-	}
+	opts := buildKitFrontendAttrs(args, buildKitOptions)
 
 	locals := map[string]string{
 		"context":    ".",
@@ -131,10 +195,6 @@ func BuildDockerImageWithBuildKit(
 	}
 
 	var def *llb.Definition
-
-	if buildKitOptions.NoCache {
-		solveOpt.FrontendAttrs["no-cache"] = ""
-	}
 
 	// not using shared context to not disrupt display but let is finish reporting errors
 	pw, err := progresswriter.NewPrinter(ctx, os.Stderr, buildKitOptions.LogBuildProgress)

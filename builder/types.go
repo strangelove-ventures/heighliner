@@ -53,6 +53,10 @@ type HeighlinerDockerBuildConfig struct {
 	TarExportPath     string
 	UseBuildKit       bool
 	BuildKitAddr      string
+	UseSSH            bool
+	UseGitHubAuth     bool
+	SSHKnownHostsPath string
+	CloneKeyEnv       string
 	Platform          string
 	NoCache           bool
 	NoBuildCache      bool

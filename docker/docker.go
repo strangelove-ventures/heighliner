@@ -100,7 +100,7 @@ func BuildDockerImage(ctx context.Context, dockerfile string, tags []string, pus
 			return err
 		}
 
-		defer rd.Close()
+		defer func() { _ = rd.Close() }()
 
 		buf := new(strings.Builder)
 		_, err = io.Copy(buf, rd)

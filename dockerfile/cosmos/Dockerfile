@@ -1,7 +1,7 @@
 ARG BASE_VERSION
 FROM --platform=$BUILDPLATFORM golang:${BASE_VERSION} AS build-env
 
-RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
+RUN apk add --update --no-cache curl make git openssh-client libc-dev bash gcc linux-headers eudev-dev
 
 ARG TARGETARCH
 ARG BUILDARCH
@@ -12,27 +12,32 @@ RUN if [ "${TARGETARCH}" = "arm64" ] && [ "${BUILDARCH}" != "arm64" ]; then\
         wget -c https://storage.googleapis.com/strangelove-public/musl/x86_64-linux-musl-cross.tgz -O - | tar -xzvv --strip-components 1 -C /usr;\
     fi
 
-ARG CLONE_KEY
-
-RUN if [ ! -z "${CLONE_KEY}" ]; then\
-        mkdir -p ~/.ssh;\
-        echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
-        chmod 600 ~/.ssh/id_ed25519;\
-        apk add openssh;\
-        git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
-        ssh-keyscan github.com >> ~/.ssh/known_hosts;\
-    fi
-
 ARG GITHUB_ORGANIZATION
 ARG REPO_HOST
+ARG GIT_AUTH_MODE=none
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}
+RUN mkdir -p /root/.ssh
 
 ARG GITHUB_REPO
 ARG VERSION
 ARG BUILD_TIMESTAMP
 
-RUN git clone -b ${VERSION} --single-branch https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git --recursive
+RUN --mount=type=ssh \
+    --mount=type=secret,id=git_known_hosts,target=/root/.ssh/known_hosts \
+    --mount=type=secret,id=git_netrc,target=/root/.netrc \
+    set -eu; \
+    case "${GIT_AUTH_MODE}" in \
+      ssh) \
+        git config --global "url.ssh://git@${REPO_HOST}/.insteadOf" "https://${REPO_HOST}/"; \
+        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/root/.ssh/known_hosts"; \
+        git clone -b "${VERSION}" --single-branch "git@${REPO_HOST}:${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git" --recursive; \
+        ;; \
+      github-token|none) \
+        git clone -b "${VERSION}" --single-branch "https://${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}.git" --recursive; \
+        ;; \
+      *) echo "invalid GIT_AUTH_MODE: ${GIT_AUTH_MODE}" >&2; exit 1 ;; \
+    esac
 
 WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 
@@ -43,7 +48,14 @@ ARG PRE_BUILD
 ARG BUILD_DIR
 ARG WASMVM_VERSION
 
-RUN set -eux;\
+RUN --mount=type=ssh \
+    --mount=type=secret,id=git_known_hosts,target=/root/.ssh/known_hosts \
+    --mount=type=secret,id=git_netrc,target=/root/.netrc \
+    set -eux;\
+    if [ "${GIT_AUTH_MODE}" = "ssh" ]; then\
+      git config --global "url.ssh://git@${REPO_HOST}/.insteadOf" "https://${REPO_HOST}/";\
+      export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/root/.ssh/known_hosts";\
+    fi;\
     LIBDIR=/lib;\
     if [ "${TARGETARCH}" = "arm64" ]; then\
       export ARCH=aarch64;\

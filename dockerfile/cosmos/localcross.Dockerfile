@@ -1,7 +1,7 @@
 ARG BASE_VERSION
 FROM --platform=$BUILDPLATFORM golang:${BASE_VERSION} AS build-env
 
-RUN apk add --update --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev
+RUN apk add --update --no-cache curl make git openssh-client libc-dev bash gcc linux-headers eudev-dev
 
 ARG TARGETARCH
 ARG BUILDARCH
@@ -20,8 +20,10 @@ WORKDIR /go/src/${REPO_HOST}/${GITHUB_ORGANIZATION}/${GITHUB_REPO}
 ARG GITHUB_REPO
 ARG VERSION
 ARG BUILD_TIMESTAMP
+ARG GIT_AUTH_MODE=none
 
 ADD . .
+RUN mkdir -p /root/.ssh
 
 ARG BUILD_TARGET
 ARG BUILD_ENV
@@ -30,18 +32,14 @@ ARG PRE_BUILD
 ARG BUILD_DIR
 ARG WASMVM_VERSION
 
-ARG CLONE_KEY
-
-RUN if [ ! -z "${CLONE_KEY}" ]; then\
-  mkdir -p ~/.ssh;\
-  echo "${CLONE_KEY}" | base64 -d > ~/.ssh/id_ed25519;\
-  chmod 600 ~/.ssh/id_ed25519;\
-  apk add openssh;\
-  git config --global --add url."ssh://git@github.com/".insteadOf "https://github.com/";\
-  ssh-keyscan github.com >> ~/.ssh/known_hosts;\
-  fi
-
-RUN set -eux;\
+RUN --mount=type=ssh \
+    --mount=type=secret,id=git_known_hosts,target=/root/.ssh/known_hosts \
+    --mount=type=secret,id=git_netrc,target=/root/.netrc \
+    set -eux;\
+    if [ "${GIT_AUTH_MODE}" = "ssh" ]; then\
+      git config --global "url.ssh://git@${REPO_HOST}/.insteadOf" "https://${REPO_HOST}/";\
+      export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/root/.ssh/known_hosts";\
+    fi;\
     LIBDIR=/lib;\
     if [ "${TARGETARCH}" = "arm64" ]; then\
       export ARCH=aarch64;\

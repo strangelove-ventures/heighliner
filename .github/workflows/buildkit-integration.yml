@@ -1,0 +1,46 @@
+name: BuildKit integration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  buildkit-auth-session:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.23"
+
+      - name: Start BuildKit v0.12.5
+        run: >-
+          docker run --detach --rm --privileged
+          --name heighliner-buildkit
+          --publish 127.0.0.1:1234:1234
+          moby/buildkit:v0.12.5
+          --allow-insecure-entitlement network.host
+          --addr tcp://0.0.0.0:1234
+
+      - name: Wait for BuildKit
+        run: |
+          for attempt in $(seq 1 30); do
+            if docker logs heighliner-buildkit 2>&1 | grep -q "running server"; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs heighliner-buildkit
+          exit 1
+
+      - name: Verify ephemeral authentication mounts
+        env:
+          BUILDKIT_ADDR: tcp://127.0.0.1:1234
+        run: go test ./docker -run '^TestBuildKitAuthenticationSessionMounts$' -count=1 -v
+
+      - name: Stop BuildKit
+        if: always()
+        run: docker stop heighliner-buildkit || true

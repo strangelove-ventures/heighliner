@@ -90,7 +90,7 @@ func list() {
 			printError(fmt.Errorf("GET %s: %s", url, resp.Status))
 			continue
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			printError(err)

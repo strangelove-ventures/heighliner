@@ -140,6 +140,24 @@ The build will look for the local buildkit unix socket by default. Change addres
 
 Customize the platform(s) to be built with the `--platform` flag.
 
+### Private Git authentication
+
+Private Git authentication is available for BuildKit Cosmos builds. Choose one mode:
+
+- `--ssh` forwards the agent at `SSH_AUTH_SOCK`.
+- `--github-auth` reads a GitHub token from `GH_TOKEN`, then `GITHUB_TOKEN`.
+- `--clone-key-env <name>` reads the deprecated base64 key format without placing it in a build argument or image layer.
+
+SSH modes require `--ssh-known-hosts <path>`, `SSH_KNOWN_HOSTS`, or `~/.ssh/known_hosts`. Authentication is validated before network access.
+
+```shell
+heighliner build -b --ssh -c gaia -g private-branch
+export GH_TOKEN=github_app_installation_token
+heighliner build -b --github-auth -c gaia -g private-branch
+```
+
+The existing `--clone-key` flag and YAML property remain compatible but deprecated. BuildKit converts the key to an SSH session; non-BuildKit builds retain the insecure legacy path with a warning. Workflow actions must explicitly forward the selected environment variable.
+
 #### Example: build x64 and arm64 docker images for gaia v7.0.1:
 
 ```shell
@@ -155,4 +173,3 @@ heighliner build -b --buildkit-addr tcp://192.168.1.5:8125 -c gaia -g v7.0.1 -r 
 ```
 
 Docker images for `heighliner/gaia:v7.0.1` will be built on the remote buildkit server and then pushed to the container repository. The manifest for the tag will contain both amd64 and arm64 images.
-

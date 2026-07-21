@@ -45,6 +45,10 @@ const (
 	flagRepo          = "repo"
 	flagRepoHost      = "repo-host"
 	flagCloneKey      = "clone-key"
+	flagCloneKeyEnv   = "clone-key-env"
+	flagSSH           = "ssh"
+	flagSSHKnownHosts = "ssh-known-hosts"
+	flagGitHubAuth    = "github-auth"
 	flagGitRef        = "git-ref"
 	flagDockerfile    = "dockerfile"
 	flagBuildDir      = "build-dir"
@@ -127,7 +131,7 @@ func BuildCmd() *cobra.Command {
 		Long: `By default, fetch the last 5 releases in the repositories specified in chains.yaml.
 For each tag that doesn't exist in the specified container repository,
 it will be built and pushed`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			cmdFlags := cmd.Flags()
 
 			configFile, _ := cmdFlags.GetString(flagFile)
@@ -163,7 +167,11 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 			}
 			// END DEPRECATION HANDLING
 
+			if err := validateAuthenticationBeforeQueue(buildConfig, chainConfig, cmd.ErrOrStderr()); err != nil {
+				return err
+			}
 			queueAndBuild(buildConfig, chainConfig)
+			return nil
 		},
 	}
 
@@ -183,7 +191,11 @@ An optional flag --tag/-t is now available to override the resulting docker imag
 	buildCmd.PersistentFlags().StringVarP(&chainConfig.orgOverride, flagOrg, "o", "", "github-organization override for building from a fork")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.repoOverride, flagRepo, "", "github-repo override for building from a fork")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.repoHostOverride, flagRepoHost, "", "repo-host Git repository host override for building from a fork")
-	buildCmd.PersistentFlags().StringVar(&chainConfig.cloneKeyOverride, flagCloneKey, "", "base64 encoded ssh key to authenticate")
+	buildCmd.PersistentFlags().StringVar(&chainConfig.cloneKeyOverride, flagCloneKey, "", "DEPRECATED: base64 encoded SSH key to authenticate")
+	buildCmd.PersistentFlags().StringVar(&buildConfig.CloneKeyEnv, flagCloneKeyEnv, "", "Environment variable containing a base64 encoded SSH clone key (BuildKit only)")
+	buildCmd.PersistentFlags().BoolVar(&buildConfig.UseSSH, flagSSH, false, "Forward SSH_AUTH_SOCK for private Git authentication (BuildKit only)")
+	buildCmd.PersistentFlags().StringVar(&buildConfig.SSHKnownHostsPath, flagSSHKnownHosts, "", "SSH known_hosts path (defaults to SSH_KNOWN_HOSTS, then ~/.ssh/known_hosts)")
+	buildCmd.PersistentFlags().BoolVar(&buildConfig.UseGitHubAuth, flagGitHubAuth, false, "Use a GitHub token from GH_TOKEN, then GITHUB_TOKEN (BuildKit only)")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.dockerfileOverride, flagDockerfile, "", "dockerfile override (cosmos, cargo, imported, none)")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.buildDirOverride, flagBuildDir, "", "build-dir override - repo relative directory to run build target")
 	buildCmd.PersistentFlags().StringVar(&chainConfig.preBuildOverride, flagPreBuild, "", "pre-build override - command(s) to run prior to build-target")

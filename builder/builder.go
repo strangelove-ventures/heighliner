@@ -2,8 +2,6 @@ package builder
 
 import (
 	"context"
-	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -18,6 +16,7 @@ import (
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
 	internalssh "golang.org/x/crypto/ssh"
@@ -155,7 +154,7 @@ func getModFile(
 	repoHost string,
 	organization string,
 	repoName string,
-	cloneKey string,
+	auth GitAuthConfig,
 	ref string,
 	buildDir string,
 	local bool,
@@ -174,30 +173,12 @@ func getModFile(
 			return nil, fmt.Errorf("failed to read %s for local build: %w", goModPath, err)
 		}
 	} else {
-		// single branch depth 1 clone to only fetch most recent state of files
-		cloneOpts := &git.CloneOptions{
-			URL:          fmt.Sprintf("https://%s/%s/%s", repoHost, organization, repoName),
-			SingleBranch: true,
-			Depth:        1,
+		cloneOpts, err := gitCloneOptions(repoHost, organization, repoName, auth)
+		if err != nil {
+			return nil, err
 		}
 		// Try as tag ref first
 		cloneOpts.ReferenceName = plumbing.NewTagReferenceName(ref)
-		// if there is a clone key, decode and use it to authenticate
-		if cloneKey != "" {
-			cloneKeyBz, err := base64.StdEncoding.DecodeString(cloneKey)
-			if err != nil {
-				return nil, errors.New("failed to decode clone key")
-			}
-
-			key, err := ssh.NewPublicKeys("git", cloneKeyBz, "")
-			if err != nil {
-				return nil, errors.New("failed to generate public key")
-			}
-			key.HostKeyCallback = internalssh.InsecureIgnoreHostKey()
-
-			cloneOpts.URL = fmt.Sprintf("git@%s:%s/%s.git", repoHost, organization, repoName)
-			cloneOpts.Auth = key
-		}
 
 		// Clone into memory
 		fs := memfs.New()
@@ -230,6 +211,50 @@ func getModFile(
 	}
 
 	return goMod, nil
+}
+
+func gitCloneOptions(repoHost, organization, repoName string, auth GitAuthConfig) (*git.CloneOptions, error) {
+	cloneOpts := &git.CloneOptions{
+		URL:          fmt.Sprintf("https://%s/%s/%s", repoHost, organization, repoName),
+		SingleBranch: true,
+		Depth:        1,
+	}
+
+	switch auth.Mode {
+	case GitAuthModeNone:
+		return cloneOpts, nil
+	case GitAuthModeGitHubToken:
+		cloneOpts.Auth = &githttp.BasicAuth{Username: "x-access-token", Password: auth.GitHubToken}
+		return cloneOpts, nil
+	case GitAuthModeSSH:
+		callback := internalssh.InsecureIgnoreHostKey()
+		if !auth.InsecureLegacyClone {
+			var err error
+			callback, err = ssh.NewKnownHostsCallback(auth.SSHKnownHostsPaths...)
+			if err != nil {
+				return nil, fmt.Errorf("configure SSH known_hosts verification: %w", err)
+			}
+		}
+		if auth.SSHAgentSocket != "" {
+			key, err := ssh.NewSSHAgentAuth("git")
+			if err != nil {
+				return nil, fmt.Errorf("configure SSH authentication: %w", err)
+			}
+			key.HostKeyCallback = callback
+			cloneOpts.Auth = key
+		} else {
+			key, err := ssh.NewPublicKeys("git", auth.SSHPrivateKey, "")
+			if err != nil {
+				return nil, fmt.Errorf("configure SSH authentication: %w", err)
+			}
+			key.HostKeyCallback = callback
+			cloneOpts.Auth = key
+		}
+		cloneOpts.URL = fmt.Sprintf("git@%s:%s/%s.git", repoHost, organization, repoName)
+		return cloneOpts, nil
+	default:
+		return nil, fmt.Errorf("unsupported Git authentication mode %q", auth.Mode)
+	}
 }
 
 func trimWasmvmVersionSuffix(repo string) string {
@@ -369,6 +394,11 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		repoHost = "github.com"
 	}
 
+	auth, err := ResolveGitAuth(buildCfg, chainConfig.Build)
+	if err != nil {
+		return fmt.Errorf("invalid private Git authentication: %w", err)
+	}
+
 	buildTimestamp := ""
 	if buildCfg.NoBuildCache {
 		buildTimestamp = strconv.FormatInt(time.Now().Unix(), 10)
@@ -380,7 +410,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 
 	modFile, err := getModFile(
 		repoHost, chainConfig.Build.GithubOrganization, chainConfig.Build.GithubRepo,
-		chainConfig.Build.CloneKey, chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
+		auth, chainConfig.Ref, chainConfig.Build.BuildDir, h.local,
 	)
 
 	goVersion := buildCfg.GoVersion
@@ -429,7 +459,6 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"REPO_HOST":           repoHost,
 		"GITHUB_ORGANIZATION": chainConfig.Build.GithubOrganization,
 		"GITHUB_REPO":         chainConfig.Build.GithubRepo,
-		"CLONE_KEY":           chainConfig.Build.CloneKey,
 		"BUILD_TARGET":        chainConfig.Build.BuildTarget,
 		"BINARIES":            binaries,
 		"LIBRARIES":           libraries,
@@ -445,6 +474,10 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 		"GO_VERSION":          gv.Version,
 		"WASMVM_VERSION":      wasmvmVersion,
 		"RACE":                race,
+	}
+	authBuildArgs, buildKitSession := gitAuthBuildConfig(buildCfg.UseBuildKit, chainConfig.Build.CloneKey, auth)
+	for arg, value := range authBuildArgs {
+		buildArgs[arg] = value
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Minute*180))
@@ -475,6 +508,7 @@ func (h *HeighlinerBuilder) buildChainNodeDockerImage(
 			buildKitOptions.Platform = buildCfg.Platform
 		}
 		buildKitOptions.NoCache = buildCfg.NoCache
+		buildKitOptions.Session = buildKitSession
 		if err := docker.BuildDockerImageWithBuildKit(ctx, reldir, imageTags, push, buildCfg.TarExportPath, buildArgs, buildKitOptions); err != nil {
 			return err
 		}
@@ -521,7 +555,7 @@ func (h *HeighlinerBuilder) buildNextImage(wg *sync.WaitGroup) {
 	go func() {
 		if err := h.buildChainNodeDockerImage(chainConfig); err != nil {
 			h.errorsLock.Lock()
-			h.errors = append(h.errors, fmt.Errorf("error building docker image for %s from ref: %s - %v\n", chainConfig.Build.Name, chainConfig.Ref, err))
+			h.errors = append(h.errors, fmt.Errorf("error building docker image for %s from ref: %s - %v", chainConfig.Build.Name, chainConfig.Ref, err))
 			h.errorsLock.Unlock()
 		}
 		h.buildNextImage(wg)

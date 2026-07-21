@@ -51,7 +51,7 @@ func mostRecentReleasesForChain(
 		return builder.HeighlinerQueuedChainBuilds{}, fmt.Errorf("status code: %v", res.StatusCode)
 	}
 
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
@@ -88,30 +88,7 @@ func queueAndBuild(
 		if chainConfig.chain != "" && chainNodeConfig.Name != chainConfig.chain {
 			continue
 		}
-		if chainConfig.orgOverride != "" {
-			chainNodeConfig.GithubOrganization = chainConfig.orgOverride
-		}
-		if chainConfig.repoOverride != "" {
-			chainNodeConfig.GithubRepo = chainConfig.repoOverride
-		}
-		if chainConfig.repoHostOverride != "" {
-			chainNodeConfig.RepoHost = chainConfig.repoHostOverride
-		}
-		if chainConfig.cloneKeyOverride != "" {
-			chainNodeConfig.CloneKey = chainConfig.cloneKeyOverride
-		}
-		if chainConfig.buildTargetOverride != "" {
-			chainNodeConfig.BuildTarget = chainConfig.buildTargetOverride
-		}
-		if chainConfig.buildEnvOverride != "" {
-			chainNodeConfig.BuildEnv = strings.Split(chainConfig.buildEnvOverride, " ")
-		}
-		if chainConfig.binariesOverride != "" {
-			chainNodeConfig.Binaries = strings.Split(chainConfig.binariesOverride, " ")
-		}
-		if chainConfig.librariesOverride != "" {
-			chainNodeConfig.Libraries = strings.Split(chainConfig.librariesOverride, " ")
-		}
+		chainNodeConfig = applyChainOverrides(chainNodeConfig, chainConfig)
 		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
 		if chainConfig.ref != "" || chainConfig.local {
 			chainConfig := builder.ChainNodeDockerBuildConfig{
@@ -137,20 +114,11 @@ func queueAndBuild(
 	if heighlinerBuilder.QueueLen() == 0 {
 		chainQueuedBuilds := builder.HeighlinerQueuedChainBuilds{ChainConfigs: []builder.ChainNodeDockerBuildConfig{}}
 		chainConfig := builder.ChainNodeDockerBuildConfig{
-			Build: builder.ChainNodeConfig{
-				Name:               chainConfig.chain,
-				RepoHost:           chainConfig.repoHostOverride,
-				GithubOrganization: chainConfig.orgOverride,
-				GithubRepo:         chainConfig.repoOverride,
-				CloneKey:           chainConfig.cloneKeyOverride,
-				Dockerfile:         builder.DockerfileType(chainConfig.dockerfileOverride),
-				PreBuild:           chainConfig.preBuildOverride,
-				BuildTarget:        chainConfig.buildTargetOverride,
-				BuildEnv:           strings.Split(chainConfig.buildEnvOverride, " "),
-				BuildDir:           chainConfig.buildDirOverride,
-				Binaries:           strings.Split(chainConfig.binariesOverride, " "),
-				Libraries:          strings.Split(chainConfig.librariesOverride, " "),
-			},
+			Build: applyChainOverrides(builder.ChainNodeConfig{
+				Name:     chainConfig.chain,
+				PreBuild: chainConfig.preBuildOverride,
+				BuildDir: chainConfig.buildDirOverride,
+			}, chainConfig),
 			Ref:    chainConfig.ref,
 			Tag:    chainConfig.tag,
 			Latest: chainConfig.latest,
@@ -160,4 +128,35 @@ func queueAndBuild(
 	}
 
 	heighlinerBuilder.BuildImages()
+}
+
+func applyChainOverrides(chain builder.ChainNodeConfig, flags chainConfigFlags) builder.ChainNodeConfig {
+	if flags.orgOverride != "" {
+		chain.GithubOrganization = flags.orgOverride
+	}
+	if flags.repoOverride != "" {
+		chain.GithubRepo = flags.repoOverride
+	}
+	if flags.repoHostOverride != "" {
+		chain.RepoHost = flags.repoHostOverride
+	}
+	if flags.cloneKeyOverride != "" {
+		chain.CloneKey = flags.cloneKeyOverride
+	}
+	if flags.dockerfileOverride != "" {
+		chain.Dockerfile = builder.DockerfileType(flags.dockerfileOverride)
+	}
+	if flags.buildTargetOverride != "" {
+		chain.BuildTarget = flags.buildTargetOverride
+	}
+	if flags.buildEnvOverride != "" {
+		chain.BuildEnv = strings.Split(flags.buildEnvOverride, " ")
+	}
+	if flags.binariesOverride != "" {
+		chain.Binaries = strings.Split(flags.binariesOverride, " ")
+	}
+	if flags.librariesOverride != "" {
+		chain.Libraries = strings.Split(flags.librariesOverride, " ")
+	}
+	return chain
 }
