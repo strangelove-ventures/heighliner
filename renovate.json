@@ -4,6 +4,7 @@
   "prHourlyLimit": 6,
   "minimumReleaseAge": "3 days",
   "labels": ["renovate"],
+  "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
       "description": "Pin GitHub Actions to full commit SHA",
