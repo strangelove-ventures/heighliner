@@ -78,7 +78,7 @@ RUN bash -c 'set -eux;\
   LIBRARIES_ARR=($LIBRARIES_ENV); for LIBRARY in "${LIBRARIES_ARR[@]}"; do cp $LIBRARY /root/lib/; done'
 
 # Use minimal busybox from infra-toolkit image for final scratch image
-FROM ghcr.io/strangelove-ventures/infra-toolkit:v0.1.12 AS infra-toolkit
+FROM ghcr.io/amygdala-labs/infra-toolkit:v0.1.12 AS infra-toolkit
 RUN addgroup --gid 1025 -S heighliner && adduser --uid 1025 -S heighliner -G heighliner
 
 # Use alpine to source the latest CA certificates
